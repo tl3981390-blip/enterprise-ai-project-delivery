@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.01-understanding
 description: 模块01·项目理解。回答用户真正要解决什么问题、为什么做、最终想得到什么结果与业务价值。Use when 需明确用户真实目标与最终交付物。最高原则：结论需标注来源，AI_INFERRED 不能冒充用户要求。
-version: 1.0.0
+version: 1.1.0-dev
 license: MIT
 compatibility: open
 metadata:

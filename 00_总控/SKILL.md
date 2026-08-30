@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.s0-understanding-gate
 description: 企业AI项目交付Skill · S0总控（施工前理解门禁）。任何任务进入后被要求先证明理解，再允许施工。Use when 一个企业AI交付任务刚开始、或任何阶段要推进到写改动作前。核心：施工前八问 → 任务理解合同 → 施工前理解门禁 → READY_TO_PLAN；执行全程 DRIFT_CHECK。
-version: 1.0.0
+version: 1.1.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -13,6 +13,10 @@ metadata:
 ---
 
 # S0 总控 · 施工前理解门禁（PRE_EXECUTION_UNDERSTANDING_GATE）
+
+## Project Reliability Telemetry
+
+UNDERSTANDING 时初始化项目事件日志与 anchor；task_id 在 suspend/handoff/resume 后不得变化。DRIFT_CHECK 发现偏离时立即记录 DRIFT_DETECTED，真正重新对齐并有新 Evidence 后记录引用源事件的 DRIFT_CORRECTED。遥测只能观察本 Skill 管理的交付事件，禁止员工、桌面、键盘或后台浏览器监控。
 
 本模块是整个 Skill 的最高门禁，位于一切业务模块之前。职责：状态机推进、任务理解合同生成与锁定、理解门禁判定、计划-合同对账、DRIFT_CHECK、权限阶段控制、停止条件与人工介入。
 

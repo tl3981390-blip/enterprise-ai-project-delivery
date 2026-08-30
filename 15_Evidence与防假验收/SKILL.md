@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.15-evidence
 description: 模块15·Evidence与防假验收。统一证据合同，防假验收。Use when 需打包/核验阶段证据。
-version: 1.0.0
+version: 1.1.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -12,6 +12,8 @@ metadata:
 ---
 
 # 15 Evidence 与防假验收
+
+遥测 Evidence 使用 append-only JSONL、逐事件 SHA-256 链和独立 anchor。历史错误只能追加 CORRECTION_EVENT；删除、重排、覆盖、重复 event_id 或同类 correlation 重复均为 Integrity FAIL。模型总结和最终报告不能代替原始事件。
 
 ## Overview
 按统一证据契约收集、打包、核验证据；模型文字禁止当证据。

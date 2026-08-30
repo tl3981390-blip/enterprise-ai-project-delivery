@@ -4,7 +4,7 @@ description: 企业AI项目交付Skill。用于从业务问题出发，以「先
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 1.0.0
+  version: 1.1.0-dev
   language: zh-CN
   author: 企业Skill实验室
   requires: harness, permission-gateway
@@ -39,6 +39,8 @@ metadata:
 先按可逆性和风险选用 Quick（低风险、可快速回滚）、Feature（跨组件或需完整规格）或 Project（多阶段、部署或治理影响）级别；分级只调节文档粒度，不能降低理解、权限、Evidence 或安全门禁。成熟的 Specify → Clarify → Plan → Tasks → Analyze → Implement → Converge 流程采用上游适配资产，企业机械门禁仍由本 Skill 独立掌握。详见 [`共享/references/上游吸收索引.md`](共享/references/上游吸收索引.md)。
 
 ## 核心工作流程（S0 编排）
+
+每个受管项目在 UNDERSTANDING 初始化 PROJECT_RELIABILITY_TELEMETRY，使用同一 task_id 贯穿执行、暂停、交接和恢复。发生漂移、失败、返工、人工介入、Fake PASS、Regression 或 Gate Failure 时立即追加事件，禁止等到最终报告再凭记忆补写。详细协议见 [`共享/references/项目可靠性遥测协议.md`](共享/references/项目可靠性遥测协议.md)。
 
 ```text
 任务进入

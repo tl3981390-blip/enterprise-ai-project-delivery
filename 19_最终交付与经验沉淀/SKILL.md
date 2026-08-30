@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.19-handover
 description: 模块19·最终交付与经验沉淀。最终报告+经验入库。Use when 交付完成需收尾。
-version: 1.0.0
+version: 1.1.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -12,6 +12,8 @@ metadata:
 ---
 
 # 19 最终交付与经验沉淀
+
+最终交付必须运行确定性指标脚本并生成《AI 项目可靠性与交付效率报告》。报告数字只能来自验证通过的事件日志与 metrics.json；Token 无真实 Provider/Harness 用量时必须显示 NOT_AVAILABLE，禁止估算或写 0。
 
 ## Overview
 生成最终交付包与经验沉淀，目标完成须有真实证据，并与任务理解合同核对。

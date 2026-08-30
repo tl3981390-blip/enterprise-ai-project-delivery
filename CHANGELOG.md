@@ -2,6 +2,11 @@
 
 本文件记录企业AI项目交付 Skill 自身版本的变更。遵循 `18`/`08` 的 semver 与 staging/adopt 规则。
 
+## 1.1.0-dev (2026-08-30)
+
+- 开发 PROJECT_RELIABILITY_TELEMETRY：追加式哈希链事件、机械指标、Token 可用性诚实状态、连续性和可靠性报告。
+- v1.0.0 Release、Tag 与已发布成品保持不变。
+
 ## 1.0.0 (2026-08-30)
 
 **类型**：首个稳定版本（Stage 2A–10 全部门禁通过后签发）

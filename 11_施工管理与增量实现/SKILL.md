@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.11-construction
 description: 模块11·施工管理与增量实现。增量实现+DoD，防一次性大段施工。Use when 进入 EXECUTING 后的实际施工编排。
-version: 1.0.0
+version: 1.1.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -12,6 +12,8 @@ metadata:
 ---
 
 # 11 施工管理与增量实现
+
+施工中由 AI 自身错误导致已执行工作重做时追加 AI_REWORK_EVENT；用户批准的范围变更只能记 USER_SCOPE_CHANGE，外部网络/服务故障不能记 AI 返工。Stage 开始、首次通过和重新打开分别追加 STAGE_STARTED、STAGE_PASSED、STAGE_REOPENED。
 
 ## Overview
 在 READY_TO_EXECUTE 后按增量实现，每增量测试+提交，遵守 DoD。始终接受 DRIFT_CHECK。

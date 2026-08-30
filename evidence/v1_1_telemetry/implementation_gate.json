@@ -1,0 +1,20 @@
+{
+  "status":"PASS",
+  "version":"1.1.0-dev",
+  "start_head":"713baa78832d4bc0bb6df6948ecfdff9e4fee6cc",
+  "schemas":{"event":"PASS; 23 persisted events validated with Draft202012Validator and FormatChecker","metrics":"PASS; generated metrics validated"},
+  "positive_simulation":{"result":"PASS","events":23,"expected_metrics_match":true,"token_metrics_status":"NOT_AVAILABLE","elapsed_seconds":1320.0},
+  "negative_tests":{"result":"PASS","passed":10,"total":10,"cases":["A claimed drift mismatch","B user change misclassified as AI rework","C unavailable tokens reported as zero","D correction without detected drift","E recovery success without new test evidence","F deleted history","G missing Fake PASS count","H resume metrics reset","I external failure misclassified as AI rework","J duplicate correlation"]},
+  "additional_tests":{"token_available_provider_path":"PASS","append-only correction void":"PASS","false first-pass rejection":"PASS"},
+  "v1_0_regression":"PASS",
+  "v1_0_immutable":{"tag_commit":"713baa78832d4bc0bb6df6948ecfdff9e4fee6cc","tag_object":"7d41da43d2151bb9ceda77f5176cb72c3b4e1293","package_sha256":"114ebf327668e0ae8a96b94a83f3c32328e78ab3c5f05a7516cb04704ac1a7b2"},
+  "failures_and_fixes":[
+    {"failure":"first multi-file patch input failed to parse before application","fix":"split atomic patches","result":"PASS"},
+    {"failure":"module integration patch used wrong S0 heading and was rejected atomically","fix":"read exact headings and reapply","result":"PASS"},
+    {"failure":"generated __pycache__ recursive cleanup was blocked before execution","fix":"added .gitignore; cache excluded from artifact","result":"PASS"},
+    {"failure":"review found invalid cross-provider cached-token arithmetic assumption","fix":"removed unsupported equation and tested provider-reported total","result":"PASS"}
+  ],
+  "harness":"UNCHANGED",
+  "production":"UNTOUCHED",
+  "savior":"UNTOUCHED"
+}

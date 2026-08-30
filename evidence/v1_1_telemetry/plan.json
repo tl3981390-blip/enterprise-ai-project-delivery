@@ -1,0 +1,12 @@
+{
+  "task_id": "TASK-20260830-V1.1-TELEMETRY",
+  "status": "PLAN_COMPLETE",
+  "actions": [
+    {"id":"TLM-1","name":"TLM-1","description":"create project reliability event and metrics schemas plus append-only hash-chain recorder","target":"共享/schema and 共享/scripts"},
+    {"id":"TLM-2","name":"TLM-2","description":"create deterministic delivery metrics and reliability report generator","target":"共享/scripts"},
+    {"id":"TLM-3","name":"TLM-3","description":"integrate telemetry lifecycle into S0 modules 11 12 15 and 19","target":"00_总控 11_施工管理与增量实现 12_失败处理与恢复 15_Evidence与防假验收 19_最终交付与经验沉淀"},
+    {"id":"TLM-4","name":"TLM-4","description":"create isolated simulation and negative tests A through J without real projects","target":"tests/telemetry"},
+    {"id":"TLM-5","name":"TLM-5","description":"run complete v1.0 regression and telemetry release gate","target":"tests evidence"},
+    {"id":"TLM-6","name":"TLM-6","description":"set 1.1.0 only after gate then commit tag package and verify clean tree","target":"version and release documents"}
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "task_id": "TASK-20260830-V1.1-TELEMETRY",
+  "user_real_goal": "在不可变 v1.0.0 基线上开发并真实验证项目可靠性与交付效率遥测，全部 Release Gate 通过后签发 v1.1.0",
+  "business_goal": "用追加式真实事件、Evidence 和确定性统计量化 AI 造成的返工、漂移、恢复、人工介入、Fake PASS、Regression、Gate Failure、连续性和可用时的 Token/时间数据",
+  "final_deliverable": "enterprise-ai-project-delivery v1.1.0，包含事件与指标 Schema、追加完整性日志、机械统计、可靠性报告、隔离模拟、10 项负向测试、v1.0 回归、Evidence、Git commit/tag 和成品包",
+  "current_state": "v1.0.0 immutable baseline; HEAD 713baa78832d4bc0bb6df6948ecfdff9e4fee6cc; branch master; clean working tree; tag v1.0.0 present",
+  "completed_scope": ["v1.0.0 Release", "Understanding/State/Alignment/Drift/Evidence/RAG/Permission/Fake PASS/Harness/Rollback gates"],
+  "work_scope": ["S0 telemetry lifecycle", "module 11 rework and stage quality events", "module 12 recovery events", "module 15 append-only telemetry evidence", "module 19 mechanical metrics and reliability report", "telemetry scripts", "telemetry schemas", "isolated simulation", "negative tests", "v1.0 regression", "v1.1 release"],
+  "explicit_non_goals": ["employee monitoring", "desktop keyboard or background browser monitoring", "real enterprise project or data", "savior project testing", "Harness main project changes", "production access", "subjective reliability scores"],
+  "allowed_modify": ["enterprise-ai-project-delivery working tree after gate", "S0", "11", "12", "15", "19", "共享/scripts", "共享/schema", "tests", "evidence", "version and release documents"],
+  "forbidden_modify": ["v1.0.0 tag", "v1.0.0 history", "published v1.0.0 package", "Harness main project", "production systems", "savior project", "real enterprise projects"],
+  "allowed_tools": ["read", "edit after READY_TO_EXECUTE", "local deterministic tests", "isolated fixtures", "git commit", "git tag v1.1.0 only after release gate"],
+  "forbidden_tools": ["production access", "Harness write", "real project scan", "employee monitoring", "v1.0.0 tag mutation"],
+  "key_constraints": ["append-only correction events", "unique event_id and correlation", "user scope changes and external failures excluded from AI rework", "token unavailable is NOT_AVAILABLE never zero", "timestamps only from trusted input", "metrics only from deterministic scripts", "same task_id across suspend and resume"],
+  "success_criteria": ["event schema passes", "metrics schema passes", "append-only integrity passes", "mechanical statistics pass", "isolated positive simulation exact metrics pass", "negative tests A-J all pass", "v1.0 regression passes", "token unavailable not fabricated", "suspend resume continuity passes", "Evidence passes", "Git clean and v1.1.0 tag resolves to release HEAD"],
+  "acceptance_criteria": ["all test processes return expected exit codes", "event and metrics JSON validate against formal schemas", "tampering deletion and duplicate IDs are rejected", "generated report exactly reflects metrics", "v1.0 tag remains unchanged", "Harness production savior all untouched"],
+  "evidence_requirements": ["start_head", "task_understanding_contract", "plan", "files_changed", "schemas", "positive_tests", "negative_tests", "regression", "failures", "fixes", "metrics_fixture", "final_gate", "end_head"],
+  "known_risks": ["append-only cannot be proven by file mode alone and needs hash chaining or signed baseline", "process clocks may not be trustworthy", "provider token usage may be unavailable", "classification errors can inflate rework"],
+  "blocking_unknowns": [],
+  "non_blocking_unknowns": ["Token telemetry availability in future managed projects; current isolated test may use NOT_AVAILABLE"],
+  "provenance": {
+    "user_real_goal": "USER_EXPLICIT",
+    "current_state": "PROJECT_EVIDENCE",
+    "work_scope": "USER_EXPLICIT",
+    "forbidden_modify": "USER_EXPLICIT",
+    "success_criteria": "USER_EXPLICIT"
+  },
+  "understanding_status": "UNDERSTANDING_COMPLETE"
+}

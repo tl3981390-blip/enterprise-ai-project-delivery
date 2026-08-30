@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.12-failure-recovery
 description: 模块12·失败处理与恢复。根因定位+证据保留+自动/人工修复边界+停止条件。Use when 施工/阶段发生失败。
-version: 1.0.0
+version: 1.1.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -12,6 +12,8 @@ metadata:
 ---
 
 # 12 失败处理与恢复
+
+失败先追加 FAILURE_EVENT 或 GATE_FAILED，再追加 RECOVERY_ATTEMPT。只有引用失败、恢复尝试和新的通过测试 Evidence 时，才允许 AUTO_RECOVERY_SUCCESS；需要业务判断、新权限、外部动作或风险批准时记录 HUMAN_INTERVENTION_REQUIRED。
 
 ## Overview
 失败时保留真实证据、定位根因、在停止条件内修复；不能靠改报告 PASS。

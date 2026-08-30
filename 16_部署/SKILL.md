@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.16-deploy
 description: 模块16·部署。Build→Deploy→回滚，非「本地能跑」。Use when 交付需部署上线。
-version: 1.0.0
+version: 1.1.0-dev
 license: MIT
 compatibility: open
 metadata:

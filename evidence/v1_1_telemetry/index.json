@@ -1,0 +1,19 @@
+{
+  "stage": "v1_1_telemetry",
+  "created_at": "2026-08-30T07:13:03.708231+00:00",
+  "files": [
+    {
+      "name": "implementation_gate.json",
+      "sha256": "c857827bf77d05948d0e8e4b7925eac640717f51a23c4acd8ca32351f90e72de"
+    },
+    {
+      "name": "plan.json",
+      "sha256": "dc17e3d26a24c60d75957232c25514cd5d5145d33e580b10d3fc20278ad6ac73"
+    },
+    {
+      "name": "V1_1_TELEMETRY_TASK_UNDERSTANDING_CONTRACT.json",
+      "sha256": "3efcc2b668487d3d08c93e7dc7ee29cf632798abdbbed44f4839fcead3040ed4"
+    }
+  ],
+  "append_only": true
+}
