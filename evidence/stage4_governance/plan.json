@@ -1,0 +1,1 @@
+{"task_id":"TASK-20260830-STAGE4","status":"PLAN_COMPLETE","actions":[{"id":"S4-1","description":"implement 07-10 governance references","targets":["07_RAG设计","08_Agent设计","09_MCP与工具权限网关","10_企业治理与合规"]},{"id":"S4-2","description":"add governance validator and adversarial tests","targets":["共享/scripts/check_governance.py","tests/evals/governance"]}]}

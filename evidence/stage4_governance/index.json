@@ -1,0 +1,19 @@
+{
+  "stage": "stage4_governance",
+  "created_at": "2026-08-30T06:04:02.823832+00:00",
+  "files": [
+    {
+      "name": "gate_result.json",
+      "sha256": "c578c87a1db114acfcf6528678c5e8611a7c590dee1fd22c16dcc722eb81ea6b"
+    },
+    {
+      "name": "plan.json",
+      "sha256": "fcba8577f2b2831e53399f9c416217e325e4d3afbc2f98c23825869118e0f241"
+    },
+    {
+      "name": "task_understanding_contract.json",
+      "sha256": "607b48dbf77a730eab4c2d3589603544e2a97e9e672ea0a118e79416e50442d8"
+    }
+  ],
+  "append_only": true
+}

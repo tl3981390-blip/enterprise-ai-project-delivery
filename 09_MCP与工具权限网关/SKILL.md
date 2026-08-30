@@ -20,9 +20,9 @@ metadata:
 交付涉及工具/MCP/外部调用权限时。
 
 ## Core Process
-1. 枚举所需工具/MCP，填权限矩阵（`references/权限矩阵模板.md`）。
+1. 枚举所需工具/MCP，填 [`references/权限矩阵模板.md`](references/权限矩阵模板.md)，未列出的动作默认拒绝。
 2. 与合同 allowed_tools / forbidden_tools 对账。
-3. 高风险（EXECUTE/ADMIN/写生产/外发）标记需人工确认（`scripts/check_permission.py`）。
+3. 高风险（EXECUTE/ADMIN/写生产/外发）必须具有逐动作批准与过期时间；生产访问仍受项目硬边界禁止。
 4. 越权即拒绝（permission_denied + drift_check_log）。
 
 ## 反合理化 / Red Flags

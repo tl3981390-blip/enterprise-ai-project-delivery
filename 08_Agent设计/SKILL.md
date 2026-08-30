@@ -23,6 +23,7 @@ metadata:
 1. 明确角色与职责边界（`references/多角色职责分离.md`）。
 2. 一个角色尽量由一个 Skill/命令承载，必要时才拆 Agent。
 3. 角色权限与合同 allowed_tools 一致，避免越权角色。
+4. executor 不得批准自身高风险动作；critic 只能提出证据化问题，不能代替授权人签核或扩张权限。
 
 ## 反合理化 / Red Flags
 - 为「显得先进」拆多 Agent → 过度

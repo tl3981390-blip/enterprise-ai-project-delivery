@@ -23,6 +23,7 @@ metadata:
 1. 读取企规（org_policy_ref / key_constraints）。
 2. 按 `references/治理检查清单.md` 逐项核验（数据不出域、SSO、审计日志、变更审批）。
 3. 与合同 key_constraints 对账；外部要求冲突 → blocked/人工。
+4. 校验数据分类、用途限制、保留/删除、责任人、事件响应、审计和变更审批均有明确值。
 
 ## 反合理化 / Red Flags
 - 为效率绕合规 → 拒绝

@@ -21,8 +21,8 @@ RAG 方案须防幻觉、防越权、防旧版本、防假引用。数据源访�
 
 ## Core Process
 1. 明确知识源、索引、权限、引用、拒答策略。
-2. 用 `references/RAG四防检查.md` 逐项核验。
-3. 引用可回溯（`scripts/verify_citation.py` 防假引用）。
+2. 用 [`references/RAG四防检查.md`](references/RAG四防检查.md) 逐项核验。
+3. 引用可回溯（`共享/scripts/check_governance.py --kind rag` 防假引用、越权和旧版）。
 4. 数据源须在合同 allowed 内；外部数据权限未批 → blocked。
 
 ## 反合理化 / Red Flags
