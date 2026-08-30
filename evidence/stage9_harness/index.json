@@ -1,0 +1,19 @@
+{
+  "stage": "stage9_harness",
+  "created_at": "2026-08-30T06:15:32.917940+00:00",
+  "files": [
+    {
+      "name": "gate_result.json",
+      "sha256": "74d5e698d000a1dfda7543b189bfeb6b1c58e47450b4dd65bd568058b729ef6e"
+    },
+    {
+      "name": "plan.json",
+      "sha256": "0675a2e5656d4be1b79ca463a54424e0739fb88a6c8e9055e88f52af1f8b6a62"
+    },
+    {
+      "name": "task_understanding_contract.json",
+      "sha256": "3aceb1bad9018d72477f65b8a3573165e6cdbf43e9f0553d8b0e4083b86b4fd6"
+    }
+  ],
+  "append_only": true
+}

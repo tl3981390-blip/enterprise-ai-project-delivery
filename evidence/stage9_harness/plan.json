@@ -1,0 +1,1 @@
+{"task_id":"TASK-20260830-STAGE9","status":"PLAN_COMPLETE","actions":[{"id":"S9-1","name":"S9-1","description":"create skill-side contract; main integration 未获授权","target":"harness_manifest.json"},{"id":"S9-2","name":"S9-2","description":"run local mock operations; main integration 未获授权","target":"tests/evals/harness"}]}
