@@ -1,0 +1,9 @@
+{
+  "task_id": "TASK-20260830-STAGE2A",
+  "status": "PLAN_COMPLETE",
+  "actions": [
+    {"id": "S2A-1", "description": "adopt Architecture C and development version", "targets": ["01_总体架构设计.md", "04_Skill模块树.md", "10_正式施工计划.md", "SKILL.md"]},
+    {"id": "S2A-2", "description": "add licensed upstream adaptation references", "targets": ["共享/references", "NOTICE", "09_License与来源边界.md"]},
+    {"id": "S2A-3", "description": "validate provenance, structure, negative cases and regression", "targets": ["tests", "evidence/stage2a_upstream_adoption"]}
+  ]
+}

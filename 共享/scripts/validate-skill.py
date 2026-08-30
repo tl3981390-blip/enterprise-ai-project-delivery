@@ -13,7 +13,7 @@ import re
 import sys
 from pathlib import Path
 
-REQUIRED_FRONTMATTER = {"name", "description", "license", "compatibility", "metadata"}
+REQUIRED_FRONTMATTER = {"name", "description", "license", "metadata"}
 SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+)?(\+[0-9A-Za-z-]+)?$")
 MODULES = [
     "00_总控", "01_项目理解", "02_当前状态审计", "03_需求与范围", "04_SDD规格",
@@ -57,8 +57,9 @@ def validate_skill(root: Path):
             missing = REQUIRED_FRONTMATTER - set(data)
             if missing:
                 errors.append(f"{main_skill.name}: 缺 frontmatter 字段 {sorted(missing)}")
-            if data.get("version") and not SEMVER_RE.match(data["version"]):
-                errors.append(f"{main_skill.name}: version 非 semver: {data.get('version')}")
+            version_match = re.search(r"(?m)^  version:\s*(\S+)\s*$", main_skill.read_text(encoding="utf-8"))
+            if not version_match or not SEMVER_RE.match(version_match.group(1)):
+                errors.append(f"{main_skill.name}: metadata.version 缺失或非 semver")
             if len(data.get("description", "")) > 1024:
                 errors.append(f"{main_skill.name}: description 超过 1024 字符")
 

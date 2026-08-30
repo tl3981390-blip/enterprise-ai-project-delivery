@@ -1,0 +1,28 @@
+{
+  "task_id": "TASK-20260830-STAGE2A",
+  "user_real_goal": "连续施工企业AI项目交付Skill直到真实Release或真正阻塞",
+  "business_goal": "许可内吸收成熟SDD能力并保留企业机械门禁，避免重复开发和假验收",
+  "final_deliverable": "可验证、可回滚、Git可核验的enterprise-ai-project-delivery v1.0.0或完整接班包",
+  "current_state": "Stage 1 PASS; HEAD 537f72379bf942c37439c9e07e550b4f82057651; Stage 2A not started",
+  "completed_scope": ["Stage 1 skeleton", "understanding gate", "state machine", "plan alignment", "evidence skeleton"],
+  "work_scope": ["Stage 2A upstream adoption", "Stages 2-10", "tests", "evidence", "git commits", "release gate"],
+  "explicit_non_goals": ["第二个Skill", "Harness主工程修改", "企业生产系统访问", "上游运行时依赖"],
+  "allowed_modify": ["企业AI项目交付Skill仓库"],
+  "forbidden_modify": ["Harness主工程", "企业生产系统", "第二个Skill"],
+  "allowed_tools": ["read", "edit", "execute local tests", "git commit", "git tag after release gate"],
+  "forbidden_tools": ["production access", "production migration", "upstream pull"],
+  "key_constraints": ["每阶段独立测试和提交", "失败证据保留", "不把模型文字当Evidence", "版本先为0.2.0-dev"],
+  "success_criteria": ["all stage gates pass", "negative tests pass", "regression pass", "realistic case pass", "release tree clean"],
+  "acceptance_criteria": ["mechanical validation exit 0", "evidence manifests verify", "Harness unchanged", "production untouched"],
+  "evidence_requirements": ["commands", "exit codes", "test outputs", "manifests", "git commits"],
+  "known_risks": ["large scope", "behavioral tests may expose missing modules", "release gate may remain blocked by unverified real browser or deployment paths"],
+  "blocking_unknowns": [],
+  "non_blocking_unknowns": ["final number of fixes required"],
+  "provenance": {
+    "user_real_goal": "USER_EXPLICIT",
+    "current_state": "PROJECT_EVIDENCE",
+    "work_scope": "USER_EXPLICIT",
+    "forbidden_modify": "USER_EXPLICIT"
+  },
+  "understanding_status": "UNDERSTANDING_COMPLETE"
+}

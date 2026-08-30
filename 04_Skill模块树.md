@@ -1,6 +1,8 @@
 # 04｜企业AI项目交付 Skill 模块树
 
-> 依据 `01` 方案 B（主+子）与 `03` 能力内核设计。模块颗粒度参照 addyosmani（26 个 Skill）与 agentskills（coherent 单模范围）。
+> Architecture C 正式模块树：独立 Skill + 选择性上游复用。内部保留主入口+阶段模块；上游只以带来源的 references 适配进入。
+
+共享 references 的正式上游吸收层包含：上游吸收索引、SDD流程与规格模板、Plan模板、Tasks与分级仪式、需求表达与最少提问、Signoff与生产检查清单、Traceability与收敛。禁止引入 Spec Kit Runtime 或第二状态机。
 > 说明：节点模块数量为 20（含 S0 总控）；核心交付模块 19 个，均含 SKILL.md +（按需）references/scripts/tests。施工期可细拆/合并，但需在 `10` 中说明理由，禁止「看情况」式抹平。
 
 ---

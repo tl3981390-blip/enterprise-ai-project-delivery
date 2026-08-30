@@ -1,11 +1,10 @@
 ---
 name: enterprise-ai-project-delivery
 description: 企业AI项目交付Skill。用于从业务问题出发，以「先理解、后计划、再施工、终验证」的门禁式流程交付一套可信、可验证的企业 AI 内部产品。Use when 你需要在企业内部开发一个 AI 产品/RAG/Agent，且要求交付过程可被真实 Evidence 证明、防目标漂移、防越权、防假验收。最高原则：理解完成之前禁止施工。
-version: 1.0.0
 license: MIT
-compatibility: open
 metadata:
   skill_id: enterprise-ai-project-delivery
+  version: 0.2.0-dev
   language: zh-CN
   author: 企业Skill实验室
   requires: harness, permission-gateway
@@ -34,6 +33,10 @@ metadata:
 ## 触发方式
 
 本 Skill 面向「企业内部 AI 开发交付方/应用工程师」主动配合使用。用户提出一个**企业 AI 内部产品开发**类任务时命中（参见下节触发意图）。Skill 是方法论门禁层，不替代交付 Agent 的编码，而是约束其有序、可验证地交付。
+
+## 交付分级与核心工作流
+
+先按可逆性和风险选用 Quick（低风险、可快速回滚）、Feature（跨组件或需完整规格）或 Project（多阶段、部署或治理影响）级别；分级只调节文档粒度，不能降低理解、权限、Evidence 或安全门禁。成熟的 Specify → Clarify → Plan → Tasks → Analyze → Implement → Converge 流程采用上游适配资产，企业机械门禁仍由本 Skill 独立掌握。详见 [`共享/references/上游吸收索引.md`](共享/references/上游吸收索引.md)。
 
 ## 核心工作流程（S0 编排）
 

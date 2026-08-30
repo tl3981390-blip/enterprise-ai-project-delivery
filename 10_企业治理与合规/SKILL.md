@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.10-governance
 description: 模块10·企业治理与合规。审计/SSO/数据不出域/变更管理。Use when 交付需符合企业治理与合规要求。
-version: 1.0.0
+version: 0.2.0-dev
 license: MIT
 compatibility: open
 metadata:

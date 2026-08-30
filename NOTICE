@@ -21,6 +21,15 @@ NOTICE
 5. microsoft/skillopt —— MIT License
    参考：Gate/Staging、evidence 机制（思想采纳）。复制代码须 MIT 声明。
 
+6. github/spec-kit @ 51e52be6c3b26fed3ff5424c671f4a559519a759 —— MIT License，Copyright GitHub, Inc.
+   适配：Specify/Clarify/Plan/Tasks/Analyze/Converge 流程与前置检查思想；不引入其 CLI 或运行时。
+
+7. mariano-aguero/spec-driven-development-skill @ 939b1e74a8b27f963153df5f420170571d0e28e6 —— MIT License，Copyright (c) 2026 Mariano Aguero.
+   适配：MoSCoW、EARS、Traceability、Locked Contract、反模式与质量门结构。
+
+8. unboundinnov/specdd @ a75bd6aa457123cab22d6ce7edd220faafbc043c —— MIT License，Copyright (c) 2026 Harry.
+   适配：Quick/Feature/Project、最少提问、sign-off、变更回写与 Production Checklist。
+
 约束：
 - OpenAI skills 参考仓库 `.system` 内容在本项目全程只读，禁止复制进产物。
 - 以上均为「来源/许可声明」边界，本 Skill 的结构化流程方法论为企业自有沉淀。

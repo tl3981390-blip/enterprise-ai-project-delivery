@@ -55,7 +55,7 @@ python 共享\scripts\check_state_machine.py --legal tests\evals\state_machine\l
 - OpenAI `.system` 全程只读。（License 见 `NOTICE` / `09`）
 
 ## 版本
-`1.0.0`（见 CHANGELOG；演进遵循 `18`）。
+`0.2.0-dev`（开发版本；仅在 Release Gate 全部通过后签发 `1.0.0`）。
 
 ## 授权
 MIT License（见 LICENSE）。上游来源声明见 NOTICE。

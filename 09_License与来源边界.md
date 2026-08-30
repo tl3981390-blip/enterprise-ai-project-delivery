@@ -20,7 +20,9 @@
 ## 2. 本项目（企业AI项目交付 Skill）自身的 License 策略
 
 - 本 Skill 目标是为企业内部/品牌产品服务，建议**施工期**为本 Skill 自选一个 License（如 MIT 或企业私有）并正式签发 `LICENSE` + `NOTICE`。
-- **本阶段不签发**（未编码，无产物可授权）。签发动作放在 `10_正式施工计划` 的 Release 阶段。
+- 当前为 `0.2.0-dev` 开发制品，已包含 MIT LICENSE；稳定版只在 Release Gate 后签发。
+
+新增锁定来源：github/spec-kit@`51e52be6...`、mariano-aguero/spec-driven-development-skill@`939b1e74...`、unboundinnov/specdd@`a75bd6aa...`，均为 MIT。任何适配资产需文件头声明完整 commit 与许可；不引入其运行时。
 - 无论选哪种，都必须在上游引用发生时，为各个被借鉴的仓库保留其各自的版权与许可声明（来源映射 + NOTICE）。
 
 ---
