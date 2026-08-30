@@ -42,6 +42,7 @@ def parse_frontmatter(text: str):
 def validate_skill(root: Path):
     errors = []
     warnings = []
+    root_version = None
 
     base = root if root.name == "SKILL.md" else root
     main_skill = base / "SKILL.md" if root.name != "SKILL.md" else base
@@ -60,6 +61,8 @@ def validate_skill(root: Path):
             version_match = re.search(r"(?m)^  version:\s*(\S+)\s*$", main_skill.read_text(encoding="utf-8"))
             if not version_match or not SEMVER_RE.match(version_match.group(1)):
                 errors.append(f"{main_skill.name}: metadata.version 缺失或非 semver")
+            else:
+                root_version = version_match.group(1)
             if len(data.get("description", "")) > 1024:
                 errors.append(f"{main_skill.name}: description 超过 1024 字符")
 
@@ -78,6 +81,8 @@ def validate_skill(root: Path):
             errors.append(f"{mod}/SKILL.md: {err}")
         elif data.get("version") and not SEMVER_RE.match(data["version"]):
             errors.append(f"{mod}/SKILL.md: version 非 semver")
+        elif data.get("version") != root_version:
+            errors.append(f"{mod}/SKILL.md: version 与根版本不一致")
 
     # 3) references/scripts 引用路径存在的文件（markdown 内相对链接抽查）
     ref_pattern = re.compile(r"\]\(([^)#]+\.(?:md|py|json))")

@@ -1,0 +1,27 @@
+{
+  "stage": "10",
+  "release": "v1.0.0",
+  "status": "PASS",
+  "candidate_parent_head": "fa5d1cdcfc34523a8c509b637d11f784dcb5520b",
+  "checks": [
+    {"name":"understanding_and_alignment","result":"PASS"},
+    {"name":"version_consistency","result":"PASS","observed":"root, 20 modules and harness manifest are 1.0.0"},
+    {"name":"project_validator","result":"PASS","observed":"0 errors, 0 warnings"},
+    {"name":"official_quick_validate","result":"PASS","observed":"Skill is valid"},
+    {"name":"positive_suite","result":"PASS","observed":"requirements, spec, test, RAG, permission, governance, execution, acceptance, deployment, license, harness and enterprise case"},
+    {"name":"negative_suite","result":"PASS","observed":"12 negative gates each exited 1 as expected"},
+    {"name":"evidence_integrity","result":"PASS","observed":"28 files verified including legacy Stage 1 manifest"},
+    {"name":"harness_schema_and_mock","result":"PASS"},
+    {"name":"license_notice","result":"PASS"},
+    {"name":"isolated_rollback","result":"PASS"},
+    {"name":"browser","result":"NOT_APPLICABLE","observed":"filesystem Skill has no Web UI; applicability evidence and reviewer recorded"},
+    {"name":"p0_p1","result":"PASS","observed":"none open"}
+  ],
+  "failed_attempts": [
+    "first release run rejected legacy Stage 1 manifest format; verifier was extended to verify the legacy single-hash artifact without modifying append-only evidence",
+    "default jsonschema dependency was unavailable; an existing compatible isolated Python environment performed real schema validation"
+  ],
+  "harness": "UNCHANGED",
+  "production": "UNTOUCHED",
+  "second_skill": "NOT_STARTED"
+}

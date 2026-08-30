@@ -1,0 +1,1 @@
+{"task_id":"TASK-20260830-RELEASE","status":"PLAN_COMPLETE","actions":[{"id":"R-1","name":"R-1","description":"set version files to 1.0.0 release candidate","target":"version files"},{"id":"R-2","name":"R-2","description":"run full local release regression","target":"tests"},{"id":"R-3","name":"R-3","description":"commit and tag only after PASS","target":"git"}]}

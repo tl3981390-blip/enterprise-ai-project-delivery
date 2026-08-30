@@ -1,0 +1,19 @@
+{
+  "stage": "release_v1.0.0",
+  "created_at": "2026-08-30T06:19:14.754905+00:00",
+  "files": [
+    {
+      "name": "gate_result.json",
+      "sha256": "49315035a40f8b2c07977f987148df41e996947e4f39a5c7f028496dcf09a0da"
+    },
+    {
+      "name": "plan.json",
+      "sha256": "4a382d861391f2838e5c4939e178ddc131496a3938dffc17040a76ac9bf766d1"
+    },
+    {
+      "name": "task_understanding_contract.json",
+      "sha256": "2dc5b8d7df6801eb298fa3deb12c52f0751b6976d6474dac3e95f1d0b5b12f52"
+    }
+  ],
+  "append_only": true
+}
