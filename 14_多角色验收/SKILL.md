@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.14-multi-role-acceptance
 description: 模块14·多角色验收。需求/工程/安全/用户四视角独立验收。Use when 交付需多角色验收通过。
-version: 1.3.0-dev
+version: 1.3.0
 license: MIT
 compatibility: open
 metadata:

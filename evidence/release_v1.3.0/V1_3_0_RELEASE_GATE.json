@@ -1,0 +1,35 @@
+{
+  "release": "v1.3.0",
+  "positioning": "Reliability Coverage Hardening (requirement coverage completeness + runtime/adapter delivery integrity + role workflow E2E completeness)",
+  "operation": "V1_3_0_FORMAL_RELEASE_OPERATION",
+  "authorized_by": "explicit user release instruction after V1_3_RELEASE_CANDIDATE_READY",
+  "scope_enforcement": {
+    "included_patches": ["PATCH-EV-001 Contract Scope Completeness", "PATCH-EV-002 Declared Runtime Adapter Gate", "PATCH-EV-003 Role Workflow E2E Coverage Gate"],
+    "enabling_infrastructure_already_on_validated_candidate": ["skill_evolution_core.py + SKILL_EVOLUTION_ENGINE_SPEC.md (proposal-side engine that produced/validated the three patches; 17 tests within the 78; AUTO_PROPOSE only, no AUTO_RELEASE)"],
+    "excluded_from_this_release": ["LL-008 word-boundary fix", "gate-count accounting gap", "handoff-event accounting gap", "LL-010 port preflight", "LL-011 artifact path convention", "any new platform adapter"],
+    "mutation_rule": "candidate published exactly as validated at 31a1f22f95c49afffa0596ae85f9848c605dc95; nothing added during this operation"
+  },
+  "pre_release_verification": {
+    "candidate_head": "31a1f22f95c49afffa0596ae85f9848c605dc95 (branch v1.3.0-dev, worktree clean)",
+    "old_tags_unchanged": {"v1.0.0": "713baa78832d4bc0bb6df69e8ecfdff9e4fee6cc", "v1.1.0": "4525ca742a62a950eebade22c97440d6a2c6e181", "v1.2.0": "6ba06999fbd643bc9133487f2c7ea9a342e940d0"},
+    "candidate_gate": "V1_3_RELEASE_CANDIDATE_READY",
+    "full_regression": "78/78 PASS",
+    "held_out": "46/46 PASS (fresh-agent authored)",
+    "rescue_regression": "8/8 PASS",
+    "round1_regression": "14/14 PASS (telemetry suite)",
+    "phase_b_replay": "PASS (observer-verified: pytest 21/21, Playwright 10/10, PG live, restart 8/8)",
+    "phase_c_benchmark": "PASS (dual-arm mechanical verification by independent observer)",
+    "telemetry_chains": {"v1_2_task": "21 events 0 errors", "evolution_round": "34 events 0 errors", "erl_phase_b": "17 events 0 errors"},
+    "package_structure": "validate-skill 0 errors 0 warnings",
+    "evidence_correction_before_release": "WITH_SKILL_METRICS.json token corrected from NOT_AVAILABLE to harness-accounted 9872301 (initial draft predates reading the harness usage field; cross-checked against comparison report and scoreboard; no estimation)"
+  },
+  "benchmark_class": "ENGINEERING_OBSERVATIONAL_BASELINE",
+  "benchmark_numbers_reread_from_formal_evidence": {
+    "with_skill": {"acceptance": "14/14", "elapsed_seconds": 2735, "token": 9872301, "source": "Benchmark/WITH_SKILL_METRICS.json"},
+    "no_skill": {"acceptance": "14/14", "elapsed_seconds": 1039.5, "token": 3845571, "source": "Benchmark/WITHOUT_SKILL_METRICS.json"},
+    "permitted_conclusion": "In this isolated observational run, both arms reached 14/14 acceptance. The With-Skill arm provided broader user-journey coverage (10 vs 4 browser scenarios), complete failure/recovery/handoff telemetry, an evidence chain and mechanically recomputable process metrics, at observed higher time and token cost (scope-confounded).",
+    "forbidden_claims": ["Skill improves efficiency by X%", "Skill reduces tokens by X%", "Skill raises success rate by X% on average"]
+  },
+  "security_status": "FULL_SECURITY_AUDIT = NOT_AVAILABLE (Mimosa full AST audit remains python_ast_unavailable; release gate PASS covers gates/regression/evidence integrity only, NOT a security audit conclusion)",
+  "verdict": "RELEASE_GATE_PASS"
+}

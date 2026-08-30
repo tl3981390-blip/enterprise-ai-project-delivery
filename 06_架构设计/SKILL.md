@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.06-architecture
 description: 模块06·架构设计。架构/组件/接口/部署形态设计，架构评审通过后进入施工。Use when 需把规格落实为架构与模块边界。
-version: 1.3.0-dev
+version: 1.3.0
 license: MIT
 compatibility: open
 metadata:

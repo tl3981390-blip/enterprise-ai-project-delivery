@@ -29,7 +29,7 @@ patch_id / source_experience / affected_capability / op∈{ADD,REPLACE,DELETE,RE
 
 ## 版本批次纪律
 
-候选积累在 `NEXT_SKILL_DEV`（当前 `v1.3.0-dev` 分支）；稳定批次统一过 Release Gate 后发版（§34：不要每发现一个 Bug 就发一个版本）。项目执行中切换候选必须走 §33 安全边界（原子单元收口→Checkpoint→Handoff→全回归→版本边界记录→新代理加载→交接核验→恢复核验→同 task_id 继续）。
+候选积累在 `NEXT_SKILL_DEV` 版本化分支（本轮为 `v1.3.0-dev`，发布后下一周期另开新分支）；稳定批次统一过 Release Gate 后发版（§34：不要每发现一个 Bug 就发一个版本）。项目执行中切换候选必须走 §33 安全边界（原子单元收口→Checkpoint→Handoff→全回归→版本边界记录→新代理加载→交接核验→恢复核验→同 task_id 继续）。
 
 ## Over-Governance 防臃肿
 

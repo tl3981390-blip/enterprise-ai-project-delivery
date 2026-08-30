@@ -2,6 +2,17 @@
 
 本文件记录企业AI项目交付 Skill 自身版本的变更。遵循 `18`/`08` 的 semver 与 staging/adopt 规则。
 
+## 1.3.0 (2026-08-30)
+
+**Reliability Coverage Hardening**（需求覆盖完整性 / 运行时-适配器交付完整性 / 角色工作流 E2E 完整性）。
+
+- PATCH-EV-001 Contract Scope Completeness：理解门禁强制 source_requirements → requirement_coverage 全量处置（ADOPT/REJECT/NEEDS_MORE_DATA/DEFERRED），堵住"合同静默漏 MUST"失效类（源：v1.2 任务真实缺口）。
+- PATCH-EV-002 Declared Runtime Adapter Gate：`check_declared_adapter.py`——声明的生产运行时无启用适配器 → Release BLOCKED；静默回退 → FAIL；开发态 → PENDING 不误伤（源：Round 1 PostgreSQL 声明≠交付）。
+- PATCH-EV-003 Role Workflow E2E Coverage Gate：`check_role_workflow_coverage.py`——由工作流状态机+角色矩阵推导必需转换，旅程清单缺覆盖即 FAIL（源：Round 1 与 Phase B 两项目独立复现的角色能力面遗漏）。
+- 随附（候选上已验证的提案侧基础设施）：`skill_evolution_core.py` 与 `SKILL_EVOLUTION_ENGINE_SPEC.md`（Experience→Learning→Bounded Patch→Negative/Held-out/Regression，仅 AUTO_PROPOSE）。
+- 验证链：负向 17 + Held-out 46/46（独立代理出题）+ Rescue 8/8 + Round1 14/14 + 全量 78/78。
+- Phase C 基准（ENGINEERING_OBSERVATIONAL_BASELINE）：双臂验收 14/14；With-Skill 2735s / 9,872,301 token，No-Skill 1039.5s / 3,845,571 token——过程可证明性与旅程广度 vs 更高成本，详见 Release Report 与 KNOWN_OVERHEAD。
+
 ## 1.2.0 (2026-08-30)
 
 - Reliability Hardening：新增 `NO_STAGE_WAIT`、`NO_DEAD_END_SUSPEND` 与 `NO_BLIND_RESUME` 的可执行协议。
