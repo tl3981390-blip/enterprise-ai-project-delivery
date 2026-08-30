@@ -21,7 +21,7 @@ metadata:
 
 ## Core Process
 1. 读取需求规格（03）。
-2. 产出全维度规格（功能/数据/接口/错误/边界/性能），模板见 `references/SDD规格模板.md`。
+2. 产出全维度规格（功能/数据/接口/错误/边界/性能），模板见 [`references/SDD规格模板.md`](references/SDD规格模板.md)，并沿用共享 SDD 流程而非另造流程。
 3. 每个规格项标记是否可机检；不可机检项列出判定方式。
 4. 与合同对账（DRIFT），写规格动作须在 work_scope 内。
 
@@ -31,6 +31,6 @@ metadata:
 - 规格内容超出合同范围 → DRIFT
 
 ## Verification
-- 规格机械可检查项通过（check）
+- `共享/scripts/validate_design.py --kind spec` 通过
 - 无合同外能力
 - check_plan_alignment 对该规格动作 PASS

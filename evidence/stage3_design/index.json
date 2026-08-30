@@ -1,0 +1,19 @@
+{
+  "stage": "stage3_design",
+  "created_at": "2026-08-30T06:00:46.179014+00:00",
+  "files": [
+    {
+      "name": "gate_result.json",
+      "sha256": "8588d1767b308196e5108e249316b4f360340362a0052ec26bdb7314bed6576e"
+    },
+    {
+      "name": "plan.json",
+      "sha256": "e1697ef35f299925ffbb8d60dfc8cceddd198ff5d39c38a5b875c66c37a9fb9f"
+    },
+    {
+      "name": "task_understanding_contract.json",
+      "sha256": "e58c18d7a64abb7454b339780088156460da9428065d709c0631081b1675493e"
+    }
+  ],
+  "append_only": true
+}

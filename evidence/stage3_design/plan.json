@@ -1,0 +1,1 @@
+{"task_id":"TASK-20260830-STAGE3","status":"PLAN_COMPLETE","actions":[{"id":"S3-1","description":"implement 04-06 templates","targets":["04_SDD规格","05_TDD与测试策略","06_架构设计"]},{"id":"S3-2","description":"mechanically validate design","targets":["共享/scripts/validate_design.py","tests/evals/design"]}]}
