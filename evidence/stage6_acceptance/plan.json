@@ -1,0 +1,1 @@
+{"task_id":"TASK-20260830-STAGE6","status":"PLAN_COMPLETE","actions":[{"id":"S6-1","description":"implement browser roles and evidence protocol","targets":["13_浏览器真实验收","14_多角色验收","15_Evidence与防假验收"]},{"id":"S6-2","description":"validate roles and hashes","targets":["共享/scripts/check_acceptance.py","tests/evals/acceptance"]}]}

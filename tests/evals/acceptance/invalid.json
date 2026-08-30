@@ -1,0 +1,1 @@
+{"browser":{"status":"NOT_APPLICABLE"},"roles":[{"role":"engineering","reviewer":"self","decision":"PASS","evidence":"model says pass","blocking_findings":[]}],"evidence":[{"type":"model_text","path":"tests/evals/acceptance/artifact.txt","sha256":"bad"}]}
