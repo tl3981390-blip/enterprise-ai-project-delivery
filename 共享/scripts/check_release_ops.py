@@ -13,6 +13,6 @@ def main():
    if x.get("status") in {"UNKNOWN","CONFLICT","FORBIDDEN"}: e.append(f"license_block:{i}")
   if not d.get("items"): e.append("license_items_empty")
  elif not SEMVER.match(d.get("version","")): e.append("invalid_semver")
- elif d.get("version")=="1.0.0" and d.get("release_gate")!="PASS": e.append("stable_without_release_gate")
+ elif "-" not in d.get("version","") and d.get("release_gate")!="PASS": e.append("stable_without_release_gate")
  print(json.dumps({"status":"PASS" if not e else "FAIL","errors":e},ensure_ascii=False)); return 1 if e else 0
 if __name__=="__main__":sys.exit(main())

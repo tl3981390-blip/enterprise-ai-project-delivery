@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.03-requirements-scope
 description: 模块03·需求与范围。明确范围/非目标/禁止项/成功标准/关键约束，清除不确定词。Use when 需界定需求边界与验收标准。
-version: 1.1.0-dev
+version: 1.1.0
 license: MIT
 compatibility: open
 metadata:
