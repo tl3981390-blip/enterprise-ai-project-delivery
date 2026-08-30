@@ -19,12 +19,15 @@ LEGAL_TRANSITIONS = {
     "REJECTED": set(),
     "NEEDS_MORE_DATA": {"CANDIDATE", "REJECTED"},
 }
-PATCH_OPS = ("ADD", "REPLACE", "DELETE", "REFINE")
+PATCH_OPS = ("ADD", "REPLACE", "DELETE", "REFINE", "SIMPLIFY", "MERGE", "REMOVE", "DEFER")
 PATCH_DECLARATION_FIELDS = (
     "patch_id", "source_experience", "affected_capability", "op", "target",
     "old_behavior", "new_behavior", "expected_benefit", "possible_regression",
 )
 VALIDATION_REQUIREMENTS = ("optimization_improved", "heldout_no_regression", "rescue_regression_pass", "round1_regression_pass")
+# v1.4：减法类 op（SIMPLIFY/MERGE/REMOVE/DEFER）与 ADD/REPLACE/DELETE/REFINE 同受九字段声明约束；
+# 减法类额外必须证明 regression 不降低可靠性（VALIDATION_REQUIREMENTS 已含），并在 expected_benefit 中量化治理成本下降。
+REDUCTION_OPS = ("SIMPLIFY", "MERGE", "REMOVE", "DEFER")
 
 
 def validate_experience(entry: dict) -> list[str]:

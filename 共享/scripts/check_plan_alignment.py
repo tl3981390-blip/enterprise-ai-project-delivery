@@ -14,8 +14,14 @@ import re
 import sys
 
 # 写改/高风险动作特征 → 触发更严格检查
-WRITE_ACTION_TOKEN = re.compile(r"(修改|写入|新建|删除|deploy|migration|install|alter|drop|truncate|update|delete)", re.I)
-FORBIDDEN_TOKEN = re.compile(r"(Harness|harness|生产库|生产系统|ERP|CRM|OA|root|admin)", re.I)
+# LL-008 修复：ASCII token 使用词边界匹配，防止合法子串误报（Enterprise→erp、alternative→alter、SCOREBOARD→OA）；
+# CJK 词不受词边界影响，保持子串匹配。真实禁止项（如 "Harness main"、"生产系统"）仍会被阻止。
+WRITE_ASCII = r"\b(?:deploy|migration|install|alter|drop|truncate|update|delete)\b"
+WRITE_CJK = r"(?:修改|写入|新建|删除)"
+WRITE_ACTION_TOKEN = re.compile(WRITE_ASCII + "|" + WRITE_CJK, re.I)
+FORBIDDEN_ASCII = r"\b(?:Harness|ERP|CRM|OA|root|admin)\b"
+FORBIDDEN_CJK = r"(?:生产库|生产系统)"
+FORBIDDEN_TOKEN = re.compile(FORBIDDEN_ASCII + "|" + FORBIDDEN_CJK, re.I)
 
 
 def check(plan: dict, contract: dict):
