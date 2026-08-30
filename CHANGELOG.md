@@ -2,7 +2,7 @@
 
 本文件记录企业AI项目交付 Skill 自身版本的变更。遵循 `18`/`08` 的 semver 与 staging/adopt 规则。
 
-## 1.2.0-dev (2026-08-30)
+## 1.2.0 (2026-08-30)
 
 - Reliability Hardening：新增 `NO_STAGE_WAIT`、`NO_DEAD_END_SUSPEND` 与 `NO_BLIND_RESUME` 的可执行协议。
 - 新增确定性 Continuation Gate：拒绝存在下一合法动作时的 `ILLEGAL_PASSIVE_STOP`，并统计 `unnecessary_human_wait_count`。
