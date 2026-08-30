@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "enterprise-ai-project-delivery/task-understanding-contract",
+  "title": "TaskUnderstandingContract",
+  "description": "施工前理解门禁产出的任务理解合同。任何施工动作前必须锁定并通过结构校验。",
+  "type": "object",
+  "required": [
+    "task_id", "user_real_goal", "business_goal", "final_deliverable", "current_state",
+    "completed_scope", "work_scope", "explicit_non_goals", "allowed_modify", "forbidden_modify",
+    "allowed_tools", "forbidden_tools", "key_constraints", "success_criteria",
+    "acceptance_criteria", "evidence_requirements", "blocking_unknowns",
+    "provenance", "understanding_status"
+  ],
+  "properties": {
+    "task_id": { "type": "string" },
+    "user_real_goal": { "type": "string" },
+    "business_goal": { "type": "string" },
+    "final_deliverable": { "type": "string" },
+    "current_state": { "type": "string" },
+    "completed_scope": { "type": "string" },
+    "work_scope": { "type": "array", "items": { "type": "string" } },
+    "explicit_non_goals": { "type": "array", "items": { "type": "string" } },
+    "allowed_modify": { "type": "array", "items": { "type": "string" } },
+    "forbidden_modify": { "type": "array", "items": { "type": "string" } },
+    "allowed_tools": { "type": "array", "items": { "type": "string" } },
+    "forbidden_tools": { "type": "array", "items": { "type": "string" } },
+    "key_constraints": { "type": "array", "items": { "type": "string" } },
+    "success_criteria": { "type": "array", "items": { "type": "string" } },
+    "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+    "evidence_requirements": { "type": "array", "items": { "type": "string" } },
+    "known_risks": { "type": "array", "items": { "type": "string" } },
+    "blocking_unknowns": { "type": "array", "items": { "type": "string" } },
+    "non_blocking_unknowns": { "type": "array", "items": { "type": "string" } },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["USER_EXPLICIT", "USER_PREVIOUSLY_CONFIRMED", "PROJECT_EVIDENCE", "SYSTEM_OBSERVED", "AI_INFERRED"]
+      }
+    },
+    "understanding_status": {
+      "type": "string",
+      "enum": ["UNDERSTANDING_COMPLETE", "UNDERSTANDING_BLOCKED", "BLOCKED"]
+    }
+  }
+}

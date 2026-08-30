@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "enterprise-ai-project-delivery/evidence",
+  "title": "EvidenceSchema",
+  "description": "统一 Evidence 证据（对齐 04 证据类型白名单：模型文字禁止）。",
+  "type": "object",
+  "required": ["evidence_id", "stage", "type", "ts"],
+  "properties": {
+    "evidence_id": { "type": "string" },
+    "stage": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["git_head", "build_id", "api_response", "browser_capture", "test_result", "log", "db_record", "screenshot", "hash", "file_path", "runtime_id", "task_understanding_contract", "understanding_gate_result", "plan_alignment_result", "drift_check_log", "constraint_conflicts"]
+    },
+    "payload": {},
+    "ts": { "type": "integer" },
+    "seq": { "type": "integer" },
+    "checksum": { "type": "string" },
+    "source": { "type": "string" }
+  }
+}

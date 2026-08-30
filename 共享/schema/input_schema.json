@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "enterprise-ai-project-delivery/input",
+  "title": "InputSchema",
+  "description": "主 Skill 入口最小输入（对齐 05 输入契约）。默认 phase 从 UNDERSTANDING（理解门禁）开始。",
+  "type": "object",
+  "required": ["goal", "project_dir"],
+  "properties": {
+    "goal": { "type": "string" },
+    "project_dir": { "type": "string" },
+    "phase": { "type": "string", "enum": ["UNDERSTANDING", "01_项目理解", "02_当前状态审计", "03_需求与范围", "04_SDD规格", "05_TDD与测试策略", "06_架构设计", "07_RAG设计", "08_Agent设计", "09_MCP与工具权限网关", "10_企业治理与合规", "11_施工管理与增量实现", "12_失败处理与恢复", "13_浏览器真实验收", "14_多角色验收", "15_Evidence与防假验收", "16_部署", "17_License与合规", "18_升级与回滚", "19_最终交付与经验沉淀"] },
+    "org_policy_ref": { "type": "string" },
+    "user_identity": { "type": "object" },
+    "constraints": { "type": "array", "items": { "type": "object" } },
+    "evidence_base": { "type": "string" }
+  }
+}

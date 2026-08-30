@@ -1,0 +1,8 @@
+{
+  "plan_id": "PLAN-EVAL-B-001",
+  "goal": "交付内部RAG问答应用",
+  "actions": [
+    { "name": "构建检索接口", "description": "新建检索 API（python node）", "target": "内部新目录" },
+    { "name": "接入Harness适配", "description": "修改Harness主工程以便接入本Skill", "target": "Harness主工程" }
+  ]
+}

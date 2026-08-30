@@ -1,0 +1,28 @@
+企业AI项目交付 Skill（enterprise-ai-project-delivery）
+NOTICE
+=============================================
+
+本 Skill 的工程组织方式、开放标准遵循与部分设计思想借鉴了以下开源项目。复制/实质改写这些项目内容时必须保留其各自版权与许可声明。思想迁移（非代码复制）在 `02_Skill二次开发区\企业AI项目交付Skill\02_开源项目能力对照表.md` 与 `03_我的项目能力提炼表.md` 中标注。
+
+上游项目与许可：
+
+1. addyosmani/agent-skills —— MIT License
+   参考：工程组织方式、模块章节、DoD、三阶段 eval。若复制其代码/文档，须保留 MIT 版权与许可声明。
+
+2. agentskills-standard —— Apache License 2.0
+   遵循：frontmatter 字段集、目录约定、validator 规则、渐进式披露。分发时须附 Apache-2.0 声明。
+
+3. anthropics/anthropic-knowledge-work-plugins —— Apache License 2.0
+   参考：企业岗位组织、~~category 工具抽象（思想迁移）。若含其文本须保留 Apache 声明。
+
+4. microsoft/skill-recorder —— MIT License
+   参考：Evidence/事件流数据结构、Session/Event 组织、隐私设计（思想采纳，非代码）。本项目**不包含**其全局录屏/桌面监听等监控能力。
+
+5. microsoft/skillopt —— MIT License
+   参考：Gate/Staging、evidence 机制（思想采纳）。复制代码须 MIT 声明。
+
+约束：
+- OpenAI skills 参考仓库 `.system` 内容在本项目全程只读，禁止复制进产物。
+- 以上均为「来源/许可声明」边界，本 Skill 的结构化流程方法论为企业自有沉淀。
+
+本 Skill 自身采用 MIT License（见 LICENSE）。

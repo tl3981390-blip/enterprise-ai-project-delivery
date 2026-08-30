@@ -1,0 +1,26 @@
+{
+  "task_id": "EVAL-E-001",
+  "user_real_goal": "让法务能内部检索合同条款",
+  "business_goal": "降低检索工时",
+  "final_deliverable": "内部RAG问答应用（MVP）",
+  "current_state": "已有脱敏合同PDF",
+  "completed_scope": "无（新品）",
+  "work_scope": ["数据索引", "检索接口", "最小WebUI"],
+  "explicit_non_goals": ["不做OCR"],
+  "allowed_modify": ["dropped/dev目录"],
+  "forbidden_modify": ["Harness主工程", "生产数据库"],
+  "allowed_tools": ["git", "python", "pytest"],
+  "forbidden_tools": ["生产库写", "admin"],
+  "key_constraints": ["数据不出域"],
+  "success_criteria": ["20秒内返回带出处结果"],
+  "acceptance_criteria": ["四角色验收通过"],
+  "evidence_requirements": ["test_result", "browser_capture"],
+  "blocking_unknowns": [],
+  "non_blocking_unknowns": ["UI配色"],
+  "provenance": {
+    "user_real_goal": "USER_EXPLICIT",
+    "current_state": "PROJECT_EVIDENCE",
+    "forbidden_modify": "USER_EXPLICIT"
+  },
+  "understanding_status": "UNDERSTANDING_COMPLETE"
+}

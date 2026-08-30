@@ -1,0 +1,22 @@
+{
+  "task_id": "EVAL-A-001",
+  "user_real_goal": "未知",
+  "business_goal": "未知",
+  "final_deliverable": "未知",
+  "current_state": "未知",
+  "completed_scope": "未知",
+  "work_scope": [],
+  "explicit_non_goals": [],
+  "allowed_modify": [],
+  "forbidden_modify": [],
+  "allowed_tools": [],
+  "forbidden_tools": [],
+  "key_constraints": [],
+  "success_criteria": [],
+  "acceptance_criteria": [],
+  "evidence_requirements": [],
+  "blocking_unknowns": ["是新项目还是生产系统，未确认"],
+  "non_blocking_unknowns": [],
+  "provenance": {},
+  "understanding_status": "UNDERSTANDING_BLOCKED"
+}

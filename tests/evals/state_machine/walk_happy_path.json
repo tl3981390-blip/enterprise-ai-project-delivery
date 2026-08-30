@@ -1,0 +1,15 @@
+{
+  "transitions": [
+    "UNDERSTANDING",
+    "UNDERSTANDING_BLOCKED",
+    "UNDERSTANDING",
+    "UNDERSTANDING_COMPLETE",
+    "READY_TO_PLAN",
+    "PLANNING",
+    "PLAN_COMPLETE",
+    "READY_TO_EXECUTE",
+    "EXECUTING",
+    "VERIFYING",
+    "COMPLETED"
+  ]
+}

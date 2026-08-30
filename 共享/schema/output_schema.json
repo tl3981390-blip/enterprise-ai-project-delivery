@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "enterprise-ai-project-delivery/output",
+  "title": "OutputSchema",
+  "description": "Skill 每次阶段/门禁完成的规范化输出（对齐 05 输出契约 + 理解门禁 gate_results）。",
+  "type": "object",
+  "required": ["phase", "status", "can_advance", "evidence"],
+  "properties": {
+    "phase": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": [
+        "UNDERSTANDING", "UNDERSTANDING_BLOCKED", "BLOCKED", "UNDERSTANDING_COMPLETE",
+        "READY_TO_PLAN", "PLANNING", "PLAN_BLOCKED", "PLAN_COMPLETE", "READY_TO_EXECUTE",
+        "EXECUTING", "EXECUTION_BLOCKED", "VERIFYING", "COMPLETED"
+      ]
+    },
+    "goal": { "type": "string" },
+    "understanding_contract": { "type": "object" },
+    "gate_results": {
+      "type": "object",
+      "properties": {
+        "understanding_gate": { "enum": ["PASS", "FAIL"] },
+        "plan_alignment": { "enum": ["PASS", "FAIL"] },
+        "drift_check": { "enum": ["PASS", "DRIFT_DETECTED"] }
+      }
+    },
+    "completed": { "type": "array", "items": { "type": "string" } },
+    "blocked": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "evidence": { "type": "array", "items": { "$ref": "#/definitions/evidence" } },
+    "suggested_next": { "type": "array", "items": { "type": "string" } },
+    "can_advance": { "type": "boolean" },
+    "requires_human": { "type": "boolean" },
+    "human_action": { "type": ["string", "null"] }
+  },
+  "definitions": {
+    "evidence": {
+      "type": "object",
+      "required": ["evidence_id", "stage", "type", "ts"],
+      "properties": {
+        "evidence_id": { "type": "string" },
+        "stage": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["git_head", "build_id", "api_response", "browser_capture", "test_result", "log", "db_record", "screenshot", "hash", "file_path", "runtime_id", "task_understanding_contract", "understanding_gate_result", "plan_alignment_result", "drift_check_log", "constraint_conflicts"]
+        },
+        "payload": {},
+        "ts": { "type": "integer" },
+        "seq": { "type": "integer" },
+        "checksum": { "type": "string" },
+        "source": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+"""check_understanding_gate.py — 施工前理解门禁 / 任务理解合同结构校验。
+
+用法：
+  python check_understanding_gate.py --contract <task_understanding_contract.json>
+  python check_understanding_gate.py --help
+退出码：0 = 结构 PASS；1 = 结构 FAIL（缺必填字段/来源不完整）。
+说明：本脚本只做结构与字段完整性检查；业务含义是否被真正理解由 AI + 人工判定（不替代）。
+"""
+import argparse
+import json
+import sys
+
+REQUIRED_FIELDS = [
+    "task_id", "user_real_goal", "business_goal", "final_deliverable", "current_state",
+    "completed_scope", "work_scope", "explicit_non_goals", "allowed_modify", "forbidden_modify",
+    "allowed_tools", "forbidden_tools", "key_constraints", "success_criteria",
+    "acceptance_criteria", "evidence_requirements", "blocking_unknowns",
+    "provenance", "understanding_status",
+]
+VALID_STATUS = {"UNDERSTANDING_COMPLETE", "UNDERSTANDING_BLOCKED", "BLOCKED"}
+VALID_SOURCES = {"USER_EXPLICIT", "USER_PREVIOUSLY_CONFIRMED", "PROJECT_EVIDENCE", "SYSTEM_OBSERVED", "AI_INFERRED"}
+
+
+def check(contract: dict):
+    errors = []
+
+    missing = [f for f in REQUIRED_FIELDS if f not in contract]
+    if missing:
+        errors.append(f"缺必填字段: {missing}")
+
+    st = contract.get("understanding_status")
+    if st is not None and st not in VALID_STATUS:
+        errors.append(f"understanding_status 非法: {st}（应为 {sorted(VALID_STATUS)}）")
+
+    blocking = contract.get("blocking_unknowns") or []
+    if st == "UNDERSTANDING_COMPLETE" and blocking:
+        errors.append("存在阻塞性未知项却声明 UNDERSTANDING_COMPLETE → 应 BLOCKED or UNDERSTANDING_BLOCKED")
+
+    # 来源完整性：provenance 的值须为合法来源码
+    prov = contract.get("provenance") or {}
+    if not isinstance(prov, dict):
+        errors.append("provenance 必须为对象")
+    else:
+        bad = [k for k, v in prov.items() if v not in VALID_SOURCES]
+        if bad:
+            errors.append(f"provenance 含非法来源码: {bad}（合法: {sorted(VALID_SOURCES)}）")
+
+    # AI_INFERRED 不能单独支撑重大字段（user_real_goal / forbidden_modify / work_scope）
+    for critical in ("user_real_goal", "forbidden_modify", "work_scope", "key_constraints"):
+        if prov.get(critical) == "AI_INFERRED":
+            errors.append(f"关键字段 '{critical}' 仅由 AI_INFERRED 支撑，不得升级为合同事实，须用户确认")
+
+    return errors
+
+
+def main():
+    p = argparse.ArgumentParser(description="施工前理解门禁结构校验")
+    p.add_argument("--contract", required=True, help="任务理解合同 JSON 路径")
+    args = p.parse_args()
+
+    with open(args.contract, encoding="utf-8") as f:
+        data = json.load(f)
+
+    errors = check(data)
+    if errors:
+        for e in errors:
+            print(json.dumps({"level": "error", "msg": e}, ensure_ascii=False))
+        print(json.dumps({"gate": "FAIL", "errors": len(errors)}, ensure_ascii=False))
+        return 1
+    print(json.dumps({"gate": "PASS", "errors": 0}, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

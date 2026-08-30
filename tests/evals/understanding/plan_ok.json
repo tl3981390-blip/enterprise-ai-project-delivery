@@ -1,0 +1,8 @@
+{
+  "plan_id": "PLAN-EVAL-OK-001",
+  "goal": "交付内部RAG问答应用",
+  "actions": [
+    { "name": "构建检索接口模块", "description": "实现检索接口，新建 API 端点", "target": "内部新目录" },
+    { "name": "浏览器真实验收", "description": "真实浏览器交互验证页面", "target": "本地dev" }
+  ]
+}
