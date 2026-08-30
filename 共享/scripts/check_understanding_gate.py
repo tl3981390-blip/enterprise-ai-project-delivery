@@ -20,6 +20,40 @@ REQUIRED_FIELDS = [
 ]
 VALID_STATUS = {"UNDERSTANDING_COMPLETE", "UNDERSTANDING_BLOCKED", "BLOCKED"}
 VALID_SOURCES = {"USER_EXPLICIT", "USER_PREVIOUSLY_CONFIRMED", "PROJECT_EVIDENCE", "SYSTEM_OBSERVED", "AI_INFERRED"}
+VALID_DISPOSITIONS = {"ADOPT", "REJECT", "NEEDS_MORE_DATA", "DEFERRED"}
+
+
+def check_requirement_coverage(contract: dict):
+    """CONTRACT_SCOPE_COMPLETENESS：合同若声明了来源需求清单（source_requirements），
+    每一条都必须在 requirement_coverage 中有明确处置；缺失处置 = 理解不完整。
+    来源：v1.2 任务 V1 合同静默漏掉总指令 5 项显式 MUST 的真实失效（V1_2_REQUIREMENT_GAP_AUDIT）。"""
+    errors = []
+    requirements = contract.get("source_requirements") or []
+    if not requirements:
+        return errors
+    coverage = contract.get("requirement_coverage") or []
+    if not coverage:
+        errors.append(f"source_requirements 非空但缺 requirement_coverage（{len(requirements)} 条来源需求未处置）")
+        return errors
+    covered = {}
+    for entry in coverage:
+        if not isinstance(entry, dict):
+            errors.append("requirement_coverage 含非对象条目")
+            continue
+        rid = entry.get("requirement_id")
+        disposition = entry.get("disposition")
+        if not rid:
+            errors.append("requirement_coverage 条目缺 requirement_id")
+            continue
+        if disposition not in VALID_DISPOSITIONS:
+            errors.append(f"requirement_coverage[{rid}] 处置非法: {disposition}（合法: {sorted(VALID_DISPOSITIONS)}）")
+        if rid in covered:
+            errors.append(f"requirement_coverage[{rid}] 重复")
+        covered[rid] = disposition
+    for rid in requirements:
+        if rid not in covered:
+            errors.append(f"来源需求 [{rid}] 缺处置 → 理解不完整，禁止 UNDERSTANDING_COMPLETE")
+    return errors
 
 
 def check(contract: dict):
@@ -50,6 +84,8 @@ def check(contract: dict):
     for critical in ("user_real_goal", "forbidden_modify", "work_scope", "key_constraints"):
         if prov.get(critical) == "AI_INFERRED":
             errors.append(f"关键字段 '{critical}' 仅由 AI_INFERRED 支撑，不得升级为合同事实，须用户确认")
+
+    errors.extend(check_requirement_coverage(contract))
 
     return errors
 

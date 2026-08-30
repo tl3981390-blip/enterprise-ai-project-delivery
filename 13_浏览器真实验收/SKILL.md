@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.13-browser-acceptance
 description: 模块13·浏览器真实验收。真实浏览器操作验证 Web 产品（console/network/交互）。Use when 交付含 Web UI 需真实验收。
-version: 1.2.0
+version: 1.3.0-dev
 license: MIT
 compatibility: open
 metadata:

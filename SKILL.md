@@ -4,7 +4,7 @@ description: 企业AI项目交付Skill。用于从业务问题出发，以「先
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 1.2.0
+  version: 1.3.0-dev
   language: zh-CN
   author: 企业Skill实验室
   requires: harness, permission-gateway
