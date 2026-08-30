@@ -1,0 +1,1 @@
+{"requirements":[{"id":"LEGAL-1","priority":"MUST","statement":"When 用户询问，the system shall 回答","acceptance":{"normal":"answer","negative":"refuse"},"source":"BUSINESS_CASE"}]}

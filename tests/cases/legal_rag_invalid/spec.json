@@ -1,0 +1,1 @@
+{"requirement_ids":["LEGAL-1"],"functional":["answer"],"data":["unknown"],"interfaces":["query"],"errors":["none"],"boundaries":["none"],"security":["none"],"permissions":["ADMIN"],"deployment":["local"],"rollback":["none"],"acceptance":{"LEGAL-1":{"normal":"answer","negative":"refuse"}},"signoff":"approved"}

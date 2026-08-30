@@ -1,0 +1,1 @@
+{"requirements":[{"id":"LEGAL-1","priority":"MUST","statement":"When 授权员工询问现行制度，the system shall 返回有定位的答案，否则拒答","acceptance":{"normal":"授权且现行来源返回答案","negative":"越权、旧版或无证据拒答"},"source":"BUSINESS_CASE"}]}

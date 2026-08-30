@@ -1,0 +1,1 @@
+{"tasks":[{"id":"LEGAL-T1","requirement":"LEGAL-1","allowed_scope":["synthetic fixture"],"failing_test":"unauthorized request rejected","change":"case artifacts","regression":"all validators exit 0","evidence":"artifact.txt","commit":"stage8 commit","rollback":"revert stage8","status":"PASS","test_exit_code":0}],"failures":[]}

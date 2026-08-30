@@ -1,0 +1,19 @@
+{
+  "stage": "stage8_real_case",
+  "created_at": "2026-08-30T06:12:01.053689+00:00",
+  "files": [
+    {
+      "name": "gate_result.json",
+      "sha256": "52e7c6643638e1078410aa6bd393d3e08b79f1e284760678db65d2445de1e611"
+    },
+    {
+      "name": "plan.json",
+      "sha256": "a7841d2c4363cd8b28206fc7f3641a44aded875d327dcf6f6e05e049b8087de6"
+    },
+    {
+      "name": "task_understanding_contract.json",
+      "sha256": "cd957bc221ac254f960d0dc14435bdecdbd5cd59a8a3eba24438252da3eee971"
+    }
+  ],
+  "append_only": true
+}

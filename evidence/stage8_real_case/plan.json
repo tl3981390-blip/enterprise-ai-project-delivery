@@ -1,0 +1,1 @@
+{"task_id":"TASK-20260830-STAGE8","status":"PLAN_COMPLETE","actions":[{"id":"S8-1","name":"S8-1","description":"create realistic case and negative case","target":"tests/cases"},{"id":"S8-2","name":"S8-2","description":"run all local gates and regression","target":"共享/scripts"}]}

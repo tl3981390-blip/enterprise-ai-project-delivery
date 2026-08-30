@@ -1,0 +1,1 @@
+{"tasks":[{"id":"BAD","requirement":"LEGAL-1","allowed_scope":["production"],"failing_test":"failed","change":"skip test","regression":"none","evidence":"model text","commit":"none","rollback":"none","status":"PASS","test_exit_code":1}],"failures":[]}
