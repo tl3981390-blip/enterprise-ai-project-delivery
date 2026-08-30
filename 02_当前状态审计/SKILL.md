@@ -23,7 +23,7 @@ UNDERSTANDING 阶段，需要确定 current_state / completed_scope / forbidden_
 1. READ/SEARCH/INSPECT 只读审计现有代码/配置/Git/文档。
 2. 判断已完成程度与证据真伪（如有实现是 stub/假实现，明确标记）。
 3. 标出不可修改区（外部系统、生产环境、明确禁止项）。
-4. 结论写回合同 current_state / completed_scope，provenance=PROJECT_EVIDENCE。
+4. 结论写回合同 current_state / completed_scope，provenance=PROJECT_EVIDENCE；状态只允许 NOT_FOUND、PRESENT_UNVERIFIED、VERIFIED_WORKING、VERIFIED_BROKEN、BLOCKED。
 5. `scripts/audit_scan.py`（只读扫描辅助）。
 
 ## 反合理化 / Red Flags

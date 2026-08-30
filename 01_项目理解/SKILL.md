@@ -20,7 +20,7 @@ metadata:
 进入企业 AI 交付任务的 UNDERSTANDING 阶段，尚未明确 user_real_goal / business_goal / final_deliverable 时。
 
 ## Core Process
-1. 读入已锁定的任务理解合同（user_real_goal / business_goal / final_deliverable）。
+1. 读入已锁定的任务理解合同（user_real_goal / business_goal / final_deliverable），按 [`references/最少提问法.md`](references/最少提问法.md) 只追问会改变方案的未知项。
 2. 逐项核对来源（USER_EXPLICIT / USER_PREVIOUSLY_CONFIRMED / PROJECT_EVIDENCE / SYSTEM_OBSERVED / AI_INFERRED）。
 3. 缺用户真实目标/最终结果/业务价值 → 标记缺失，返回 S0 理解门禁，禁止推进。
 4. 产出 `references/目标声明模板.md` 对应内容，更新合同 provenance。

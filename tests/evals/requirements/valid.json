@@ -1,0 +1,1 @@
+{"requirements":[{"id":"REQ-1","priority":"MUST","statement":"When 用户提交问题，the system shall 返回带来源的答案或明确拒答","acceptance":{"normal":"有授权来源时返回答案和引用","negative":"无授权来源时拒答"},"source":"USER_EXPLICIT"}]}

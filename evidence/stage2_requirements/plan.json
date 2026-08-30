@@ -1,0 +1,1 @@
+{"task_id":"TASK-20260830-STAGE2","status":"PLAN_COMPLETE","actions":[{"id":"S2-1","description":"implement 01-03 references","targets":["01_项目理解","02_当前状态审计","03_需求与范围"]},{"id":"S2-2","description":"add requirement validator and tests","targets":["共享/scripts/check_requirements.py","tests/evals/requirements"]}]}

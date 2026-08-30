@@ -21,10 +21,10 @@ UNDERSTANDING→PLAN 阶段，需锁定 work_scope / explicit_non_goals / forbid
 
 ## Core Process
 1. 从合同读取目标与现状。
-2. 明确范围与非目标（explicit_non_goals）。
+2. 按 [`references/需求与验收模板.md`](references/需求与验收模板.md) 用 MoSCoW、EARS 与 Given-When-Then 明确范围与非目标。
 3. 明确禁止项（forbidden_modify / forbidden_tools / key_constraints）。
 4. 定义可判定的成功标准与验收标准。
-5. 清除模糊词（禁用词检查，`scripts/check_requirements.py`）。
+5. 清除模糊词（禁用词检查，`共享/scripts/check_requirements.py`）。
 6. 写回合同，provenance 明确来源。
 
 ## 反合理化 / Red Flags
