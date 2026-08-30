@@ -1,0 +1,1 @@
+{"tasks":[{"id":"T1","requirement":"REQ-1","allowed_scope":["file-a"],"failing_test":"exit 1","change":"report edit","regression":"not run","evidence":"report.md","commit":"abc","rollback":"revert","status":"PASS","test_exit_code":1}],"failures":[{"original_evidence":"fail.log","fix_type":"report_only","attempts":2,"status":"PASS"}]}

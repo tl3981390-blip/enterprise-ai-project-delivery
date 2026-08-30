@@ -22,8 +22,9 @@ metadata:
 ## Core Process
 1. 拆可验收增量（按 `references/Definition-of-Done.md`）。
 2. 每增量实现→测试→提交→证据，不一次性大段施工。
-3. 每动作过 DRIFT_CHECK（与合同对账）。
-4. 越权动作 → EXECUTION_BLOCKED。
+3. 任务采用共享分级仪式与单次可完成格式；Quick 也不得跳过权限和证据门禁。
+4. 每动作过 DRIFT_CHECK（与合同对账）。
+5. 越权动作 → EXECUTION_BLOCKED。
 
 ## 反合理化 / Red Flags
 - 一次性大段写 → 违反增量

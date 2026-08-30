@@ -1,0 +1,1 @@
+{"stage":"5","status":"PASS","checks":[{"name":"understanding_alignment","result":"PASS"},{"name":"incremental_execution","result":"PASS"},{"name":"fake_pass_report_only_infinite_retry_negative","result":"PASS","observed":"exit 1"},{"name":"regression","result":"PASS"}],"harness":"UNCHANGED","production":"UNTOUCHED"}

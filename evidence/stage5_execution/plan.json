@@ -1,0 +1,1 @@
+{"task_id":"TASK-20260830-STAGE5","status":"PLAN_COMPLETE","actions":[{"id":"S5-1","description":"implement execution and recovery references","targets":["11_施工管理与增量实现","12_失败处理与恢复"]},{"id":"S5-2","description":"test honest recovery","targets":["共享/scripts/check_execution.py","tests/evals/execution"]}]}
