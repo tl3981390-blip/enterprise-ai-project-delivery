@@ -1,0 +1,27 @@
+{
+  "task_id": "TASK-20260830-V1.2-RELIABILITY",
+  "evaluation_type": "INDEPENDENT_FRESH_AGENT_FORWARD_EVALUATION",
+  "evaluated_at": "2026-08-30T21:05:00+08:00",
+  "evaluator": "fresh general-purpose agent, no shared context with implementing model",
+  "verdict": "PASS",
+  "mechanical_checks": {
+    "reliability_suite": "23/23 PASS",
+    "gap_closing_suite": "17/17 PASS",
+    "telemetry_v1_1_regression": "14/14 PASS",
+    "validate_skill": "PASS 0 errors 0 warnings",
+    "understanding_gate_v2": "PASS errors 0",
+    "plan_alignment_v2": "PASS count 0",
+    "resource_guard_cli": "PASS STOP_NEW_WRITES expected-decision matched",
+    "benchmark_contamination_cli": "PASS clean business voice, leaked_markers empty"
+  },
+  "behavior_review": {
+    "five_invariants": "PASS",
+    "coverage_matrices_complete": "PASS (7/7 Round 1 findings, 7/7 Rescue experiences dispositioned)",
+    "four_gate_gaps_closed": "PASS (EXECUTION_RESOURCE_GUARD / MODEL_HANDOFF / HANDOFF_VERIFICATION / BENCHMARK_CONTAMINATION_DETECTION all implemented with tests)"
+  },
+  "notes": [
+    "FINDING-004 disposition is scoped REJECT_FROM_CORE with three-way classification rationale; acceptable as dispositioned-with-reason",
+    "NO_STAGE_WAIT / NO_DEAD_END_SUSPEND literal tokens live in LONG_RUNNING_PROJECT_CONTINUITY_SPEC five-invariant table with mechanical mapping; both have text plus mechanical enforcement present",
+    "all four §62 gap gates confirmed closed with corresponding negative tests passing"
+  ]
+}

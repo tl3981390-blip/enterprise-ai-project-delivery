@@ -1,0 +1,87 @@
+{
+  "task_id": "TASK-20260830-V1.2-RELIABILITY",
+  "contract_version": "V2",
+  "supersedes": "evidence/v1_2_reliability/V1_2_CHANGE_CONTRACT.json (preserved unmodified)",
+  "amendment_reason": "V1_2_REQUIREMENT_GAP_AUDIT: V1 contract incompletely captured explicit MUSTs of the user master instruction (FINDING-002/007 review, EXECUTION_RESOURCE_GUARD, MODEL_HANDOFF_PROTOCOL, HANDOFF_VERIFICATION, BENCHMARK_CONTAMINATION_DETECTION, safe-rollback/alternative-recovery regressions, named spec deliverables). User re-asserted the master instruction in the takeover session.",
+  "user_real_goal": "在不可变 enterprise-ai-project-delivery v1.1.0 基线上开发 v1.2.0 Reliability Hardening，使已明确目标的复杂项目可自主连续施工、可验证恢复、资源不足时可安全交接给新模型继续同一任务，并强制使用核心遥测完整性契约。",
+  "business_goal": "消除 Round 1 中用户仅说继续时的无理由停滞、模型资源耗尽导致的施工断裂与新模型重复施工，以及项目用本地弱遥测伪造通过的风险；把经证实的历史恢复与证据经验变为可机械执行的保护。",
+  "final_deliverable": "enterprise-ai-project-delivery v1.2.0-dev：包含持续施工/合法等待/恢复验证协议、执行资源守卫、模型交接协议与交接包、基准污染检测、唯一核心遥测入口、确定性回归与负向测试、Evidence、覆盖矩阵与具名规格，以及仅在全部 Release Gate PASS 后签发的 v1.2.0。",
+  "current_state": "v1.1.0 immutable baseline tag at 4525ca742a62a950eebade22c97440d6a2c6e181; v1.2.0-dev candidate implemented NO_STAGE_WAIT/NO_DEAD_END_SUSPEND/NO_BLIND_RESUME and core telemetry binding (23 reliability tests PASS) but lacks the four master-instruction §62 capabilities; gap frozen at evidence/v1_2_reliability/V1_2_REQUIREMENT_GAP_AUDIT.md; live task telemetry initialized.",
+  "completed_scope": "v1.1.0 includes initial telemetry event schema, hash-chain recorder, metrics, suspend/resume event support, failure recovery and evidence rules; v1.2-dev candidate adds continuation protocol, human recovery package validation, resume verification, core telemetry binding and 23-test suite.",
+  "work_scope": [
+    "v1.2 change contract and plan evidence",
+    "S0 autonomous continuation and legal stop protocol",
+    "module 11 stage continuation rules",
+    "module 12 bounded recovery, last-known-good, safe rollback, alternative recovery and human recovery package",
+    "module 15 core telemetry recorder binding and integrity gate",
+    "module 19 release reporting and reliability metrics",
+    "EXECUTION_RESOURCE_GUARD protocol, decisions, events, metrics and spec",
+    "MODEL_HANDOFF_PROTOCOL package schema, handoff verification, events and spec",
+    "benchmark contamination detection and BENCHMARK_PROTOCOL_V2",
+    "shared telemetry schema scripts references and tests",
+    "Rescue and Round 1 candidate disposition evidence including all seven findings",
+    "coverage matrices and named spec deliverables",
+    "v1.1 regression and v1.2 release verification evidence"
+  ],
+  "explicit_non_goals": [
+    "modify v1.1.0 tag, package or history",
+    "modify Harness main project",
+    "modify or run tests in the real Rescue project",
+    "connect production systems or data",
+    "add desktop or employee monitoring",
+    "silently repair Round 1 historical telemetry",
+    "turn environment-only PostgreSQL or platform blocks into core Skill claims",
+    "release v1.2.0 before every required gate passes"
+  ],
+  "allowed_modify": [
+    "v1.2.0-dev working tree",
+    "SKILL.md and modules 00, 11, 12, 15, 19",
+    "共享/references, 共享/schema and 共享/scripts",
+    "tests and evidence/v1_2_reliability",
+    "README, CHANGELOG and release documents after gates", "release gate"
+  ],
+  "forbidden_modify": [
+    "v1.1.0 tag", "v1.1.0 release package", "v1.1.0 Git history", "Harness main", "real Rescue project", "production systems", "other D drive projects"
+  ],
+  "allowed_tools": ["read", "edit after READY_TO_EXECUTE", "local deterministic tests", "isolated fixtures", "git commit", "git tag v1.2.0 only after release gate"],
+  "forbidden_tools": ["production access", "Harness write", "real project mutation", "employee monitoring", "release-tag mutation"],
+  "key_constraints": [
+    "NO_STAGE_WAIT: a next legal action without human gate must continue automatically",
+    "NO_DEAD_END_SUSPEND: every wait has a structured human gate and recovery path",
+    "NO_BLIND_RESUME: continue is a resume request requiring current-state audit",
+    "NO_RESOURCE_CLIFF: insufficient model resource must checkpoint and hand off instead of breaking mid-unit",
+    "NO_FAKE_CONTINUITY: a successor model must re-verify real project state before inheriting it",
+    "all official telemetry uses one core recorder with schema validation, hash chain and anchor",
+    "resource visibility that is not provided is NOT_AVAILABLE and must never be estimated",
+    "Recovery is bounded and must revalidate original failure then regression before continuation",
+    "recovery exhaustion must evaluate safe rollback then alternative recovery before human escalation",
+    "historical or cross-candidate evidence cannot prove a new candidate",
+    "user scope change and external failure never inflate AI rework",
+    "token data stays NOT_AVAILABLE without provider evidence"
+  ],
+  "success_criteria": [
+    "continuation regression proves stages and successful recovery proceed without user continue",
+    "illegal passive stop is rejected when a legal next action exists",
+    "legal human wait requires complete human recovery package",
+    "resume request verifies blocker and rejects unresolved claims",
+    "core recorder rejects Round 1 style unsupported and duplicate-correlation events at write time",
+    "last-known-good candidate identity and stale evidence checks are verified",
+    "resource guard maps visible signals and user-reported risk to GREEN/YELLOW/RED/UNKNOWN decisions without estimation and stops new writes when the atomic unit cannot complete safely",
+    "model handoff package is mechanically validated and handoff verification fails on identity mismatch",
+    "controller-contaminated benchmark material is detected and flagged CONTROLLER_CONTAMINATED",
+    "safe rollback and alternative recovery are attempted and revalidated before recovery-exhausted suspension",
+    "Rescue candidates and all seven Round 1 findings are reviewed with adopt/reject/needs-more-data evidence",
+    "v1.1 regression passes", "Git is clean", "release evidence is complete"
+  ],
+  "acceptance_criteria": [
+    "deterministic isolated tests cover instruction Tests 1-10, resource, handoff, benchmark, rollback and listed rescue regressions",
+    "positive logs pass canonical recorder and metrics calculation",
+    "negative logs fail before acceptance", "no core fork is created", "v1.1 tag and package hash are unchanged", "Harness, production and real Rescue remain untouched"
+  ],
+  "evidence_requirements": ["baseline_identity", "change_input_audit", "change_contract", "plan", "implementation_gate", "tests", "negative_tests", "v1_1_regression", "candidate_review", "requirement_gap_audit", "coverage_matrices", "final_gate", "end_head"],
+  "known_risks": ["natural-language continuation cannot itself force an arbitrary external agent to act", "a strict continuation rule could act on stale plans without current-state audit", "hash-chain integrity depends on the canonical recorder being used", "human-only actions remain partly non-mechanical", "resource visibility may be NOT_AVAILABLE on platforms so guard decisions rely on visible signals only"],
+  "blocking_unknowns": [],
+  "non_blocking_unknowns": ["Provider token availability", "uninstalled platform runtime invocation", "Docker daemon state for the synthetic lab", "model quota visibility on this platform"],
+  "provenance": {"user_real_goal":"USER_EXPLICIT", "business_goal":"USER_EXPLICIT", "current_state":"PROJECT_EVIDENCE", "work_scope":"USER_EXPLICIT", "forbidden_modify":"USER_EXPLICIT", "success_criteria":"USER_EXPLICIT", "key_constraints":"USER_EXPLICIT", "known_risks":"PROJECT_EVIDENCE"},
+  "understanding_status": "UNDERSTANDING_COMPLETE"
+}

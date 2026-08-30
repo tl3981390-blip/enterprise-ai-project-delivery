@@ -30,9 +30,9 @@ def calculate(events,log):
  else: token={"status":"NOT_AVAILABLE"}
  times=sorted(datetime.fromisoformat(e["timestamp"].replace("Z","+00:00")) for e in active)
  time_metrics={"status":"AVAILABLE","project_elapsed_seconds":(times[-1]-times[0]).total_seconds()} if len(times)>=2 else {"status":"NOT_AVAILABLE"}
- reliability={"ai_rework_count":counts["AI_REWORK_EVENT"],"drift_detected_count":counts["DRIFT_DETECTED"],"drift_corrected_count":counts["DRIFT_CORRECTED"],"fake_pass_blocked_count":counts["FAKE_PASS_BLOCKED"],"regression_detected_count":counts["REGRESSION_DETECTED"],"gate_failed_count":counts["GATE_FAILED"]}
+ reliability={"ai_rework_count":counts["AI_REWORK_EVENT"],"drift_detected_count":counts["DRIFT_DETECTED"],"drift_corrected_count":counts["DRIFT_CORRECTED"],"fake_pass_blocked_count":counts["FAKE_PASS_BLOCKED"],"regression_detected_count":counts["REGRESSION_DETECTED"],"gate_failed_count":counts["GATE_FAILED"],"unnecessary_human_wait_count":counts["ILLEGAL_PASSIVE_STOP"]}
  recovery={"recovery_attempt_count":counts["RECOVERY_ATTEMPT"],"auto_recovery_success_count":counts["AUTO_RECOVERY_SUCCESS"],"human_intervention_count":counts["HUMAN_INTERVENTION_REQUIRED"]}
- continuity={"suspend_count":counts["SUSPEND_EVENT"],"resume_count":counts["RESUME_EVENT"],"handoff_count":counts["HANDOFF_EVENT"]}
+ continuity={"suspend_count":counts["SUSPEND_EVENT"],"resume_count":counts["RESUME_EVENT"],"handoff_count":counts["HANDOFF_EVENT"],"resume_verification_fail_count":counts["RESUME_VERIFICATION_FAIL"],"model_handoff_count":counts["MODEL_HANDOFF_READY"],"successful_handoff_count":counts["MODEL_HANDOFF_COMPLETED"],"failed_handoff_count":counts["HANDOFF_VERIFICATION_FAIL"]}
  quality={"total_stages":len(stages),"first_pass_stage_count":len(first),"reopened_stage_count":counts["STAGE_REOPENED"]}
  return {"task_id":events[0]["task_id"] if events else "UNKNOWN","event_count":len(events),"reliability":reliability,"recovery":recovery,"continuity":continuity,"stage_quality":quality,"derived":{"drift_correction_rate":rate(reliability["drift_corrected_count"],reliability["drift_detected_count"]),"auto_recovery_rate":rate(recovery["auto_recovery_success_count"],recovery["recovery_attempt_count"]),"first_pass_stage_rate":rate(quality["first_pass_stage_count"],quality["total_stages"])},"token_metrics":token,"time_metrics":time_metrics,"source_log_sha256":digest_file(log)}
 def render(metrics,result):
@@ -57,6 +57,8 @@ Stage重新打开：{metrics['stage_quality']['reopened_stage_count']}
 Suspend：{metrics['continuity']['suspend_count']}
 Resume：{metrics['continuity']['resume_count']}
 Handoff：{metrics['continuity']['handoff_count']}
+模型交接（READY/完成/验证失败）：{metrics['continuity']['model_handoff_count']} / {metrics['continuity']['successful_handoff_count']} / {metrics['continuity']['failed_handoff_count']}
+Resume验证失败：{metrics['continuity']['resume_verification_fail_count']}
 Token：{t['status'] if t['status']=='NOT_AVAILABLE' else t['total_tokens']}
 总耗时：{tm.get('project_elapsed_seconds','NOT_AVAILABLE')}
 未验证指标：{'Token metrics' if t['status']=='NOT_AVAILABLE' else 'None'}

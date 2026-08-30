@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "human_recovery_package.schema.json",
+  "type": "object",
+  "required": ["task_id", "current_stage", "last_known_good_checkpoint", "blocker_id", "failure_type", "what_failed", "failure_evidence", "recovery_attempts", "why_auto_recovery_failed", "rollback_status", "alternative_paths_attempted", "exact_user_action_required", "authorization_required", "minimum_required_permission", "resume_condition", "resume_verification", "next_safe_action_after_resume", "fallback_if_resume_fails"],
+  "properties": {
+    "task_id": {"type": "string", "minLength": 1},
+    "current_stage": {"type": "string", "minLength": 1},
+    "last_known_good_checkpoint": {"type": "object", "required": ["task_id", "stage_id", "contract_hash", "git_head", "worktree_identity", "runtime_identity", "last_passed_gate", "evidence_anchor", "timestamp"]},
+    "blocker_id": {"type": "string", "minLength": 1}, "failure_type": {"type": "string", "minLength": 1}, "what_failed": {"type": "string", "minLength": 1},
+    "failure_evidence": {"type": "array", "minItems": 1}, "recovery_attempts": {"type": "array"}, "why_auto_recovery_failed": {"type": "string", "minLength": 1},
+    "rollback_status": {"type": "string", "minLength": 1}, "alternative_paths_attempted": {"type": "array"}, "exact_user_action_required": {"type": "string", "minLength": 1},
+    "authorization_required": {"type": "boolean"}, "minimum_required_permission": {"type": "string", "minLength": 1}, "resume_condition": {"type": "string", "minLength": 1},
+    "resume_verification": {"type": "string", "minLength": 1}, "next_safe_action_after_resume": {"type": "string", "minLength": 1}, "fallback_if_resume_fails": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}

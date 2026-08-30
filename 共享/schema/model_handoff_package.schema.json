@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "model_handoff_package.schema.json",
+  "title": "MODEL_HANDOFF_PACKAGE",
+  "type": "object",
+  "required": [
+    "task_id", "goal", "business_goal", "task_contract", "current_stage", "current_state",
+    "current_model", "handoff_reason", "resource_status", "last_known_good_checkpoint",
+    "current_git_head", "worktree_state", "build_identity", "runtime_identity",
+    "completed_work", "partial_unverified_work", "remaining_work", "current_blockers",
+    "failure_history", "recovery_history", "permissions", "evidence_index",
+    "telemetry_anchor", "files_must_read", "files_must_not_rework", "next_legal_action",
+    "resume_condition", "resume_verification", "known_risks"
+  ],
+  "properties": {
+    "task_id": {"type": "string", "minLength": 1},
+    "goal": {"type": "string", "minLength": 1},
+    "business_goal": {"type": "string", "minLength": 1},
+    "task_contract": {"type": "string", "minLength": 1},
+    "current_stage": {"type": "string", "minLength": 1},
+    "current_state": {"type": "string", "minLength": 1},
+    "current_model": {"type": "string", "minLength": 1},
+    "handoff_reason": {"type": "string", "minLength": 1},
+    "resource_status": {"enum": ["GREEN", "YELLOW", "RED", "UNKNOWN", "NOT_APPLICABLE"]},
+    "last_known_good_checkpoint": {
+      "type": "object",
+      "required": ["task_id", "stage_id", "contract_hash", "git_head", "worktree_identity", "runtime_identity", "last_passed_gate", "evidence_anchor", "timestamp"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "stage_id": {"type": "string", "minLength": 1},
+        "contract_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "git_head": {"type": "string", "minLength": 1},
+        "worktree_identity": {"type": "string", "minLength": 1},
+        "runtime_identity": {"type": "string", "minLength": 1},
+        "last_passed_gate": {"type": "string", "minLength": 1},
+        "evidence_anchor": {"type": "string", "minLength": 1},
+        "timestamp": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": true
+    },
+    "current_git_head": {"type": "string", "minLength": 1},
+    "worktree_state": {"type": "string", "minLength": 1},
+    "build_identity": {"type": "string"},
+    "runtime_identity": {"type": "string", "minLength": 1},
+    "completed_work": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "partial_unverified_work": {"type": "array", "items": {"type": "string"}},
+    "remaining_work": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "current_blockers": {"type": "array", "items": {"type": "string"}},
+    "failure_history": {"type": "array", "items": {"type": "string"}},
+    "recovery_history": {"type": "array", "items": {"type": "string"}},
+    "permissions": {"type": "string", "minLength": 1},
+    "evidence_index": {"type": "string", "minLength": 1},
+    "telemetry_anchor": {"type": "string"},
+    "files_must_read": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "files_must_not_rework": {"type": "array", "items": {"type": "string"}},
+    "next_legal_action": {"type": "string", "minLength": 1},
+    "resume_condition": {"type": "string", "minLength": 1},
+    "resume_verification": {"type": "string", "minLength": 1},
+    "known_risks": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}

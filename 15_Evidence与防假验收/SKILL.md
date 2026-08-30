@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.15-evidence
 description: 模块15·Evidence与防假验收。统一证据合同，防假验收。Use when 需打包/核验阶段证据。
-version: 1.1.0
+version: 1.2.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -13,7 +13,7 @@ metadata:
 
 # 15 Evidence 与防假验收
 
-遥测 Evidence 使用 append-only JSONL、逐事件 SHA-256 链和独立 anchor。历史错误只能追加 CORRECTION_EVENT；删除、重排、覆盖、重复 event_id 或同类 correlation 重复均为 Integrity FAIL。模型总结和最终报告不能代替原始事件。
+遥测 Evidence 只能经 `共享/scripts/record_delivery_event.py` 写入，并由 `calculate_delivery_metrics.py` 与 `check_telemetry_binding.py` 验证 append-only JSONL、逐事件 SHA-256 链和独立 anchor。项目自己的“差不多”Writer/Verifier 不能成为接受依据。历史错误只能追加 CORRECTION_EVENT；删除、重排、覆盖、重复 event_id 或同类 correlation 重复均为 Integrity FAIL。模型总结和最终报告不能代替原始事件。
 
 ## Overview
 按统一证据契约收集、打包、核验证据；模型文字禁止当证据。
@@ -26,6 +26,7 @@ metadata:
 2. 校验证据类型白名单（模型文字 ❌）及 checksum。
 3. 校验理解证据（task_understanding_contract / understanding_gate_result / plan_alignment_result / drift_check_log / constraint_conflicts）。
 4. 缺证据 → blocked；不冒充 PASS。
+5. 最终验收前运行 `check_telemetry_binding.py`；Recorder/Verifier hash 不匹配、日志/anchor 缺失或核心完整性失败均禁止 Acceptance PASS。
 
 ## 反合理化 / Red Flags
 - model_text 当证据 → 禁止

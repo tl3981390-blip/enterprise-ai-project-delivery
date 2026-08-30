@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.12-failure-recovery
 description: 模块12·失败处理与恢复。根因定位+证据保留+自动/人工修复边界+停止条件。Use when 施工/阶段发生失败。
-version: 1.1.0
+version: 1.2.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -22,11 +22,12 @@ metadata:
 发现失败（测试失败/越权/漂移/证据缺失等）。
 
 ## Core Process
-1. 定位根因并保留失败现场证据（evidence_captured 必填）。
-2. 尝试自动修复（受 max_loop 约束）。
-3. 停止条件：max_loop 达到 / 无法自动修 / 契约权限变更 → 交人工（BLOCKED）。
-4. 修复后重跑，禁止标注未跑为 PASS。
-5. 修复必须改变失败事实或根因；仅修改报告、断言或 Gate 阈值不构成修复。
+1. 冻结失败现场、分类（CODE/CONFIG/ENVIRONMENT/DATA/PERMISSION/CONTRACT/EXTERNAL_SERVICE/RUNTIME/EVIDENCE/UNKNOWN）并保存 Last Known Good。
+2. 在明确 Recovery Budget 内自动修复，每次 `RECOVERY_ATTEMPT` 后重新验证。
+3. 成功必须重跑原 Blocking Gate 与 Regression，才可记录 `AUTO_RECOVERY_SUCCESS` 并自动继续原计划。
+4. 预算耗尽后评估 `SAFE_ROLLBACK_ATTEMPT` 与不扩 Scope 的替代恢复路径；不能恢复才记录 `RECOVERY_EXHAUSTED`。
+5. 交人工时进入 `SUSPENDED_AWAITING_HUMAN`，同时生成完整 `HUMAN_RECOVERY_PACKAGE`；禁止只说“请处理后继续”。
+6. 用户说继续时仅走 `RESUME_REQUEST → RESUME_VERIFICATION_PASS/FAIL`；PASS 后先复验旧失败和 Regression，再继续。
 
 ## 反合理化 / Red Flags
 - 失败→改报告 PASS → 假通过
@@ -35,3 +36,5 @@ metadata:
 
 ## Verification
 - 失败有 evidence_captured；阻塞消失才 PASS；停在 BLOCKED 时请求人工
+- `共享/scripts/check_continuation.py`：恢复/继续/资源/交接判定（含 SAFE_ROLLBACK_ATTEMPT、ALTERNATIVE_RECOVERY、verify-handoff）
+- 规格：[RECOVERY_ESCALATION_SPEC](../共享/references/RECOVERY_ESCALATION_SPEC.md)、[EXECUTION_RESOURCE_GUARD_SPEC](../共享/references/EXECUTION_RESOURCE_GUARD_SPEC.md)、[MODEL_HANDOFF_PROTOCOL](../共享/references/MODEL_HANDOFF_PROTOCOL.md)

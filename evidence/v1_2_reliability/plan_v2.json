@@ -1,0 +1,18 @@
+{
+  "task_id": "TASK-20260830-V1.2-RELIABILITY",
+  "status": "PLAN_COMPLETE",
+  "supersedes": "evidence/v1_2_reliability/plan.json (preserved unmodified)",
+  "actions": [
+    {"id":"RH-1", "name":"V1_2_CHANGE_INPUT_AUDIT", "description":"write v1.2 change contract and candidate disposition from Round 1 and Rescue evidence", "target":"evidence/v1_2_reliability"},
+    {"id":"RH-2", "name":"CONTINUATION_PROTOCOL", "description":"modify S0 and construction module with autonomous next-action selection and illegal passive-stop detection", "target":"SKILL.md 00_总控 11_施工管理与增量实现"},
+    {"id":"RH-3", "name":"RECOVERY_PROTOCOL", "description":"modify failure recovery module with bounded recovery, last-known-good identity, safe escalation and human recovery package", "target":"12_失败处理与恢复 共享/references 共享/scripts"},
+    {"id":"RH-4", "name":"CORE_TELEMETRY_BINDING", "description":"modify core telemetry schema recorder and evidence module to reject bypassed local telemetry before acceptance", "target":"15_Evidence与防假验收 共享/schema 共享/scripts"},
+    {"id":"RH-5", "name":"REGRESSION_SUITE", "description":"create isolated continuation, recovery, resume, evidence and telemetry regression tests", "target":"tests"},
+    {"id":"RH-6", "name":"CANDIDATE_REVIEW", "description":"write Rescue and Round 1 candidate review with adopted, rejected and needs-more-data dispositions", "target":"evidence/v1_2_reliability"},
+    {"id":"RH-8", "name":"RESOURCE_GUARD_IMPL", "description":"implement EXECUTION_RESOURCE_GUARD decisions, resource and handoff events, metrics, EXECUTION_RESOURCE_GUARD_SPEC and 共享/scripts guard tests in tests", "target":"共享/scripts 共享/schema 共享/references tests"},
+    {"id":"RH-9", "name":"MODEL_HANDOFF_IMPL", "description":"implement MODEL_HANDOFF package schema, handoff verification, MODEL_HANDOFF_PROTOCOL spec and tests in 共享/scripts 共享/schema 共享/references tests", "target":"共享/scripts 共享/schema 共享/references tests"},
+    {"id":"RH-10", "name":"BENCHMARK_AND_RECOVERY_IMPL", "description":"implement benchmark contamination detection and BENCHMARK_PROTOCOL_V2 plus safe-rollback and substitute-recovery decisions with tests", "target":"共享/scripts 共享/references tests"},
+    {"id":"RH-11", "name":"FULL_RELEASE_VERIFICATION", "description":"write coverage matrices, named spec deliverables and v1.1 regression report under evidence/v1_2_reliability, rerun release gate per master instruction section 62 and produce final release evidence and report", "target":"evidence/v1_2_reliability"},
+    {"id":"RH-7", "name":"RELEASE_VERIFICATION", "description":"run canonical scripts, v1.1 regression, structural validation and release gate; update version documents only after PASS", "target":"tests evidence README CHANGELOG"}
+  ]
+}

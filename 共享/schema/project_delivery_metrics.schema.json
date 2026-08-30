@@ -6,7 +6,7 @@
   "properties":{
     "task_id":{"type":"string","minLength":1},
     "event_count":{"type":"integer","minimum":0},
-    "reliability":{"type":"object","required":["ai_rework_count","drift_detected_count","drift_corrected_count","fake_pass_blocked_count","regression_detected_count","gate_failed_count"],"additionalProperties":{"type":"integer","minimum":0}},
+    "reliability":{"type":"object","required":["ai_rework_count","drift_detected_count","drift_corrected_count","fake_pass_blocked_count","regression_detected_count","gate_failed_count","unnecessary_human_wait_count"],"additionalProperties":{"type":"integer","minimum":0}},
     "recovery":{"type":"object","required":["recovery_attempt_count","auto_recovery_success_count","human_intervention_count"],"additionalProperties":{"type":"integer","minimum":0}},
     "continuity":{"type":"object","required":["suspend_count","resume_count","handoff_count"],"additionalProperties":{"type":"integer","minimum":0}},
     "stage_quality":{"type":"object","required":["total_stages","first_pass_stage_count","reopened_stage_count"],"additionalProperties":{"type":"integer","minimum":0}},

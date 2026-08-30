@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.s0-understanding-gate
 description: 企业AI项目交付Skill · S0总控（施工前理解门禁）。任何任务进入后被要求先证明理解，再允许施工。Use when 一个企业AI交付任务刚开始、或任何阶段要推进到写改动作前。核心：施工前八问 → 任务理解合同 → 施工前理解门禁 → READY_TO_PLAN；执行全程 DRIFT_CHECK。
-version: 1.1.0
+version: 1.2.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -16,7 +16,7 @@ metadata:
 
 ## Project Reliability Telemetry
 
-UNDERSTANDING 时初始化项目事件日志与 anchor；task_id 在 suspend/handoff/resume 后不得变化。DRIFT_CHECK 发现偏离时立即记录 DRIFT_DETECTED，真正重新对齐并有新 Evidence 后记录引用源事件的 DRIFT_CORRECTED。遥测只能观察本 Skill 管理的交付事件，禁止员工、桌面、键盘或后台浏览器监控。
+UNDERSTANDING 时通过核心 Recorder 初始化项目事件日志与 anchor；task_id 在 suspend/handoff/resume 后不得变化。DRIFT_CHECK 发现偏离时立即记录 DRIFT_DETECTED，真正重新对齐并有新 Evidence 后记录引用源事件的 DRIFT_CORRECTED。遥测只能观察本 Skill 管理的交付事件，禁止员工、桌面、键盘或后台浏览器监控。
 
 本模块是整个 Skill 的最高门禁，位于一切业务模块之前。职责：状态机推进、任务理解合同生成与锁定、理解门禁判定、计划-合同对账、DRIFT_CHECK、权限阶段控制、停止条件与人工介入。
 
@@ -87,9 +87,12 @@ VERIFYING → COMPLETED
 
 ## 停止条件与人工介入
 
-- `max_loop`：单次循环上限（默认 3），达到即暂停。
-- `human_required`：涉及契约/权限/范围变更 → 必须人工 approves。
-- 无法自动修复的失败 → `BLOCKED` 并请求人工。
+- 阶段边界是 checkpoint，不是 human gate。存在下一合法动作且无合法 human gate 时，必须 `AUTONOMOUS_CONTINUATION`，不得要求用户再次说“继续”。
+- 等待只允许由合法 human gate 触发，且除 FINAL_COMPLETE 外必须生成完整 `HUMAN_RECOVERY_PACKAGE`。
+- 用户的“继续/continue/resume/已处理”只产生 `RESUME_REQUEST`；必须完成 Current State Audit 后才可恢复，不能盲信文字。
+- `max_loop` 是单一恢复路径的显式预算，不是放弃后直接等待的理由；预算耗尽转入安全回滚/替代恢复评估。
+
+持续施工、恢复与人类接管的字段和顺序见 [`共享/references/持续施工与恢复协议.md`](../共享/references/持续施工与恢复协议.md)。
 
 ## 反合理化 / Red Flags
 

@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.11-construction
 description: 模块11·施工管理与增量实现。增量实现+DoD，防一次性大段施工。Use when 进入 EXECUTING 后的实际施工编排。
-version: 1.1.0
+version: 1.2.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -27,6 +27,8 @@ metadata:
 3. 任务采用共享分级仪式与单次可完成格式；Quick 也不得跳过权限和证据门禁。
 4. 每动作过 DRIFT_CHECK（与合同对账）。
 5. 越权动作 → EXECUTION_BLOCKED。
+6. 每次 `STAGE_PASSED` 后读取计划并选择下一合法未完成动作；无 human gate 时自动进入该动作，禁止把 checkpoint 当作等待用户输入的理由。
+7. Agent 准备输出“等待进一步指示”时，先运行 continuation 检查；存在下一合法动作则记录 `ILLEGAL_PASSIVE_STOP` 并继续。
 
 ## 反合理化 / Red Flags
 - 一次性大段写 → 违反增量

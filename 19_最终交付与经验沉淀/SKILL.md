@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.19-handover
 description: 模块19·最终交付与经验沉淀。最终报告+经验入库。Use when 交付完成需收尾。
-version: 1.1.0
+version: 1.2.0-dev
 license: MIT
 compatibility: open
 metadata:
@@ -26,6 +26,7 @@ metadata:
 2. 逐项核对是否满足合同 success / acceptance 标准。
 3. 沉淀经验入库（lessons）。
 4. 缺证据 / 目飘标移 → 禁止宣称完成。
+5. 报告必须包含 `unnecessary_human_wait_count`；非零时需列出每个 `ILLEGAL_PASSIVE_STOP` 和修复/处置，不能把它藏在模型总结中。
 
 ## 反合理化 / Red Flags
 - 未证明目标完成就说"做完" → 假交付

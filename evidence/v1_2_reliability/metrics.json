@@ -1,0 +1,45 @@
+{
+  "task_id": "TASK-20260830-V1.2-RELIABILITY",
+  "event_count": 21,
+  "reliability": {
+    "ai_rework_count": 1,
+    "drift_detected_count": 0,
+    "drift_corrected_count": 0,
+    "fake_pass_blocked_count": 0,
+    "regression_detected_count": 0,
+    "gate_failed_count": 1,
+    "unnecessary_human_wait_count": 0
+  },
+  "recovery": {
+    "recovery_attempt_count": 2,
+    "auto_recovery_success_count": 1,
+    "human_intervention_count": 0
+  },
+  "continuity": {
+    "suspend_count": 1,
+    "resume_count": 0,
+    "handoff_count": 1,
+    "resume_verification_fail_count": 0,
+    "model_handoff_count": 0,
+    "successful_handoff_count": 0,
+    "failed_handoff_count": 0
+  },
+  "stage_quality": {
+    "total_stages": 5,
+    "first_pass_stage_count": 3,
+    "reopened_stage_count": 0
+  },
+  "derived": {
+    "drift_correction_rate": null,
+    "auto_recovery_rate": 0.5,
+    "first_pass_stage_rate": 0.6
+  },
+  "token_metrics": {
+    "status": "NOT_AVAILABLE"
+  },
+  "time_metrics": {
+    "status": "AVAILABLE",
+    "project_elapsed_seconds": 1457.0
+  },
+  "source_log_sha256": "09fa13b65733363433b0dc9bb245080e980ff53b053db35d83ecbe0781788e34"
+}

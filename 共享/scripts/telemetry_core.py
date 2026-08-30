@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 ZERO_HASH="0"*64
-EVENT_TYPES={"AI_REWORK_EVENT","DRIFT_DETECTED","DRIFT_CORRECTED","FAILURE_EVENT","RECOVERY_ATTEMPT","AUTO_RECOVERY_SUCCESS","HUMAN_INTERVENTION_REQUIRED","FAKE_PASS_BLOCKED","GATE_FAILED","REGRESSION_DETECTED","SUSPEND_EVENT","RESUME_EVENT","HANDOFF_EVENT","USER_SCOPE_CHANGE","EXTERNAL_FAILURE","APPROVED_ARCHITECTURE_CHANGE","CORRECTION_EVENT","STAGE_STARTED","STAGE_PASSED","STAGE_REOPENED","TOKEN_USAGE_RECORDED","PROJECT_COMPLETED"}
+EVENT_TYPES={"AI_REWORK_EVENT","DRIFT_DETECTED","DRIFT_CORRECTED","FAILURE_EVENT","RECOVERY_ATTEMPT","AUTO_RECOVERY_SUCCESS","HUMAN_INTERVENTION_REQUIRED","FAKE_PASS_BLOCKED","GATE_FAILED","REGRESSION_DETECTED","SUSPEND_EVENT","RESUME_EVENT","HANDOFF_EVENT","USER_SCOPE_CHANGE","EXTERNAL_FAILURE","APPROVED_ARCHITECTURE_CHANGE","CORRECTION_EVENT","STAGE_STARTED","STAGE_PASSED","STAGE_REOPENED","TOKEN_USAGE_RECORDED","PROJECT_COMPLETED","ILLEGAL_PASSIVE_STOP","RECOVERY_EXHAUSTED","SAFE_ROLLBACK_ATTEMPT","SAFE_ROLLBACK_SUCCESS","HUMAN_RECOVERY_REQUIRED","RESUME_REQUEST","RESUME_VERIFICATION_PASS","RESUME_VERIFICATION_FAIL","RESOURCE_BUDGET_WARNING","PROACTIVE_HANDOFF_STARTED","MODEL_HANDOFF_READY","MODEL_HANDOFF_COMPLETED","HANDOFF_VERIFICATION_FAIL","UNVERIFIED_PARTIAL_WORK"}
 COMMON=("event_id","task_id","stage_id","timestamp","timestamp_source","event_type","detected_by","evidence_refs","correlation_id")
 
 def canonical(event):
@@ -57,6 +57,11 @@ def validate_event(event, prior):
         if set(usage)!={"input_tokens","output_tokens","cached_tokens","total_tokens","provider_evidence"}: errors.append("token_usage_fields_invalid")
         elif not usage["provider_evidence"] or any(not isinstance(usage[k],int) or usage[k]<0 for k in ("input_tokens","output_tokens","cached_tokens","total_tokens")): errors.append("token_usage_invalid")
     if typ=="RESUME_EVENT" and sum(x.get("event_type")=="SUSPEND_EVENT" for x in prior)<=sum(x.get("event_type")=="RESUME_EVENT" for x in prior): errors.append("resume_without_suspend")
+    if typ=="ILLEGAL_PASSIVE_STOP" and not event.get("next_legal_action"): errors.append("passive_stop_next_action_missing")
+    if typ in {"RECOVERY_EXHAUSTED","HUMAN_RECOVERY_REQUIRED"} and not event.get("human_recovery_package_ref"): errors.append("human_recovery_package_missing")
+    if typ=="RESUME_REQUEST" and not event.get("suspend_event_id"): errors.append("resume_request_suspend_missing")
+    if typ=="RESUME_VERIFICATION_PASS" and not event.get("resume_request_event_id"): errors.append("resume_pass_request_missing")
+    if typ=="RESUME_VERIFICATION_FAIL" and not event.get("resume_request_event_id"): errors.append("resume_fail_request_missing")
     return errors
 
 def read_events(log):

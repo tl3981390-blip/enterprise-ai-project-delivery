@@ -4,7 +4,7 @@ description: 企业AI项目交付Skill。用于从业务问题出发，以「先
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 1.1.0
+  version: 1.2.0-dev
   language: zh-CN
   author: 企业Skill实验室
   requires: harness, permission-gateway
@@ -40,7 +40,7 @@ metadata:
 
 ## 核心工作流程（S0 编排）
 
-每个受管项目在 UNDERSTANDING 初始化 PROJECT_RELIABILITY_TELEMETRY，使用同一 task_id 贯穿执行、暂停、交接和恢复。发生漂移、失败、返工、人工介入、Fake PASS、Regression 或 Gate Failure 时立即追加事件，禁止等到最终报告再凭记忆补写。详细协议见 [`共享/references/项目可靠性遥测协议.md`](共享/references/项目可靠性遥测协议.md)。
+每个受管项目在 UNDERSTANDING 通过核心唯一 Recorder 初始化 PROJECT_RELIABILITY_TELEMETRY，使用同一 task_id 贯穿执行、暂停、交接和恢复。发生漂移、失败、返工、人工介入、Fake PASS、Regression 或 Gate Failure 时立即追加事件，禁止等到最终报告再凭记忆补写。阶段通过是 checkpoint，不是等待用户的理由；只要存在下一合法动作且没有合法人类门禁，必须持续施工。详细协议见 [`共享/references/项目可靠性遥测协议.md`](共享/references/项目可靠性遥测协议.md) 与 [`共享/references/持续施工与恢复协议.md`](共享/references/持续施工与恢复协议.md)。
 
 ```text
 任务进入
@@ -115,6 +115,8 @@ VERIFYING → COMPLETED
 - “顺手优化”“顺便改一下”“以后可能需要” → 视为目标外扩展，`DRIFT_DETECTED`
 - “已经完成了请直接验收”而无理解合同与证据 → 拒绝，回到门禁
 - 只改报告不改事实 → 假验收，禁止
+- “本阶段完成，请告诉我是否继续”但计划仍有合法动作 → `ILLEGAL_PASSIVE_STOP`，必须继续
+- 用户说“继续”就盲信权限、服务或 blocker 已恢复 → `RESUME_VERIFICATION_FAIL`，保持暂停并更新恢复包
 
 ## Verification（本 SKILL 自身）
 
@@ -123,6 +125,7 @@ VERIFYING → COMPLETED
 - `共享/scripts/check_plan_alignment.py`：计划-合同冲突检查
 - `共享/schema/*.json`：合同/输入/输出/Evidence 的 JSON Schema
 - `tests/evals/state_machine/`：状态机合法跳转测试
+- `tests/reliability/`：持续施工、人类恢复包、盲恢复与核心遥测绑定回归
 
 ## 硬边界
 

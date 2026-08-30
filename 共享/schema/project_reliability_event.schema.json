@@ -9,7 +9,7 @@
     "stage_id": {"type":"string","minLength":1},
     "timestamp": {"type":"string","format":"date-time"},
     "timestamp_source": {"enum":["SYSTEM_CLOCK","PROVIDER"]},
-    "event_type": {"enum":["AI_REWORK_EVENT","DRIFT_DETECTED","DRIFT_CORRECTED","FAILURE_EVENT","RECOVERY_ATTEMPT","AUTO_RECOVERY_SUCCESS","HUMAN_INTERVENTION_REQUIRED","FAKE_PASS_BLOCKED","GATE_FAILED","REGRESSION_DETECTED","SUSPEND_EVENT","RESUME_EVENT","HANDOFF_EVENT","USER_SCOPE_CHANGE","EXTERNAL_FAILURE","APPROVED_ARCHITECTURE_CHANGE","CORRECTION_EVENT","STAGE_STARTED","STAGE_PASSED","STAGE_REOPENED","TOKEN_USAGE_RECORDED","PROJECT_COMPLETED"]},
+    "event_type": {"enum":["AI_REWORK_EVENT","DRIFT_DETECTED","DRIFT_CORRECTED","FAILURE_EVENT","RECOVERY_ATTEMPT","AUTO_RECOVERY_SUCCESS","HUMAN_INTERVENTION_REQUIRED","FAKE_PASS_BLOCKED","GATE_FAILED","REGRESSION_DETECTED","SUSPEND_EVENT","RESUME_EVENT","HANDOFF_EVENT","USER_SCOPE_CHANGE","EXTERNAL_FAILURE","APPROVED_ARCHITECTURE_CHANGE","CORRECTION_EVENT","STAGE_STARTED","STAGE_PASSED","STAGE_REOPENED","TOKEN_USAGE_RECORDED","PROJECT_COMPLETED","ILLEGAL_PASSIVE_STOP","RECOVERY_EXHAUSTED","SAFE_ROLLBACK_ATTEMPT","SAFE_ROLLBACK_SUCCESS","HUMAN_RECOVERY_REQUIRED","RESUME_REQUEST","RESUME_VERIFICATION_PASS","RESUME_VERIFICATION_FAIL","RESOURCE_BUDGET_WARNING","PROACTIVE_HANDOFF_STARTED","MODEL_HANDOFF_READY","MODEL_HANDOFF_COMPLETED","HANDOFF_VERIFICATION_FAIL","UNVERIFIED_PARTIAL_WORK"]},
     "detected_by": {"type":"string","minLength":1},
     "evidence_refs": {"type":"array","items":{"type":"string","minLength":1}},
     "correlation_id": {"type":"string","minLength":1},
@@ -26,7 +26,7 @@
     "new_test_evidence": {"type":"array","minItems":1,"items":{"type":"string","minLength":1}},
     "source_event_id": {"type":"string"},
     "correction_action": {"enum":["VOID"]},
-    "gate_id": {"type":"string"},
+    "gate_id": {"type":"string"}, "next_legal_action": {"type":"string"}, "human_recovery_package_ref": {"type":"string"}, "suspend_event_id": {"type":"string"}, "resume_request_event_id": {"type":"string"},
     "reason": {"type":"string"},
     "blocking_condition": {"type":"string"},
     "first_pass": {"type":"boolean"},
@@ -47,7 +47,11 @@
     {"if":{"properties":{"event_type":{"const":"GATE_FAILED"}}},"then":{"required":["gate_id","reason","blocking_condition"]}},
     {"if":{"properties":{"event_type":{"const":"CORRECTION_EVENT"}}},"then":{"required":["source_event_id","correction_action","reason"]}},
     {"if":{"properties":{"event_type":{"const":"STAGE_PASSED"}}},"then":{"required":["first_pass"]}},
-    {"if":{"properties":{"event_type":{"const":"TOKEN_USAGE_RECORDED"}}},"then":{"required":["token_usage"]}}
+    {"if":{"properties":{"event_type":{"const":"TOKEN_USAGE_RECORDED"}}},"then":{"required":["token_usage"]}},
+    {"if":{"properties":{"event_type":{"const":"ILLEGAL_PASSIVE_STOP"}}},"then":{"required":["next_legal_action"]}},
+    {"if":{"properties":{"event_type":{"enum":["RECOVERY_EXHAUSTED","HUMAN_RECOVERY_REQUIRED"]}}},"then":{"required":["human_recovery_package_ref"]}},
+    {"if":{"properties":{"event_type":{"const":"RESUME_REQUEST"}}},"then":{"required":["suspend_event_id"]}},
+    {"if":{"properties":{"event_type":{"enum":["RESUME_VERIFICATION_PASS","RESUME_VERIFICATION_FAIL"]}}},"then":{"required":["resume_request_event_id"]}}
   ],
   "additionalProperties": true
 }

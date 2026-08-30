@@ -1,0 +1,33 @@
+{
+  "release": "v1.2.0",
+  "status": "PASS",
+  "gate_definition": "master instruction section 62 (16 items)",
+  "base": {"tag": "v1.1.0", "release_head": "4525ca742a62a950eebade22c97440d6a2c6e181", "package_sha256": "2432546895d114fc40f55bbdeea4f4b517deead7aae6b4aab8bdf737a94b052f"},
+  "contract": {"file": "evidence/v1_2_reliability/V1_2_CHANGE_CONTRACT_V2.json", "sha256": "e267166e567d234d3d6486fd3649ffd0c80438f2b1cd8cdc128285debcb86700"},
+  "plan": "evidence/v1_2_reliability/plan_v2.json (alignment PASS)",
+  "checks": {
+    "NO_STAGE_WAIT": "PASS (CONT-001..004; passive stop rejected with unnecessary_human_wait_count metric)",
+    "LEGAL_STOP_GATE": "PASS (legal gate allowlist + complete human package validation; incomplete package rejected)",
+    "AUTONOMOUS_CONTINUATION": "PASS (test_1/2/3: stage pass, three consecutive passes, recovered failure all auto-continue)",
+    "RECOVERY_ESCALATION": "PASS (REC-001 human package, REC-002 SAFE_ROLLBACK_ATTEMPT, REC-003 ALTERNATIVE_RECOVERY; bypassing variants rejected)",
+    "HUMAN_RECOVERY_PACKAGE": "PASS (schema + validate_human_package; RECOVERY_EXHAUSTED/HUMAN_RECOVERY_REQUIRED require package ref)",
+    "RESUME_VERIFICATION": "PASS (RESUME-001/002; five-identity audit; unresolved claims keep suspension)",
+    "EXECUTION_RESOURCE_GUARD": "PASS (RESOURCE-001..004; GREEN/YELLOW/RED/UNKNOWN; NOT_AVAILABLE never estimated; atomic unit closeout; UNVERIFIED_PARTIAL_WORK)",
+    "MODEL_HANDOFF": "PASS (29-field package schema + mechanical validation; MODEL_HANDOFF_READY only with complete package)",
+    "HANDOFF_VERIFICATION": "PASS (verify_handoff identity checks; HANDOFF-001 match resumes same task, HANDOFF-002 mismatch rejected)",
+    "CORE_TELEMETRY": "PASS (canonical recorder binding verifier; TELEMETRY-001..003 reject invalid correlation/chain/anchor; live task log hash-chain verified)",
+    "ROUND1_TELEMETRY_REGRESSION": "PASS (14/14)",
+    "RESCUE_REGRESSION": "PASS (8/8 rescue-scenario tests in reliability suite)",
+    "BENCHMARK_CONTAMINATION_DETECTION": "PASS (BENCH-001 CONTROLLER_CONTAMINATED detected; clean business voice PASS)",
+    "V1_1_REGRESSION": "PASS (14/14 telemetry + 23/23 core suite + structural validation + state machine + positive simulation)",
+    "GIT_CLEAN": "PASS_AT_RELEASE_COMMIT (candidate fully committed before tag; no stray files)",
+    "EVIDENCE": "PASS (append-only stage evidence; regenerated index+manifest; failure evidence frozen unmodified)"
+  },
+  "combined_local_result": "54/54 PASS (23 reliability + 17 gap-closing + 14 telemetry)",
+  "independent_evaluation": "PASS (fresh agent; 8 mechanical checks + 3 behavior reviews; evidence/v1_2_reliability/independent_evaluation.json)",
+  "coverage": {"round1_findings": "7/7 dispositioned", "rescue_experiences": "7/7 dispositioned"},
+  "task_telemetry": {"log": "evidence/v1_2_reliability/events.jsonl", "anchor": "evidence/v1_2_reliability/events.anchor.json", "integrity": "hash chain + anchor verified"},
+  "version_release_check": "PASS (check_release_ops --kind version)",
+  "boundaries": {"v1_1_tag": "UNCHANGED", "v1_1_package": "UNCHANGED (hash verified)", "harness": "UNCHANGED", "real_rescue": "UNTOUCHED", "production": "UNTOUCHED", "benchmark_contamination": "documented, results scoped to engineering verification only"},
+  "skill_overhead_findings": "v1.2 mechanisms reuse one continuation core and one recorder; no repeated verification loops added; handoff_elapsed_time and handoff_rework_count metrics evaluated and NOT adopted (no honest provider source; NOT_AVAILABLE principle)"
+}
