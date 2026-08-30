@@ -1,0 +1,1 @@
+{"task_id":"TASK-20260830-STAGE7","status":"PLAN_COMPLETE","actions":[{"id":"S7-1","name":"S7-1","description":"implement 16_部署 17_License与合规 18_升级与回滚 references","target":"16_部署"},{"id":"S7-2","name":"S7-2","description":"validate release ops and isolated rollback","target":"共享/scripts/check_release_ops.py"}]}
