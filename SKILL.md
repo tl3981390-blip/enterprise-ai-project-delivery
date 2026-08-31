@@ -1,158 +1,60 @@
 ---
 name: enterprise-ai-project-delivery
-description: 复杂项目可靠性交付 Skill（名称沿用历史，适用范围=复杂项目，不限于企业 AI）。以「先理解、后计划、再施工、终验证」的门禁式流程，把「AI 说做完了」变成「真实可以证明已完成」。Use when 交付任何复杂软件/AI/Agent/自动化/数据/桌面/Web/企业系统等多阶段项目且要求 Evidence 可验证、防目标漂移、防越权、防假验收；用户显式点名本 Skill 时（EXPLICIT_INVOCATION）默认接受，不因项目非企业、非 AI、无 SSO/MCP 而拒绝。最高原则：理解完成之前禁止施工。
+description: 通过自然语言接手并可靠交付复杂项目：理解真实目标和现状，使用或生成可由人类修改的动态计划，组合成熟能力，执行、恢复并用真实证据验收。适用于新建、续建、按既有计划推进或条件变化中的软件、AI、数据、自动化及其他多步骤项目；不因“企业/个人/AI/Web”等标签套模板。
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 1.7.0
+  version: 1.8.0
   language: zh-CN
-  author: 企业Skill实验室
-  requires: harness
-  entrypoint: SKILL.md
 ---
 
-# 企业AI项目交付 Skill（enterprise-ai-project-delivery）
+# Reliable project delivery
 
-> 产品第一身份：**COMPLEX PROJECT RELIABILITY DELIVERY SYSTEM**。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
+产品定位：`COMPLEX PROJECT RELIABILITY DELIVERY SYSTEM`。动态计划的唯一编排真源是
+`delivery_planning_core.compose_stages`，会话入口只负责连接它与人类计划、恢复和验收。
 
-把一个复杂项目从「AI 说做完了」变成「真实可以证明已完成」，并且在任何一个字节被修改之前，先证明我们真正理解了用户要什么。
+让用户只需要描述想完成什么。内部治理默认静默；对用户优先展示必要问题、项目理解、可编辑计划、执行结果、真实阻塞和最终证据，不展示状态码、Gate 名称或治理协议，除非用户要求诊断细节。
+用户点名本 Skill 时记为 `EXPLICIT_INVOCATION` 并接受真实项目交付请求；项目标签不是拒绝或加重流程的理由。
 
-## 最高原则（优先级最高，一切服从）
+## 先理解，再行动
 
-> **理解完成之前，禁止施工。**
+在产生不可逆或写入性影响前，读取项目规则、当前状态、已有计划、证据和约束。只追问会实质改变方案且无法从现状查明的问题；其余不确定项明确记录并继续安全的只读工作。识别用户真正目标、成功标准、非目标、权限边界、已完成状态和验证方法。
 
-任何任务进入本 Skill 后，**禁止直接 WRITE/EDIT/DELETE/EXECUTE/DEPLOY/MIGRATE/INSTALL/ALTER**。必须首先进入 `UNDERSTANDING` 状态：回答施工前八问 → 生成《任务理解合同》→ 施工前理解门禁（`PRE_EXECUTION_UNDERSTANDING_GATE`）→ 进入 `READY_TO_PLAN`；再经 PLAN → 计划-合同对账（`PLAN_CONTRACT_ALIGNMENT_CHECK`）→ `READY_TO_EXECUTE` 后才按模块开放写权限。执行全程持续 `DRIFT_CHECK`。
+不要把关键词当作流程选择器。复杂度只决定检查深度（内部记为 `DELIVERY_INTENSITY`），不是项目分类器，也不是三套固定流程模板；所需工作来自这个项目的真实问题、依赖、风险和交付物。
 
-违反上述任一环节 = `CONSTRAINT_CONFLICT` → `BLOCKED`，**禁止先施工再解释**。
+## 计划由人类拥有
 
-## 四大价值主张
+`AI GENERATES, HUMAN OWNS.`
 
-- 防止未理解就施工（目标漂移/越权/假验收的根因）
-- 防止施工过程目标漂移（DRIFT_CHECK）
-- 防止越权和擅自扩展（禁止“顺手优化”）
-- 防止假验收 / 失败后只改报告不改事实
+- 有用户或企业计划：保持其结构、顺序和命名，以它为计划主体；只把可靠性义务映射为适当的 Task、Check 或 Gate，并把风险作为建议说明。
+- 无计划：从已发现的真实工作单元生成计划。阶段数没有预设；简单项目可以很短，复杂项目按自然边界拆分。
+- 用户可用自然语言增删、移动、合并、拆分、替换或锁定任何部分。把该表达转成内部语义编辑后执行，不要求用户提供 ID、JSON 或状态码，也不得偷偷恢复 AI 原计划。
+- 条件变化时，找出依赖该条件的工作和证据，只重算或重验受影响部分；保留仍有效且身份一致的证据。
 
-## 适用性与触发（EXPLICIT_INVOCATION 与 AUTO_TRIGGER 分离）
+需要确定性会话状态时，使用 `共享/scripts/delivery_runtime.py` 作为唯一编排入口；不要另建平行计划模型。
 
-**显式调用**：用户点名使用本 Skill（如「使用 enterprise-ai-project-delivery 做 X」）→ `EXPLICIT_INVOCATION = TRUE`。只要 X 确实是项目交付任务，**默认接受**——个人/企业、AI/非 AI、Web/桌面/数据/自动化均可进入；随后按项目实际生成 Active Delivery Plan（低复杂度 → 轻量计划 + Quick 强度）。项目分类回答「怎么交付」，不回答「配不配用」。禁止因非企业、非 AI、无 SSO、无 MCP、无审批而拒绝显式调用；也禁止为此再造 FAMILY/PERSONAL/HOME 等第二套模式。
+## 组合成熟能力
 
-**自动触发**：偏向复杂、长周期、多阶段、高风险、AI、企业软件、跨系统类任务。启发式不得否决显式调用。
+`COMPOSE FIRST, EXTEND SECOND, REIMPLEMENT LAST.`
 
-本 Skill 是方法论门禁层，不替代交付 Agent 的编码，而是约束其有序、可验证地交付。
+先查看当前 Harness 原生能力和已安装 Skills，再按需查看 `共享/references/上游吸收索引.md`。Specification、Clarification、Planning、Tasks、TDD、Testing、Review、Browser、Git、Deployment、Documentation、Handoff 等由成熟能力完成；本 Skill 只增加证据、权限、范围、恢复、连续性和防假完成控制。若必须本地实现，记录已搜索来源、兼容性理由和回归比较。集成后的真实能力不得低于上游基线。
 
-## 分层编排（Layer 1–7）
+只加载与当前项目事实有关的模块。例如有 Web 用户旅程才读取浏览器验收模块；有部署目标才读取部署模块；发生失败才读取恢复模块。目录编号是能力库历史标识，不是项目阶段。
 
-```text
-Layer 1 Reliability Core 不变量（恒活：理解门禁/合同/防假/证据/遥测/恢复/独立验收…）
-Layer 2 Capability Registry（条件能力：RAG/Agent/MCP权限/治理/浏览器/部署/License/升级回滚…）
-Layer 3 Project Understanding（当前项目是什么、风险、真实依赖、需要与不需要的能力）
-Layer 4 Active Delivery Plan（按 Layer 3 动态生成：ACTIVE/NOT_APPLICABLE 阶段+Gate+Evidence）
-Layer 5 Enterprise Profile（企业真实流程作为输入编译，非内置模板）
-Layer 6 Project Profile ｜ Layer 7 Task Contract
-```
+## 执行和恢复
 
-正式规格：[`共享/references/PROJECT_ORCHESTRATION_SPEC.md`](共享/references/PROJECT_ORCHESTRATION_SPEC.md)。
+按计划持续完成下一合法动作，不因一个内部检查通过而被动停下。每次动作受当前范围与权限约束；外部写入、生产变更、凭据或不可逆操作仍需相应授权。
 
-## 交付分级与核心工作流
+失败时保留原始错误、环境和候选身份，定位根因，进行有界恢复，并重新验证原 blocker 和相关回归后继续。只改报告、换一条较弱路径或用户说“继续”都不能证明恢复。资源或上下文不足时，在原子工作单元边界保存事实、未完成项、证据引用、blocker 和下一动作，供后续模型机械核验后接手。
 
-先按可逆性和风险选用 Quick（低风险、可快速回滚）、Feature（跨组件或需完整规格）或 Project（多阶段、部署或治理影响）级别；分级只调节文档粒度与验证深度（DELIVERY_INTENSITY），不能降低理解、权限、Evidence 或安全门禁；它不是三套固定流程模板，也不是企业/个人项目分类器。成熟的 Specify → Clarify → Plan → Tasks → Analyze → Implement → Converge 流程采用上游适配资产，机械门禁仍由本 Skill 独立掌握。详见 [`共享/references/上游吸收索引.md`](共享/references/上游吸收索引.md)。
+## 完成标准
 
-## 核心工作流程（S0 编排）
+完成声明必须由当前候选上的真实 Evidence 支撑：关键用户旅程、异常与错误输入、权限边界、数据持久化、重启/恢复、真实浏览器或 API、部署与回滚等按项目事实选择。证据必须能追溯到命令、文件、日志、截图或外部系统结果；模型叙述不是证据。
 
-每个受管项目在 UNDERSTANDING 通过核心唯一 Recorder 初始化 PROJECT_RELIABILITY_TELEMETRY，使用同一 task_id 贯穿执行、暂停、交接和恢复。发生漂移、失败、返工、人工介入、Fake PASS、Regression 或 Gate Failure 时立即追加事件，禁止等到最终报告再凭记忆补写。阶段通过是 checkpoint，不是等待用户的理由；只要存在下一合法动作且没有合法人类门禁，必须持续施工。详细协议见 [`共享/references/项目可靠性遥测协议.md`](共享/references/项目可靠性遥测协议.md) 与 [`共享/references/持续施工与恢复协议.md`](共享/references/持续施工与恢复协议.md)。
+无法在当前环境验证的项目写成 `PENDING_EXTERNAL_VALIDATION`，并说明缺少条件、影响和恢复路径。存在失败、过期证据、死链、未重验 blocker 或外部待验项时，不得声称完成。
 
-```text
-任务进入（EXPLICIT_INVOCATION 默认接受；AUTO_TRIGGER 偏向复杂高风险）
-  ↓
-[0] UNDERSTANDING 施工前理解门禁（S0 最高门禁）
-    施工前八问 → 任务理解合同 → PRE_EXECUTION_UNDERSTANDING_GATE
-    → 合法跳转：UNDERSTANDING_COMPLETE → READY_TO_PLAN（否则 UNDERSTANDING_BLOCKED/BLOCKED）
-  ↓
-[C] 项目理解 → Project Fact Model（真实事实：目标/用户/旅程/接口/数据/持久化/部署/合规/约束/未知）
-    → Human/Enterprise Plan 若存在则优先（HUMAN_PLAN_AUTHORITY）
-    → Upstream Planning Capability 若可用则参与（UPSTREAM_CAPABILITY_FIRST）
-    → Work Unit Discovery（真实待解决问题）→ Dynamic Stage Composer（STAGE/TASK/CHECK/N/A）
-    → derive_active_plan（兼容包装器）→ compose_stages（唯一编排真源）
-  ↓
-[R] 动态交付计划执行（受合同与 Active Plan 约束；阶段由项目事实作曲，不套固定模板）
-    理解门禁与最终验收为不变量载体；能力模块（07-10/13/16/17/18）是工具库，不是必经阶段
-  ↓
-[P] PLAN_CONTRACT_ALIGNMENT_CHECK：每个施工动作都在进入前与合同对账
-  ↓
-[E] READY_TO_EXECUTE → EXECUTING（此处才开放 WRITE/EDIT/EXECUTE）
-     全程 DRIFT_CHECK；执行期 Gate 由 RISK_BASED_GATE_ROUTING 路由
-  ↓
-[V] VERIFYING → COMPLETED（真实 Evidence 证明完成）
-```
+结束报告清楚区分：已实现、已真实验证、仅静态检查、未验证、阻塞和剩余风险。详细可靠性协议只在相应事件发生时按需读取 `12_失败处理与恢复/`、`15_Evidence与防假验收/`、`共享/references/持续施工与恢复协议.md` 与 `共享/references/MODEL_HANDOFF_PROTOCOL.md`。
 
-详细状态机与每状态权限见 [`00_总控/references/状态与权限矩阵.md`](00_总控/references/状态与权限矩阵.md)。
+## 安装与发布边界
 
-## 状态机与权限阶段控制
-
-状态机（12 状态，禁止从 UNDERSTANDING 直接跳 EXECUTING）：
-
-```text
-UNDERSTANDING → UNDERSTANDING_BLOCKED / UNDERSTANDING_COMPLETE
-UNDERSTANDING_COMPLETE → READY_TO_PLAN
-READY_TO_PLAN → PLANNING → PLAN_BLOCKED / PLAN_COMPLETE
-PLAN_COMPLETE → READY_TO_EXECUTE
-READY_TO_EXECUTE → EXECUTING → EXECUTION_BLOCKED / VERIFYING
-VERIFYING → COMPLETED
-```
-
-权限：UNDERSTANDING 阶段仅 `READ/SEARCH/INSPECT/ANALYZE/COMPARE/SUMMARIZE/VALIDATE_EXISTING_STATE`；写改权限在 `READY_TO_EXECUTE` 后按模块开放。
-
-## 各模块 Overview（CAPABILITY LIBRARY / TOOLKIT / REFERENCE —— 不是必经阶段序列）
-
-模块是能力库与可靠性工具包，可按项目事实成为 Stage/Task/Check/Not-Applicable；MODULE != STAGE，CAPABILITY != STAGE，RELIABILITY_INVARIANT != STAGE。
-
-| 模块 | 定位 | 职责 |
-| ---- | ---- | ---- |
-| 00_总控 | 不变量载体 | 施工前理解门禁 / 状态机 / 任务理解合同 / 计划-合同对账 / DRIFT_CHECK / 权限阶段控制 / 门禁 / 输出合同 |
-| 01_项目理解 | 不变量载体 | 用户真正目标 / 最终结果 / 业务价值（理解先于执行） |
-| 02_当前状态审计 | 工具 | 已有什么 / 完成到哪 / 哪些真哪些假 / 哪些不可改 |
-| 03_需求与范围 | 工具 | 范围 / 非目标 / 禁止项 / 成功标准 / 关键约束 |
-| 04_SDD规格 | 工具（复杂项目可升为 Stage） | 先规格后编码，全维度规格 |
-| 05_TDD与测试策略 | 工具（复杂项目可升为 Stage） | 判断式测试策略 |
-| 06_架构设计 | 工具（复杂项目可升为 Stage） | 架构 / 组件 / 接口 / 部署形态 |
-| 07_RAG设计 | 能力 | 知识源 / 索引 / 权限 / 引用 / 拒答（四防）；交付含检索/问答事实时激活 |
-| 08_Agent设计 | 能力 | 角色职责分离；交付含自治执行/多角色协作事实时激活 |
-| 09_MCP与工具权限网关 | 能力 | 权限矩阵；涉及工具/外部调用权限事实时激活 |
-| 10_企业治理与合规 | 能力 | 审计 / SSO / 数据不出域 / 变更管理；存在企业政策/审批/合规事实时激活 |
-| 11_施工管理与增量实现 | 工具 | 增量实现 + DoD |
-| 12_失败处理与恢复 | 工具（事件驱动） | 根因定位 + 证据保留 + 停止条件（失败时进入，非必经阶段） |
-| 13_浏览器真实验收 | 能力 | 真实浏览器操作验证 Web 产品；无 Web UI 记 NOT_APPLICABLE 及理由 |
-| 14_验收（多视角） | 不变量载体 | 独立验收不变量：视角随干系人缩放（企业默认四视角；单人项目坍缩为 owner/user），执行者自证无效 |
-| 15_Evidence与防假验收 | 不变量载体 | 统一证据合同，防假验收 |
-| 16_部署 | 能力 | Build→Deploy→回滚，非“本地能跑”；非部署型交付物记 NOT_APPLICABLE 及理由 |
-| 17_License与合规 | 能力 | 许可扫描；存在分发/许可约束事实时激活 |
-| 18_升级与回滚 | 能力 | semver / 迁移 / 兼容 / 回滚演练；存在版本演进/回退事实时激活 |
-| 19_最终交付与经验沉淀 | 不变量载体 | 最终报告 + 经验入库 |
-
-## 输出合同（结构化，可被 JSON Schema 校验）
-
-每次阶段/门禁完成，输出规范化 JSON（含 `phase`、`status`、`gate_results`、`evidence`、`can_advance`、`requires_human`），见 [`共享/schema/output_schema.json`](共享/schema/output_schema.json)。证据类型白名单与「模型文字禁止」见 `06`。
-
-## 反合理化 / Red Flags
-
-- 找借口跳过 UNDERSTANDING/合同 → 违反最高原则，BLOCKED
-- “顺手优化”“顺便改一下”“以后可能需要” → 视为目标外扩展，`DRIFT_DETECTED`
-- “已经完成了请直接验收”而无理解合同与证据 → 拒绝，回到门禁
-- 只改报告不改事实 → 假验收，禁止
-- “本阶段完成，请告诉我是否继续”但计划仍有合法动作 → `ILLEGAL_PASSIVE_STOP`，必须继续
-- 用户说“继续”就盲信权限、服务或 blocker 已恢复 → `RESUME_VERIFICATION_FAIL`，保持暂停并更新恢复包
-
-## Verification（本 SKILL 自身）
-
-- `共享/scripts/validate-skill.py`：结构/frontmatter/引用/版本/License 校验
-- `共享/scripts/check_understanding_gate.py`：理解门禁结构与必填字段校验
-- `共享/scripts/check_plan_alignment.py`：计划-合同冲突检查
-- `共享/schema/*.json`：合同/输入/输出/Evidence 的 JSON Schema
-- `tests/evals/state_machine/`：状态机合法跳转测试
-- `tests/reliability/`：持续施工、人类恢复包、盲恢复与核心遥测绑定回归
-
-## 硬边界
-
-- 不连接/不修改企业生产系统；不修改 Harness（Harness 落地另行授权）
-- 阶段 1（本骨架）只建立 Skill 自身工程骨架，不实现正式业务项目
-- OpenAI `.system` 内容全程只读，禁止复制（License 边界见 `09` / NOTICE）
+正式安装必须从仓库 URL 解析最新 Stable Release，验证 tag/资产身份，安装自包含副本并运行自检；不得依赖作者开发目录。开发 Workspace 的迁移与公开 Skill 分离，私有 bootstrap 不进入 Release。发布前完成 Candidate 验收，历史 tag 永不移动；无法验证的远端或 Harness 结果保持 `PENDING_EXTERNAL_VALIDATION`。安装细节见 `docs/AGENT_INSTALL.md`。

@@ -31,6 +31,11 @@ import sys
 import time
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="strict")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
+
 SKILL_ID = "enterprise-ai-project-delivery"
 EXCLUDE_DIRS = {".git", "__pycache__", ".mimosa", "node_modules", ".venv", "test-results", ".tools-work"}
 METADATA_REL = Path("共享") / "schema" / "RELEASE_METADATA.json"
@@ -133,7 +138,7 @@ def _github_release_asset_sha256(meta: dict) -> str | None:
         return None
     try:
         out = subprocess.run([gh, "release", "view", tag, "-R", repo, "--json", "assets"],
-                             capture_output=True, text=True, shell=False)
+                             capture_output=True, text=True, shell=False, timeout=10)
         if out.returncode != 0:
             return None
         import json as _json

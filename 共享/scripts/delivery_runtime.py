@@ -1,0 +1,146 @@
+"""Single orchestration runtime for reliable, human-owned project delivery."""
+from __future__ import annotations
+
+from copy import deepcopy
+from datetime import datetime, timezone
+from uuid import uuid4
+
+from delivery_planning_core import (complexity_from_facts, compose_stages,
+                                    derive_final_acceptance, make_fact_model,
+                                    reason_capability_needs)
+from plan_governance_core import (apply_human_plan, apply_plan_edit,
+                                  replan_respecting_locks,
+                                  resolve_capability_need)
+
+RUNTIME_SCHEMA_VERSION = "1.0"
+TERMINAL_EVIDENCE_STATES = {"PASS", "FAIL", "PENDING_EXTERNAL_VALIDATION"}
+
+
+def start_delivery(*, facts: dict, human_plan: dict | None = None,
+                   upstream_plan: dict | None = None, capability_registry: dict | None = None,
+                   upstream_capabilities: dict | None = None,
+                   harness_capabilities: dict | None = None) -> dict:
+    """Create a project-derived session. Human plans are authoritative when supplied."""
+    model = make_fact_model(**facts)
+    complexity = complexity_from_facts(model)
+    needs = reason_capability_needs(model)
+    if human_plan:
+        plan = apply_human_plan(human_plan, model)
+    else:
+        plan = compose_stages(model, complexity, needs, upstream_plan=upstream_plan)
+        plan["authority"] = "AI_GENERATED_HUMAN_OWNED"
+    resolutions = {}
+    for name, need in needs["capabilities"].items():
+        if need["required"] is True:
+            resolutions[name] = resolve_capability_need(
+                name, capability_registry or {}, upstream_capabilities or {},
+                harness_capabilities or {})
+    now = _now()
+    return {"schema_version": RUNTIME_SCHEMA_VERSION, "session_id": str(uuid4()),
+            "revision": 1, "created_at": now, "updated_at": now,
+            "facts": model, "complexity": complexity, "capability_needs": needs,
+            "capability_resolutions": resolutions, "plan": plan,
+            "acceptance": derive_final_acceptance(model, complexity),
+            "verified_state": {}, "failures": [], "events": [],
+            "status": "PLANNED", "current_work": None}
+
+
+def edit_plan(session: dict, edit: dict) -> dict:
+    """Apply a semantic edit translated from natural language; human is default actor."""
+    out = deepcopy(session)
+    semantic_edit = dict(edit)
+    semantic_edit.setdefault("actor", "HUMAN_EXPLICIT")
+    out["plan"] = apply_plan_edit(out["plan"], semantic_edit)
+    _event(out, "PLAN_EDITED", {"op": semantic_edit.get("op"),
+                                 "affected": out["plan"].get("affected_assumptions", [])})
+    return _bump(out)
+
+
+def change_conditions(session: dict, *, changed_facts: dict) -> dict:
+    """Recalculate only work whose declared assumptions are affected by changed facts."""
+    out = deepcopy(session)
+    raw = {k: deepcopy(v) for k, v in out["facts"].items() if not k.startswith("_")}
+    raw.update(changed_facts)
+    out["facts"] = make_fact_model(**raw)
+    changed = set(changed_facts)
+    out["plan"] = replan_respecting_locks(out["plan"], sorted(changed), new_facts=changed_facts)
+    out["complexity"] = complexity_from_facts(out["facts"])
+    out["capability_needs"] = reason_capability_needs(out["facts"])
+    out["acceptance"] = derive_final_acceptance(out["facts"], out["complexity"])
+    _event(out, "CONDITIONS_CHANGED", {"changed_facts": sorted(changed),
+                                        "recomputed": out["plan"].get("recomputed", [])})
+    return _bump(out)
+
+
+def record_failure(session: dict, *, work_id: str, evidence: list,
+                   root_cause: str | None = None) -> dict:
+    """Freeze a failure. A report edit cannot turn it into PASS."""
+    if not evidence:
+        raise ValueError("failure_evidence_required")
+    out = deepcopy(session)
+    failure = {"failure_id": str(uuid4()), "work_id": work_id, "evidence": evidence,
+               "root_cause": root_cause, "status": "OPEN", "recorded_at": _now(),
+               "recovery_attempts": []}
+    out["failures"].append(failure)
+    out["status"] = "RECOVERING"
+    _event(out, "FAILURE_FROZEN", {"failure_id": failure["failure_id"], "work_id": work_id})
+    return _bump(out)
+
+
+def record_recovery(session: dict, *, failure_id: str, action: str,
+                    evidence: list, blocker_revalidation: dict) -> dict:
+    """Recovery succeeds only when the original blocker is mechanically revalidated."""
+    out = deepcopy(session)
+    failure = next((f for f in out["failures"] if f["failure_id"] == failure_id), None)
+    if failure is None:
+        raise KeyError("failure_not_found")
+    failure["recovery_attempts"].append({"action": action, "evidence": evidence,
+        "blocker_revalidation": blocker_revalidation, "recorded_at": _now()})
+    passed = bool(evidence) and blocker_revalidation.get("status") == "PASS"
+    failure["status"] = "RECOVERED_REVALIDATED" if passed else "RECOVERY_UNVERIFIED"
+    out["status"] = "EXECUTING" if passed else "RECOVERING"
+    _event(out, "RECOVERY_REVALIDATED" if passed else "RECOVERY_REVALIDATION_FAILED",
+           {"failure_id": failure_id})
+    return _bump(out)
+
+
+def claim_completion(session: dict, evidence_results: dict) -> dict:
+    """Anti-fake-PASS: every acceptance item needs terminal evidence on this candidate."""
+    out = deepcopy(session)
+    required = _acceptance_items(out["acceptance"])
+    missing, failed, pending = [], [], []
+    for item in required:
+        result = evidence_results.get(item)
+        if not result or result.get("status") not in TERMINAL_EVIDENCE_STATES or not result.get("evidence"):
+            missing.append(item)
+        elif result["status"] == "FAIL": failed.append(item)
+        elif result["status"] == "PENDING_EXTERNAL_VALIDATION": pending.append(item)
+    open_failures = [f["failure_id"] for f in out["failures"] if f["status"] != "RECOVERED_REVALIDATED"]
+    complete = not (missing or failed or pending or open_failures)
+    out["status"] = "COMPLETED" if complete else "NOT_COMPLETE"
+    out["completion_gate"] = {"pass": complete, "missing": missing, "failed": failed,
+        "pending_external_validation": pending, "open_failures": open_failures}
+    _event(out, "COMPLETION_VERIFIED" if complete else "FAKE_PASS_BLOCKED", out["completion_gate"])
+    return _bump(out)
+
+
+def _acceptance_items(matrix: dict) -> list[str]:
+    items = []
+    for key, value in matrix.items():
+        if isinstance(value, list): items.extend(f"{key}:{v}" for v in value)
+        elif value not in (None, "", [], {}): items.append(key)
+    return items
+
+
+def _event(session: dict, kind: str, details: dict) -> None:
+    session["events"].append({"type": kind, "at": _now(), "details": details})
+
+
+def _bump(session: dict) -> dict:
+    session["revision"] += 1
+    session["updated_at"] = _now()
+    return session
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()

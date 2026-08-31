@@ -13,6 +13,11 @@ import re
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="strict")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
+
 REQUIRED_FRONTMATTER = {"name", "description", "license", "metadata"}
 SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+)?(\+[0-9A-Za-z-]+)?$")
 MODULES = [
@@ -66,7 +71,9 @@ def validate_skill(root: Path):
             if len(data.get("description", "")) > 1024:
                 errors.append(f"{main_skill.name}: description 超过 1024 字符")
 
-    # 2) 每个模块必须有 SKILL.md + frontmatter + 版本
+    # 2) Historical numbered directories are a conditional capability library, not
+    # sub-skills in a fixed lifecycle. Validate their structure, but do not force every
+    # library document to share the release version of the orchestration entrypoint.
     for mod in MODULES:
         mdir = base / mod
         sk = mdir / "SKILL.md"
@@ -81,8 +88,6 @@ def validate_skill(root: Path):
             errors.append(f"{mod}/SKILL.md: {err}")
         elif data.get("version") and not SEMVER_RE.match(data["version"]):
             errors.append(f"{mod}/SKILL.md: version 非 semver")
-        elif data.get("version") != root_version:
-            errors.append(f"{mod}/SKILL.md: version 与根版本不一致")
 
     # 3) references/scripts 引用路径存在的文件（markdown 内相对链接抽查）
     ref_pattern = re.compile(r"\]\(([^)#]+\.(?:md|py|json))")
@@ -117,8 +122,8 @@ def validate_skill(root: Path):
         errors.append(f"product_completion_core 导入失败: {ex}")
     if main_skill.exists():
         text = main_skill.read_text(encoding="utf-8")
-        if "EXPLICIT_INVOCATION" not in text:
-            errors.append("根 SKILL.md 缺 EXPLICIT_INVOCATION 语义（显式调用不得因项目类型被拒）")
+        if "自然语言" not in text or "不因“企业/个人/AI/Web”等标签套模板" not in text:
+            errors.append("根 SKILL.md 缺自然语言入口或标签非路由语义")
         if "企业内部开发一个 AI 产品" in text or "仅限企业" in text:
             errors.append("根 SKILL.md 适用范围回退为企业限定（泛化缺陷复发）")
 

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.8.0 Candidate (2026-08-31)
+
+- Replaced the governance-first entrypoint with a concise natural-language delivery contract.
+- Added one runtime connecting dynamic planning, human edits, affected-only replanning,
+  capability composition, failure freezing, recovery revalidation and evidence completion.
+- Added realistic end-to-end reliability scenarios and stable UTF-8 installer output.
+- Aligned candidate identity across entrypoint metadata, release metadata and harness manifest.
+
 本文件记录企业AI项目交付 Skill 自身版本的变更。遵循 `18`/`08` 的 semver 与 staging/adopt 规则。
 
 ## 1.5.0 (2026-08-31)

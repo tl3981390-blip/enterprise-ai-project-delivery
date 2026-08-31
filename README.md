@@ -5,15 +5,22 @@
 >
 > 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
-**Current version: v1.5.1** (v1.5.0 First Generation Product Core + post-v1.5.0 generalization defect fix — applicability decoupled from enterprise-AI domain; see `evidence/post_v1_5_generalization/`) · v1.5.0 release commit `491f6c9` (unchanged) · Repository: **private**, owner `tl3981390-blip`
+**Candidate version: v1.8.0.** Natural language is the user interface; human plans are
+authoritative; project facts determine the work; one runtime connects planning, partial
+replanning, recovery and evidence-based completion. Historical tags remain immutable.
 
 ## Get the skill — pick one path
 
-**I just want to USE it** → GitHub **Releases → v1.5.0 → Assets → `enterprise-ai-project-delivery-v1.5.0.zip`** (the formal release artifact — verify `SHA-256 = 020a759ab78ba3678ff68dd10cd74a5ef54a51036162c6ef40c7f2e0521e4e8d`, then load into your harness). Note: the green **Code → Download ZIP** button is a *branch source snapshot*, not the release artifact — see [docs/INSTALL_AND_ACQUISITION.md](docs/INSTALL_AND_ACQUISITION.md).
+**I just want to USE it** → resolve the repository's latest Stable GitHub Release,
+download its versioned asset, verify its published digest, then install it. The green
+**Code → Download ZIP** button is a branch snapshot, not a formal Release asset.
 
-**Have your AI harness install it for you (agent mode)** → give your harness this repository URL plus: *"Follow `docs/AGENT_INSTALL.md` in this repo."* The agent clones (needs GitHub auth — repo is private), verifies `v1.5.0 → 491f6c9`, runs `python docs/install.py --harness auto` (self-contained full-core install, no author-local paths), and reports. Contract: [docs/AGENT_INSTALL.md](docs/AGENT_INSTALL.md).
+**Have your AI harness install it for you (agent mode)** → give it the repository URL and
+say: *"Install the latest Stable Release and follow `docs/AGENT_INSTALL.md`."* It resolves
+the release, verifies identity, installs a self-contained copy and runs self-check.
 
-**I want to DEVELOP / MAINTAIN it** → GitHub **Code → HTTPS → copy the repository URL**, then `git clone <url>` in a terminal (requires GitHub authentication — the repository is private), then `git fetch --tags` and verify `v1.5.0 → 491f6c9`. Full migration guide: [docs/DEVELOPMENT_AND_MIGRATION.md](docs/DEVELOPMENT_AND_MIGRATION.md).
+**I want to DEVELOP / MAINTAIN it** → clone with legitimate authentication, fetch tags,
+and keep the development workspace separate from installed Release copies.
 
 Guides: [Installation & Acquisition](docs/INSTALL_AND_ACQUISITION.md) · [Harness Guide](docs/HARNESS_GUIDE.md) · [Development & Migration](docs/DEVELOPMENT_AND_MIGRATION.md) · [Development History](docs/DEVELOPMENT_HISTORY.md)
 
