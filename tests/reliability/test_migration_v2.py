@@ -94,27 +94,30 @@ class BootstrapContentTests(unittest.TestCase):
 class RestoreIdempotencyTests(unittest.TestCase):
     def test_checkpoint_file_created_and_reused(self):
         script = BOOTSTRAP / "restore_workspace.py"
-        cp = BOOTSTRAP / "restore_checkpoint.json"
-        if cp.exists():
-            cp.unlink()
-        subprocess.run([sys.executable, str(script), "--plan-only"],
-                       capture_output=True, text=True, cwd=BOOTSTRAP, shell=False)
-        self.assertTrue(cp.exists())
-        subprocess.run([sys.executable, str(script), "--plan-only"],
-                       capture_output=True, text=True, cwd=BOOTSTRAP, shell=False)
-        cp2 = json.loads(cp.read_text(encoding="utf-8"))
-        self.assertIn("preflight", cp2["steps"])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "ws"
+            cp = root / ".workspace-restore-checkpoint.json"
+            command = [sys.executable, str(script), "--plan-only", "--root", str(root)]
+            subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", cwd=BOOTSTRAP, shell=False)
+            self.assertTrue(cp.exists())
+            subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", cwd=BOOTSTRAP, shell=False)
+            cp2 = json.loads(cp.read_text(encoding="utf-8"))
+            self.assertIn("preflight", cp2["steps"])
 
     def test_second_run_recognizes_existing_state(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "ws"
             script = BOOTSTRAP / "restore_workspace.py"
             r1 = subprocess.run([sys.executable, str(script), "--root", str(root)],
-                                capture_output=True, text=True, cwd=BOOTSTRAP, shell=False)
+                                capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                cwd=BOOTSTRAP, shell=False)
             if "AUTH_REQUIRED" in (r1.stdout + r1.stderr):
                 self.skipTest("GitHub auth transiently unavailable (EXTERNAL_LIVE_TEST)")
             r2 = subprocess.run([sys.executable, str(script), "--root", str(root)],
-                                capture_output=True, text=True, cwd=BOOTSTRAP, shell=False)
+                                capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                cwd=BOOTSTRAP, shell=False)
             out = r2.stdout
             self.assertTrue("VALID_EXISTING_STATE" in out or "READY" in out,
                             f"second run did not recognize existing state: {out[:200]}")
