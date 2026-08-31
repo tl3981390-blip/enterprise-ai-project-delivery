@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.02-state-audit
 description: 模块02·当前状态审计。判存量真实情况：已有什么/完成到哪/哪些真哪些假/哪些不可改，禁止默认从零。Use when 需确认项目现状与不可修改边界。
-version: 1.5.1
+version: 1.6.0
 license: MIT
 compatibility: open
 metadata:

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canonical_release_metadata",
+  "title": "CANONICAL_RELEASE_METADATA (single source of truth for release identity)",
+  "schema_version": "1.0",
+  "comment": "INST-005: Installer / Adapter / Updater / Validator MUST read this file; no file maintains its own hardcoded version/tag/commit/SHA. Update via bump tooling only.",
+  "skill_id": "enterprise-ai-project-delivery",
+  "version": "1.6.0",
+  "tag": "v1.6.0",
+  "release_commit": "ba7ca9e71d90c2a20eb994053a6d2bee21c36f2c",
+  "core_identity": "tag v1.5.1 -> ba7ca9e71d90c2a20eb994053a6d2bee21c36f2c (v1.5.0 -> 491f6c9f76c6c384fd18a21303aba56812eeadb1 unchanged)",
+  "release_asset": "enterprise-ai-project-delivery-v1.6.0.zip",
+  "asset_sha256": "PENDING_UNTIL_RELEASE",
+  "repository": {
+    "url": "https://github.com/tl3981390-blip/enterprise-ai-project-delivery",
+    "visibility": "private",
+    "owner": "tl3981390-blip",
+    "default_branch": "main"
+  },
+  "github_release": "v1.6.0",
+  "required_toolchain": {
+    "python": ">=3.10",
+    "git": "any"
+  },
+  "harness_skill_dirs": {
+    "zcode": "~/.zcode/skills",
+    "claude": "~/.claude/skills",
+    "workbuddy": "~/.workbuddy/skills",
+    "trae": "~/.trae/skills"
+  },
+  "whitelisted_ahead_paths": [
+    "docs/",
+    "examples/",
+    "README.md"
+  ],
+  "core_freeze": "ACTIVE"
+}

@@ -1,55 +1,55 @@
-# AGENT_INSTALL — 给任何 Harness AI 的安装契约
+# AGENT_INSTALL — 给任何 Harness AI 的 URL-only 安装契约
 
-> 你（Harness AI / Agent）收到本文件路径或本仓库 URL，说明用户要求你安装 `enterprise-ai-project-delivery` 这个 Skill。按下面步骤做，全部机械验证，装完报告。
+> 你（Harness AI / Agent）收到本仓库 URL，说明用户要求安装 `enterprise-ai-project-delivery`。
+> 全程机械验证，不得让用户手工处理 Git/SSH/Release/路径/凭据；只在真正需要授权时请用户完成
+> **合法认证**（browser login / OAuth / 2FA / 仓库授权）——**禁止**让用户把 PAT/password/token/私钥贴给你。
 
-## 用户会对你说的话（示例）
+## 用户只会对你说（示例）
 
 ```text
-安装这个 skill：<https://github.com/tl3981390-blip/enterprise-ai-project-delivery>
-按仓库里的 AGENT_INSTALL.md 装。
+https://github.com/tl3981390-blip/enterprise-ai-project-delivery
+
+帮我安装这个 Skill。
 ```
 
-## 安装步骤（按序执行，每步验证）
+## 你必须自动完成的步骤（按序，每步验证）
 
-### 1. 获取源码（二选一）
+### 1. 取得正式版源码（默认 Stable Release，不用 main 快照）
 
 ```bash
-# 方式 A：git clone（仓库当前是 PRIVATE——需要本机已配置合法 GitHub 认证：
-#         gh auth login 过 / Git Credential Manager / SSH key）
-git clone https://github.com/tl3981390-blip/enterprise-ai-project-delivery.git
-cd enterprise-ai-project-delivery
+# 首选：下载正式 Release ZIP（身份可验 SHA）
+gh release download <TAG> -R tl3981390-blip/enterprise-ai-project-delivery \
+    -p 'enterprise-ai-project-delivery-*.zip' -D /tmp/eapd-install
+# 或 API: GET /repos/<owner>/<repo>/releases/latest  → 取 tag_name 与 asset URL
+unzip /tmp/eapd-install/*.zip -d /tmp/eapd-install/src && cd /tmp/eapd-install/src
 
-# 方式 B：用户已下载 Release ZIP → 解压后进入目录
-# （Release ZIP 是正式资产；网页 Code→Download ZIP 是分支快照，也能装，
-#   但身份验证值不同——见第 2 步）
+# 备选：git clone（私有仓库需要本机已有合法认证：gh auth login / Credential Manager / SSH key）
+git clone https://github.com/tl3981390-blip/enterprise-ai-project-delivery.git
 ```
+
+**当前正式版本 = `v1.5.1`**（以仓库 `共享/schema/RELEASE_METADATA.json` 为准；本行仅为说明，安装时以元数据文件读取为准，不照抄本行）。
 
 ### 2. 验证身份（防伪）
 
 ```bash
-git fetch --tags
-git rev-parse v1.5.0^{commit}
-# 必须输出：491f6c9f76c6c384fd18a21303aba56812eeadb1
-# （main 可以比 tag 新——那是发布后的文档提交，合法；tag 永不移动）
-
-# 若用户给的是 Release ZIP，先验 SHA-256，必须等于：
-# 020a759ab78ba3678ff68dd10cd74a5ef54a51036162c6ef40c7f2e0521e4e8d
+# ZIP：SHA-256 必须等于 RELEASE_METADATA.json 的 asset_sha256
+# （v1.5.1 = 733c89b87d9e09c94406bcfbfb2fdd3f08061e4024bf3068e4b755f6b52f8715）
+git clone：git rev-parse v1.5.1^{commit} 必须等于 RELEASE_METADATA.json 的 release_commit
+# （v1.5.1 = ba7ca9e71d90c2a20eb994053a6d2bee21c36f2c；main 可因 docs 前移，合法）
 ```
 
 ### 3.（推荐）安全抽查
 
-本仓库经全历史扫描（零密钥/零凭据/零外部网络请求/无 eval·exec）。你仍可快速自查：无 `eval(`/`exec(`、无外部 URL 请求、subprocess 仅自调用、无凭据读取——有异常就停并报告，不要装。
+无 `eval(`/`exec(`、无外部网络请求、subprocess 仅自调用、无凭据读取；异常即停并报告。
 
-### 4. 执行安装（自包含模式——不依赖任何作者本机路径）
+### 4. 执行安装（自包含——不依赖任何作者本机路径）
 
 ```bash
-python docs/install.py --harness auto     # 自动探测本机已装的 harness
-# 或指定：--harness zcode | claude | workbuddy | trae
-# 或显式：--target <目录>
-# 先看看会装哪：python docs/install.py --harness auto --dry-run
+python docs/install.py --harness auto      # 自动探测已装 harness
+# 或：--harness zcode|claude|workbuddy|trae  或 --target <目录>  或 --dry-run 预览
 ```
 
-安装器行为：完整核心自包含拷贝（排除 .git/缓存）→ 写 `INSTALL_INFO.json` → 结构自检。**装出的副本不依赖任何 D 盘或作者个人路径**。
+安装器行为：完整核心自包含拷贝（排除 .git/缓存）→ 写 `INSTALL_INFO.json` → 结构自检。安装身份**只读 `共享/schema/RELEASE_METADATA.json` 单一源**（Installer 不再自带版本号）。
 
 ### 5. 装后验证
 
@@ -61,12 +61,17 @@ python <技能目录>/共享/scripts/validate-skill.py --root <技能目录>
 ### 6. 报告（装完输出给用户）
 
 ```text
-安装结果：目标目录 / 文件数 / 版本 1.5.0 / tag 验证 491f6c9 / 自检 0 错
+安装结果：目标目录 / 文件数 / 版本（来自元数据）/ tag 验证 / 自检 0 错
 调用方式：对话中说 "使用 enterprise-ai-project-delivery 治理：<任务>"
-         新项目 → 直接说目标；半途项目 → 要求只读勘察+采纳边界接管
 ```
+
+## 已认证 / 未认证（Private 仓库）
+
+- **已认证**（gh/凭据管理器/SSH 可用）：直接继续，不打扰用户。
+- **未认证**：只请求用户完成合法认证（`gh auth login` 浏览器流 / 系统凭据授权 / 仓库协作者邀请）；认证完成前保持 `PENDING_EXTERNAL_VALIDATION`，不得伪造安装成功。
 
 ## 已知边界（如实告诉用户）
 
-- **仓库是 PRIVATE**：没有 GitHub 读权限的机器装不了——这是访问控制，不是安装器缺陷。需要"任何人可装"时，仓库主人需将仓库转 Public 或把对方加为 collaborator（那是仓库主人的决策，Agent 不得自行改可见性）。
-- 旧式"薄适配器指向作者 D 盘"的安装（`~/.zcode`、`~/.claude`、`~/.workbuddy` 里 2026-08-31 之前的手工安装）在非作者机器上会 `CORE_RELEASE_IDENTITY_BLOCKED`——用本安装器的自包含模式覆盖即可修复。
+- **仓库是 PRIVATE**：无读权限的机器装不了——这是访问控制，不是安装器缺陷。需"任何人可装"时由仓库主人决定公开或加协作者（Agent 不得自行改可见性）。
+- **正式安装/更新绝不搜索作者本地开发区**（`D:\企业Skill实验室` 等）。旧式薄适配器指向作者 D 盘的安装（2026-08-31 之前手工装的）在非作者机器上会 `CORE_RELEASE_IDENTITY_BLOCKED`——用本安装器自包含模式覆盖即修复。
+- **正式更新**只能走：Installed Version → Canonical Remote Release Metadata → 远端正式 Release → Download → Verify → Update。不得从任何本地二次开发目录复制。
