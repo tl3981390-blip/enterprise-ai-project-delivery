@@ -7,8 +7,8 @@
   "skill_id": "enterprise-ai-project-delivery",
   "version": "1.6.0",
   "tag": "v1.6.0",
-  "release_commit": "ba7ca9e71d90c2a20eb994053a6d2bee21c36f2c",
-  "core_identity": "tag v1.5.1 -> ba7ca9e71d90c2a20eb994053a6d2bee21c36f2c (v1.5.0 -> 491f6c9f76c6c384fd18a21303aba56812eeadb1 unchanged)",
+  "release_commit": "8be9502e88a9b2c38583e8572f308b01ba5b284c",
+  "core_identity": "tag v1.6.0 -> 8be9502e88a9b2c38583e8572f308b01ba5b284c (v1.5.1 -> ba7ca9e71d90c2a20eb994053a6d2bee21c36f2c; v1.5.0 -> 491f6c9f76c6c384fd18a21303aba56812eeadb1 unchanged)",
   "release_asset": "enterprise-ai-project-delivery-v1.6.0.zip",
   "asset_sha256": "PENDING_UNTIL_RELEASE",
   "repository": {
