@@ -43,10 +43,10 @@ git rev-parse v1.5.0^{commit}
 ### 4. 执行安装（自包含模式——不依赖任何作者本机路径）
 
 ```bash
-python install.py --harness auto     # 自动探测本机已装的 harness
+python docs/install.py --harness auto     # 自动探测本机已装的 harness
 # 或指定：--harness zcode | claude | workbuddy | trae
 # 或显式：--target <目录>
-# 先看看会装哪：python install.py --harness auto --dry-run
+# 先看看会装哪：python docs/install.py --harness auto --dry-run
 ```
 
 安装器行为：完整核心自包含拷贝（排除 .git/缓存）→ 写 `INSTALL_INFO.json` → 结构自检。**装出的副本不依赖任何 D 盘或作者个人路径**。

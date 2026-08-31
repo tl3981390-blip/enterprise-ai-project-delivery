@@ -38,9 +38,9 @@ EXCLUDE_DIRS = {".git", "__pycache__", ".mimosa", "node_modules", ".venv", "test
 
 
 def repo_root() -> Path:
-    here = Path(__file__).resolve().parent
+    here = Path(__file__).resolve().parent.parent
     if not (here / "SKILL.md").exists():
-        raise SystemExit("RUN_FROM_REPO_ROOT_REQUIRED: run install.py from the cloned/unzipped repository root")
+        raise SystemExit("RUN_FROM_REPO_ROOT_REQUIRED: run docs/install.py from the cloned/unzipped repository root")
     return here
 
 

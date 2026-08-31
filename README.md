@@ -9,7 +9,7 @@
 
 **I just want to USE it** → GitHub **Releases → v1.5.0 → Assets → `enterprise-ai-project-delivery-v1.5.0.zip`** (the formal release artifact — verify `SHA-256 = 020a759ab78ba3678ff68dd10cd74a5ef54a51036162c6ef40c7f2e0521e4e8d`, then load into your harness). Note: the green **Code → Download ZIP** button is a *branch source snapshot*, not the release artifact — see [docs/INSTALL_AND_ACQUISITION.md](docs/INSTALL_AND_ACQUISITION.md).
 
-**Have your AI harness install it for you (agent mode)** → give your harness this repository URL plus: *"Follow `AGENT_INSTALL.md` in this repo."* The agent clones (needs GitHub auth — repo is private), verifies `v1.5.0 → 491f6c9`, runs `python install.py --harness auto` (self-contained full-core install, no author-local paths), and reports. Contract: [AGENT_INSTALL.md](AGENT_INSTALL.md).
+**Have your AI harness install it for you (agent mode)** → give your harness this repository URL plus: *"Follow `docs/AGENT_INSTALL.md` in this repo."* The agent clones (needs GitHub auth — repo is private), verifies `v1.5.0 → 491f6c9`, runs `python docs/install.py --harness auto` (self-contained full-core install, no author-local paths), and reports. Contract: [docs/AGENT_INSTALL.md](docs/AGENT_INSTALL.md).
 
 **I want to DEVELOP / MAINTAIN it** → GitHub **Code → HTTPS → copy the repository URL**, then `git clone <url>` in a terminal (requires GitHub authentication — the repository is private), then `git fetch --tags` and verify `v1.5.0 → 491f6c9`. Full migration guide: [docs/DEVELOPMENT_AND_MIGRATION.md](docs/DEVELOPMENT_AND_MIGRATION.md).
 
