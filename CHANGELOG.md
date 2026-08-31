@@ -2,6 +2,21 @@
 
 本文件记录企业AI项目交付 Skill 自身版本的变更。遵循 `18`/`08` 的 semver 与 staging/adopt 规则。
 
+## 1.4.0 (2026-08-31)
+
+**Reliability Efficiency / Token Optimization**——同口径隔离回放实测：Token -6.71%（9,872,301 → 9,209,337）、时间 -27.21%、验收 14/14 持平、可靠性九项不回归全 PASS。
+
+- TOKEN_COST_PROFILER 先行：v1.3 成本画像与 OG-001..007 过度治理排名（先归因后优化）。
+- DELTA_CONTEXT：CONTEXT_SNAPSHOT（12 字段）+ 增量读取 + hash 失效（full_context_reload_count=1 实证）。
+- VERIFIED_STATE_CACHE：机械验证结论按输入哈希缓存，严格失效，禁 stale 复用。
+- RISK_BASED_GATE_ROUTING：LOW/MEDIUM/HIGH/CRITICAL 四级 + Gate 依赖图 + NOT_APPLICABLE + 未知面 fail-closed；CRITICAL 全链不降级。
+- EVIDENCE_REFERENCE：证据存一次正文，之后 REF+hash 引用（evidence_dedup_count=21 实证）。
+- HOT/COLD_HANDOFF：热上下文 9 字段 + 冷索引（ID+path/hash），交接不再重讲项目故事。
+- BATCH_EVOLUTION：指纹去重 + 触发式深度分析（STAGE_END/PROJECT_END/REPEATED_PATTERN≥2/HIGH_SEVERITY/EXPLICIT）+ 批量处理；进化引擎新增 SIMPLIFY/MERGE/REMOVE/DEFER 减法操作。
+- LL-008 修复：计划对齐禁止词 ASCII 词边界匹配（EFF-010 三例历史误报放行 / EFF-011 真禁止词仍阻）。
+- LL-011 路径约定采纳；LL-010 端口预检评估后不采纳。
+- 效率指标：gate/cache/delta/dedup 计数器 + TOKEN_PER_*（不可归因处 NOT_AVAILABLE）。
+
 ## 1.3.0 (2026-08-30)
 
 **Reliability Coverage Hardening**（需求覆盖完整性 / 运行时-适配器交付完整性 / 角色工作流 E2E 完整性）。

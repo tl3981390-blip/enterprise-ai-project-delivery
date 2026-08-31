@@ -1,0 +1,28 @@
+{
+  "release": "v1.4.0",
+  "positioning": "Reliability Efficiency / Token Optimization",
+  "operation": "V1_4_0_FORMAL_RELEASE_OPERATION",
+  "authorized_by": "explicit user instruction in PRODUCT_CORE_COMPLETION round (section 1), executed before any v1.5 work",
+  "scope_enforcement": {
+    "included": ["six efficiency protocol specs + efficiency_core mechanical core", "EFF-001..011 regressions (24 tests)", "LL-008 word-boundary fix with both-direction negatives", "evolution reduction ops (SIMPLIFY/MERGE/REMOVE/DEFER)", "LL-011 path convention", "LL-010 evaluated and NOT adopted"],
+    "excluded_from_this_release": ["the four PRODUCT_CORE_COMPLETION domains (harness conformance / mid-project attachment / telemetry closed loop / enterprise customization) — explicitly forbidden in this release operation"],
+    "candidate_published_unchanged": "b84a8f250d6e1b2360cfbe38370ecb78e3ae82b2"
+  },
+  "pre_release_verification": {
+    "candidate_head": "b84a8f250d6e1b2360cfbe38370ecb78e3ae82b2 (branch v1.4.0-dev, clean)",
+    "candidate_gate": "V1_4_RELEASE_CANDIDATE_READY (Benchmark_V1_4/V1_4_RELEASE_CANDIDATE_GATE.json)",
+    "full_regression": "102/102 PASS", "held_out": "46/46 PASS",
+    "old_tags_unchanged": {"v1.0.0": "713baa7", "v1.1.0": "4525ca7", "v1.2.0": "6ba0699", "v1.3.0": "6623191"},
+    "structure": "validate-skill 0 errors 0 warnings"
+  },
+  "benchmark_class": "ENGINEERING_OBSERVATIONAL_BENCHMARK",
+  "efficiency_numbers_reread_from_formal_evidence": {
+    "v1_3_arm": {"token": 9872301, "elapsed_s": 2735, "acceptance": "14/14"},
+    "v1_4_arm": {"token": 9209337, "elapsed_s": 1991, "acceptance": "14/14"},
+    "token_delta": {"absolute": -662964, "relative": "-6.71%"}, "elapsed_delta": {"absolute_s": -744, "relative": "-27.21%"},
+    "source_provenance": "harness task accounting both arms; drop attributed to 1 full reload + 5 delta loads + 21 evidence dedups + risk-routed gates at identical scope/breadth",
+    "forbidden_claims": ["Skill improves efficiency by X%", "average reductions across runs"]
+  },
+  "security_status": "FULL_SECURITY_AUDIT = NOT_AVAILABLE (Mimosa full AST audit python_ast_unavailable/scanner_enobufs advisories persist; gate PASS covers gates/regression/evidence only)",
+  "verdict": "RELEASE_GATE_PASS"
+}

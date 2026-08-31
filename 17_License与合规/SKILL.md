@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.17-license
 description: 模块17·License与合规。代码/依赖/模型/数据许可扫描。Use when 需核验交付许可合规。
-version: 1.4.0-dev
+version: 1.4.0
 license: MIT
 compatibility: open
 metadata:

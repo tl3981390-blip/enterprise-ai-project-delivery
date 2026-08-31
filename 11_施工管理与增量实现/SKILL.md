@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.11-construction
 description: 模块11·施工管理与增量实现。增量实现+DoD，防一次性大段施工。Use when 进入 EXECUTING 后的实际施工编排。
-version: 1.4.0-dev
+version: 1.4.0
 license: MIT
 compatibility: open
 metadata:

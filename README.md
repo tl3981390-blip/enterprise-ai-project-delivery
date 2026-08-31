@@ -60,7 +60,7 @@ python 共享\scripts\check_state_machine.py --legal tests\evals\state_machine\l
 - OpenAI `.system` 全程只读。（License 见 `NOTICE` / `09`）
 
 ## 版本
-`1.3.0`（Reliability Coverage Hardening；v1.2.0 及更早版本保持不可变）。
+`1.4.0`（Reliability Efficiency；v1.3.0 及更早版本保持不可变）。
 
 ## 授权
 MIT License（见 LICENSE）。上游来源声明见 NOTICE。
