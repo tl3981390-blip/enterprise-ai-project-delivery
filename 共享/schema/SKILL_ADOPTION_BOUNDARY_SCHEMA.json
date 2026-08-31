@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skill_adoption_boundary.schema.json",
+  "title": "SKILL_ADOPTION_BOUNDARY",
+  "type": "object",
+  "required": ["attachment_id", "attachment_timestamp", "task_id", "git_head_at_attachment", "runtime_identity", "project_snapshot", "skill_version", "harness"],
+  "properties": {
+    "attachment_id": {"type": "string", "minLength": 1},
+    "attachment_timestamp": {"type": "string", "format": "date-time"},
+    "task_id": {"type": "string", "minLength": 1},
+    "git_head_at_attachment": {"type": "string", "minLength": 1},
+    "runtime_identity": {"type": "string", "minLength": 1},
+    "project_snapshot": {"type": "object", "required": ["discovery_fields_complete", "pre_attachment_statuses"], "properties": {
+      "discovery_fields_complete": {"type": "boolean", "const": true},
+      "pre_attachment_statuses": {"type": "object", "additionalProperties": {"enum": ["VERIFIED_PRE_ATTACHMENT", "UNVERIFIED_PRE_ATTACHMENT", "FAILED_PRE_ATTACHMENT", "UNKNOWN_PRE_ATTACHMENT"]}},
+      "worktree_identity": {"type": "string"}
+    }, "additionalProperties": true},
+    "skill_version": {"type": "string", "minLength": 1},
+    "harness": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}

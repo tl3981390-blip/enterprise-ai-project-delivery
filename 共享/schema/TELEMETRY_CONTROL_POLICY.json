@@ -1,0 +1,19 @@
+{
+  "policy": "TELEMETRY_CONTROL_POLICY",
+  "version": "1.5.0-dev",
+  "loop_model": "OBSERVE->DECIDE->ACT->VERIFY->RESULT_EVENT",
+  "separation": "runtime closed loop controls the current project only; skill evolution remains gated (candidate/test/release)",
+  "max_attempts_default": 3,
+  "human_gate_events_halt": ["HUMAN_AUTHORIZATION_REQUIRED", "HUMAN_BUSINESS_DECISION_REQUIRED", "USER_ONLY_ACCEPTANCE_REQUIRED", "EXTERNAL_HUMAN_ACTION_REQUIRED", "IRREVERSIBLE_PRODUCTION"],
+  "forbidden_actions": ["RELEASE_TAG", "PRODUCTION_MUTATION", "BYPASS_HUMAN_GATE", "MODIFY_SKILL_CORE", "DELETE_EVIDENCE", "SELF_PASS"],
+  "policies": {
+    "DRIFT_DETECTED": {"actions": ["FREEZE_EVIDENCE", "CLASSIFY", "SCOPE_RESTORE", "CONTRACT_REVALIDATION"], "verification": ["evidence_frozen", "mechanical_scope_check_pass", "alignment_check_pass"]},
+    "ILLEGAL_PASSIVE_STOP": {"actions": ["LEGAL_STOP_CHECK", "AUTO_CONTINUE"], "verification": ["legal_gate_absent", "next_legal_action_executing"]},
+    "RESOURCE_BUDGET_WARNING": {"actions": ["CHECKPOINT", "HANDOFF_PREPARATION"], "verification": ["snapshot_written"]},
+    "FAKE_PASS_BLOCKED": {"actions": ["MISSING_ACCEPTANCE_REENTRY"], "verification": ["acceptance_item_rerun"]},
+    "CACHE_INVALID": {"actions": ["REVERIFY_RELEVANT_GATE"], "verification": ["gate_rerun_pass"]},
+    "REPEATED_CONTEXT_LOAD": {"actions": ["DELTA_CONTEXT_ENFORCEMENT"], "verification": ["full_reload_count_not_increased"]},
+    "FAILURE_DETECTED": {"actions": ["FREEZE_EVIDENCE", "CLASSIFY", "BOUNDED_RECOVERY", "REVALIDATE_ORIGINAL_BLOCKER", "REGRESSION_THEN_CONTINUE"], "verification": ["original_blocker_revalidated"], "on_exhaustion": ["SAFE_ROLLBACK", "ALTERNATIVE_RECOVERY", "HUMAN_RECOVERY_PACKAGE"]},
+    "GOVERNANCE_COST_ANOMALY": {"actions": ["DELTA_CONTEXT_ENFORCEMENT", "REVERIFY_RELEVANT_GATE"], "verification": ["full_reload_count_not_increased", "gate_rerun_pass"]}
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "enterprise_profile.schema.json",
+  "title": "ENTERPRISE_PROFILE",
+  "type": "object",
+  "required": ["organization", "roles", "approval_policy", "model_policy", "tool_policy", "data_policy", "security_policy", "evidence_policy", "environment_policy", "deployment_policy", "human_gate_policy", "retention_policy", "audit_policy"],
+  "properties": {
+    "organization": {"type": "string", "minLength": 1},
+    "roles": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "approval_policy": {"type": "object", "additionalProperties": true},
+    "model_policy": {"type": "object", "additionalProperties": true},
+    "tool_policy": {"type": "object", "additionalProperties": true},
+    "data_policy": {"type": "object", "additionalProperties": true},
+    "security_policy": {"type": "object", "additionalProperties": true},
+    "evidence_policy": {"type": "object", "additionalProperties": true},
+    "environment_policy": {"type": "object", "additionalProperties": true},
+    "deployment_policy": {"type": "object", "additionalProperties": true},
+    "human_gate_policy": {"type": "object", "additionalProperties": true},
+    "retention_policy": {"type": "object", "additionalProperties": true},
+    "audit_policy": {"type": "object", "additionalProperties": true},
+    "allow_fake_pass": {"type": "boolean", "enum": [false]},
+    "profile_line": {"enum": ["COMPANY_SPECIFIC"]}
+  },
+  "additionalProperties": true
+}
