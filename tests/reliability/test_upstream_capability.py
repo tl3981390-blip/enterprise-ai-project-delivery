@@ -49,8 +49,8 @@ class UpstreamCapabilityTests(unittest.TestCase):
         registry = {"rag": {}, "database": {}}
         upstream = {"planning_skill": ["task_breakdown"], "browser_skill": ["web_e2e"]}
         self.assertEqual(resolve_capability_need("task_breakdown", registry, upstream)["resolution"],
-                         "discover:planning_skill")
-        self.assertEqual(resolve_capability_need("database", registry, upstream)["resolution"], "known_adapter")
+                         "planning_skill")  # mature upstream wins over absent local
+        self.assertEqual(resolve_capability_need("database", registry, upstream)["resolution"], "LOCAL_CORE")
 
     def test_up006_capability_not_available_reported_honestly(self):
         result = resolve_capability_need("teleport", {}, {})
@@ -60,10 +60,12 @@ class UpstreamCapabilityTests(unittest.TestCase):
     def test_up007_upstream_update_reabsorb(self):
         record = {"capability": "planning", "source_version": "spec-kit@0.2",
                   "capabilities": ["plan", "tasks"]}
-        updated = {"source_version": "spec-kit@0.3", "capabilities": ["plan", "tasks", "analyze"]}
+        updated = {"source_version": "spec-kit@0.3", "capabilities": ["plan", "tasks", "analyze"],
+                   "source_identity_verified": True, "license_compatible": True,
+                   "integrated_regression_pass": True}
         out = upstream_update_reabsorb(record, updated)
         self.assertEqual(out["added"], ["analyze"])
-        self.assertEqual(out["action"], "compatibility_check_and_regression")
+        self.assertEqual(out["action"], "ADOPT")
 
     def test_up008_wrapper_never_restricts_upstream(self):
         # integration must not shrink the upstream's capability surface

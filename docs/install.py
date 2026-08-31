@@ -109,11 +109,46 @@ def verify_zip(path: Path, meta: dict) -> dict:
 
 
 def _resolve_asset_sha256(meta: dict) -> str | None:
-    """Asset SHA comes from the Release manifest/evidence (post-asset fact). We never
-    read a pre-computed SHA from the Git-tracked declaration (that was the v1.6.0 defect)."""
+    """Asset SHA comes from the Release manifest/evidence (post-asset fact) OR the GitHub
+    Release asset digest (resolved at install time). We never read a pre-computed SHA from
+    the Git-tracked declaration (that was the v1.6.0 defect)."""
     manifest = meta.get("release_manifest") or {}
     sha = manifest.get("asset_sha256")
-    return sha if isinstance(sha, str) and len(sha) == 64 else None
+    if isinstance(sha, str) and len(sha) == 64:
+        return sha
+    return _github_release_asset_sha256(meta)
+
+
+def _github_release_asset_sha256(meta: dict) -> str | None:
+    """Resolve the formal asset SHA from the GitHub Release (post-release fact). Uses
+    `gh release view --json assets` when gh is available; returns None if unreachable
+    (caller must then fail honestly, never guess)."""
+    gh = _which("gh")
+    if not gh:
+        return None
+    repo = meta.get("repository", {}).get("url", "").replace("https://github.com/", "")
+    tag = meta.get("tag")
+    asset_name = meta.get("release_asset")
+    if not (repo and tag and asset_name):
+        return None
+    try:
+        out = subprocess.run([gh, "release", "view", tag, "-R", repo, "--json", "assets"],
+                             capture_output=True, text=True, shell=False)
+        if out.returncode != 0:
+            return None
+        import json as _json
+        for asset in _json.loads(out.stdout).get("assets", []):
+            if asset.get("name") == asset_name:
+                digest = asset.get("digest") or asset.get("sha256") or ""
+                return digest.replace("sha256:", "") if digest else None
+    except Exception:
+        return None
+    return None
+
+
+def _which(name: str) -> str | None:
+    import shutil as _shutil
+    return _shutil.which(name)
 
 
 def copy_tree(src: Path, dst: Path) -> int:
@@ -136,7 +171,8 @@ def copy_tree(src: Path, dst: Path) -> int:
 def self_check(dst: Path) -> list[str]:
     errors = []
     for required in ("SKILL.md", "共享/scripts/validate-skill.py", "共享/scripts/telemetry_core.py",
-                     "共享/scripts/delivery_planning_core.py", "共享/schema/RELEASE_METADATA.json",
+                     "共享/scripts/delivery_planning_core.py", "共享/scripts/plan_governance_core.py",
+                     "共享/schema/RELEASE_METADATA.json",
                      "共享/schema/project_reliability_event.schema.json", "adapters/README.md"):
         if not (dst / required).exists():
             errors.append(f"install_incomplete:{required}")

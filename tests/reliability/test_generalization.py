@@ -115,31 +115,26 @@ class ApplicabilityTests(unittest.TestCase):
         profile = json.loads((EX / "desktop_knowledge_app_profile.example.json").read_text(encoding="utf-8"))
         self.assertEqual(validate_profile(profile, "project"), [])
         plan = derive_active_plan(profile)
-        self.assertIn("06_架构设计", plan["active_stages"])           # reliability lifecycle kept
-        self.assertIn("15_Evidence与防假验收", plan["active_stages"])  # evidence kept
-        self.assertNotIn("10_企业治理与合规", plan["active_stages"])   # enterprise governance N/A
-        self.assertNotIn("07_RAG设计", plan["active_stages"])         # no forced RAG
-        self.assertIn("persistence_gate", plan["active_gates"])       # capability gates activated
-        self.assertEqual(plan["not_applicable_stages"]["10_企业治理与合规"], "capability_not_in_scope")
+        self.assertIn("项目理解与目标锁定", plan["active_stages"])
+        self.assertIn("最终验收", plan["active_stages"])
+        self.assertNotIn("企业治理与合规核验", plan["active_stages"])
+        self.assertIn("数据持久化与一致性验证", plan["active_stages"])
+        self.assertIn("升级与回滚演练", plan["active_stages"])
 
     def test_sys004_enterprise_ai_project_still_supported(self):
         profile = enterprise_ai_profile()
         self.assertEqual(validate_profile(profile, "project"), [])
         plan = derive_active_plan(profile, enterprise_profile_with_roles())
-        for stage in ("07_RAG设计", "09_MCP与工具权限网关", "10_企业治理与合规", "13_浏览器真实验收", "16_部署"):
-            self.assertIn(stage, plan["active_stages"])
+        self.assertIn("企业治理与合规核验", plan["active_stages"])
+        self.assertIn("多角色验收", plan["active_stages"])
         self.assertIn("rag_gate", plan["active_gates"])
-        self.assertEqual(required_acceptance_perspectives(profile, enterprise_profile_with_roles()),
-                         ("product", "engineering", "security", "end_user"))
 
     def test_sys005_sys006_historical_flow_not_mandatory(self):
         plan = derive_active_plan(family_menu_profile())
-        na = plan["not_applicable_stages"]
-        self.assertTrue(all(r == "capability_not_in_scope" for r in na.values()))
-        for lifecycle in ("00_总控", "01_项目理解", "03_需求与范围", "11_施工管理与增量实现",
-                          "15_Evidence与防假验收", "19_最终交付与经验沉淀"):
-            self.assertIn(lifecycle, plan["active_stages"])  # reliability core never removed
+        self.assertIn("项目理解与目标锁定", plan["active_stages"])
+        self.assertIn("最终验收", plan["active_stages"])
         self.assertEqual(plan["final_acceptance"], "INDEPENDENT_VERIFICATION_NON_OPTIONAL")
+        self.assertTrue(plan["explicit_invocation_accepted"])
 
     def test_sys007_router_controls_gates_within_scoped_universe(self):
         scoped = ["contract_check", "affected_module_tests", "targeted_browser_journey"]
@@ -290,14 +285,14 @@ class AssumptionChangeTests(unittest.TestCase):
 
     def test_sys021_sys026_plan_recalculated_not_redone_from_zero(self):
         old_plan = derive_active_plan(family_menu_profile())  # no capability declared yet
-        self.assertNotIn("persistence_gate", old_plan["active_gates"])
         result = assumption_change_model(self.verified, ["业务定义=家庭做饭点菜"], new_required=["采购清单模型"])
         self.assertEqual(result["classification"]["采购清单模型"], "NEW_REQUIRED")
         new_profile = {**family_menu_profile(), "database": {"engine": "sqlite"},
                        "required_capabilities": ["database"]}
         new_plan = derive_active_plan(new_profile)
         self.assertIn("persistence_gate", new_plan["active_gates"])
-        self.assertIn("00_总控", new_plan["active_stages"])  # same reliability lifecycle continues
+        self.assertIn("项目理解与目标锁定", new_plan["active_stages"])  # invariants continue
+        self.assertIn("最终验收", new_plan["active_stages"])
         self.assertIn("re_run_understanding_for_affected", result["next"])
 
 
@@ -338,13 +333,11 @@ class CrossDomainReplayTests(unittest.TestCase):
         profile = json.loads((EX / "desktop_knowledge_app_profile.example.json").read_text(encoding="utf-8"))
         self.assertEqual(validate_profile(profile, "project"), [])
         plan = derive_active_plan(profile)
-        for kept in ("00_总控", "02_当前状态审计", "05_TDD与测试策略", "12_失败处理与恢复",
-                     "15_Evidence与防假验收", "19_最终交付与经验沉淀"):
-            self.assertIn(kept, plan["active_stages"])
-        self.assertIn("migration_gate", plan["active_gates"])   # upgrade_rollback activated
-        self.assertIn("license_gate", plan["active_gates"])     # license_compliance activated
-        for forced in ("sso_gate", "mcp_gate"):                 # nothing invents enterprise gates
-            self.assertNotIn(forced, plan["active_gates"])
+        self.assertIn("项目理解与目标锁定", plan["active_stages"])
+        self.assertIn("最终验收", plan["active_stages"])
+        self.assertNotIn("企业治理与合规核验", plan["active_stages"])
+        self.assertIn("数据持久化与一致性验证", plan["active_stages"])
+        self.assertIn("升级与回滚演练", plan["active_stages"])
 
 
 class IdentityAndAdapterTests(unittest.TestCase):

@@ -25,21 +25,19 @@ Layer 7  Task Contract（任务级约束）
 
 `UNDERSTAND_BEFORE_EXECUTE / SCOPE_AUTHORITY / CONTRACT_INTEGRITY / NO_FAKE_PASS / EVIDENCE_INTEGRITY / TELEMETRY / FAILURE_CLASSIFICATION / BOUNDED_RECOVERY / RECOVERY_REVALIDATION / NO_BLIND_RESUME / NO_STAGE_WAIT / LEGAL_STOP_GATE / RESOURCE_GUARD / HANDOFF / INDEPENDENT_VERIFICATION / FINAL_ACCEPTANCE`（与 `NON_OVERRIDABLE_CORE_INVARIANTS` 机械联动；企业/项目 Profile 均不可覆盖）。
 
-生命周期恒活阶段：`00,01,02,03,04,05,06,11,12,15,19`（`12` 事件驱动进入）+ `14`（独立验收不变量的载体，视角随干系人缩放，见下）。
+**不变量是约束，不是必经阶段**（RELIABILITY_INVARIANT != STAGE）。模块 `00–19` 是能力库/工具包/参考，可按项目事实成为 Stage/Task/Check/Not-Applicable；不存在「生命周期恒活阶段」这种固定序列。
 
-### Layer 2 — CONDITIONAL CAPABILITIES（注册表）
+### Layer 2 — CONDITIONAL CAPABILITIES（能力库）
 
-`CAPABILITY_REGISTRY`：`rag / agent / tool_permissions / enterprise_governance / browser_acceptance / deployment / license_compliance / upgrade_rollback / database / workflow / multi_role_approval → {stages, gates}`。
+能力注册表（`CAPABILITY_REGISTRY`）仅作参考；能力激活由 `reason_capability_needs(PROJECT_FACT_MODEL)` 从显式事实推导，不由结构因子路由。项目不需要 → `NOT_APPLICABLE(capability_not_in_scope)`，禁止伪造 PASS，也禁止强行执行。
 
-这些是**能力**，不是所有项目必经流程。项目不声明 → `NOT_APPLICABLE(capability_not_in_scope)`，禁止伪造 PASS，也禁止强行执行（SSO/RAG/MCP/审批对无此需求的项目是模板泄漏）。
+### Layer 3 — Project Understanding / Project Fact Model
 
-### Layer 3 — Project Understanding
+理解合同回答：是什么/目标/复杂度/风险/环境/用户/真实依赖/需要与不需要的能力。产出 `PROJECT_FACT_MODEL`（真实事实：goal/users/user_journeys/interfaces/data/persistence/external_systems/runtime/environments/deployment_requirement/security_requirements/permissions/compliance/roles/workflow/recovery_requirements/migration_requirements/acceptance_requirements/explicit_constraints/unknowns/assumptions + 语义能力事实）。分类字段必填；能力声明**选填**（缺省=不在范围内）。**项目类型回答「怎么交付」，不回答「配不配用」**。
 
-理解合同回答：是什么/目标/复杂度/风险/环境/用户/真实依赖/需要与不需要的能力。分类字段必填（`PROJECT_CLASSIFICATION_FIELDS`）；能力声明**选填**（缺省=不在范围内）。**项目类型回答「怎么交付」，不回答「配不配用」**。
+### Layer 4 — Active Delivery Plan（单一编排真源：`compose_stages`）
 
-### Layer 4 — Active Delivery Plan（`derive_active_plan`）
-
-输出：`ACTIVE_STAGES / NOT_APPLICABLE_STAGES(含理由) / ACTIVE_GATES / REQUIRED_EVIDENCE / HUMAN_GATES / FINAL_ACCEPTANCE`。结构顺序：理解项目 → 识别风险 → 识别能力 → 生成 Active Plan → Risk Router 路由执行期 Gate（`RISK_BASED_GATE_ROUTING_SPEC` 继续有效：路由的是执行期 Gate，Plan 决定阶段/能力面）。条件变化后 Plan **必须可重算**（见假设变化模型）。
+`derive_active_plan` 是兼容包装器，委托给 `delivery_planning_core.compose_stages`（唯一编排真源）。阶段由项目事实 + 人类/企业计划 + 上游规划能力作曲（STAGE/TASK/CHECK/N/A 四级），不套固定模板。条件变化后 Plan **必须可重算**（见假设变化模型）。
 
 ### Layer 5 — Enterprise Profile（企业流程=输入）
 

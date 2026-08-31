@@ -68,14 +68,14 @@ Layer 6 Project Profile ｜ Layer 7 Task Contract
     施工前八问 → 任务理解合同 → PRE_EXECUTION_UNDERSTANDING_GATE
     → 合法跳转：UNDERSTANDING_COMPLETE → READY_TO_PLAN（否则 UNDERSTANDING_BLOCKED/BLOCKED）
   ↓
-[C] 项目理解/分类 + 能力激活（Layer 2/3：声明需要哪些条件能力；未声明=NOT_APPLICABLE）
-    → derive_active_plan 生成 Active Delivery Plan（Layer 4：ACTIVE/NOT_APPLICABLE 阶段+Gate）
+[C] 项目理解 → Project Fact Model（真实事实：目标/用户/旅程/接口/数据/持久化/部署/合规/约束/未知）
+    → Human/Enterprise Plan 若存在则优先（HUMAN_PLAN_AUTHORITY）
+    → Upstream Planning Capability 若可用则参与（UPSTREAM_CAPABILITY_FIRST）
+    → Work Unit Discovery（真实待解决问题）→ Dynamic Stage Composer（STAGE/TASK/CHECK/N/A）
+    → derive_active_plan（兼容包装器）→ compose_stages（唯一编排真源）
   ↓
-[R] 阶段模块编排（受合同与 Active Plan 约束；能力阶段条件激活，生命周期阶段恒活）
-    01 项目理解 → 02 当前状态审计 → 03 需求与范围 → 04 SDD规格 → 05 TDD策略
-    → 06 架构设计 → [07 RAG | 08 Agent | 09 权限网关 | 10 治理 | 13 浏览器验收 | 16 部署
-       | 17 License | 18 升级回滚]（按能力激活，未激活记 NOT_APPLICABLE 及理由）
-    → 11 施工 ⇄ 12 失败处理 → 14 验收（视角随干系人缩放） → 15 Evidence → 19 收尾沉淀
+[R] 动态交付计划执行（受合同与 Active Plan 约束；阶段由项目事实作曲，不套固定模板）
+    理解门禁与最终验收为不变量载体；能力模块（07-10/13/16/17/18）是工具库，不是必经阶段
   ↓
 [P] PLAN_CONTRACT_ALIGNMENT_CHECK：每个施工动作都在进入前与合同对账
   ↓
@@ -102,30 +102,32 @@ VERIFYING → COMPLETED
 
 权限：UNDERSTANDING 阶段仅 `READ/SEARCH/INSPECT/ANALYZE/COMPARE/SUMMARIZE/VALIDATE_EXISTING_STATE`；写改权限在 `READY_TO_EXECUTE` 后按模块开放。
 
-## 各模块 Overview（L=生命周期恒活 ｜ C=条件能力，按项目激活）
+## 各模块 Overview（CAPABILITY LIBRARY / TOOLKIT / REFERENCE —— 不是必经阶段序列）
 
-| 模块 | 类型 | 职责 |
+模块是能力库与可靠性工具包，可按项目事实成为 Stage/Task/Check/Not-Applicable；MODULE != STAGE，CAPABILITY != STAGE，RELIABILITY_INVARIANT != STAGE。
+
+| 模块 | 定位 | 职责 |
 | ---- | ---- | ---- |
-| 00_总控 | L | 施工前理解门禁 / 状态机 / 任务理解合同 / 计划-合同对账 / DRIFT_CHECK / 权限阶段控制 / 门禁 / 输出合同 |
-| 01_项目理解 | L | 用户真正目标 / 最终结果 / 业务价值 |
-| 02_当前状态审计 | L | 已有什么 / 完成到哪 / 哪些真哪些假 / 哪些不可改 |
-| 03_需求与范围 | L | 范围 / 非目标 / 禁止项 / 成功标准 / 关键约束 |
-| 04_SDD规格 | L | 先规格后编码，全维度规格 |
-| 05_TDD与测试策略 | L | 判断式测试策略 |
-| 06_架构设计 | L | 架构 / 组件 / 接口 / 部署形态 |
-| 07_RAG设计 | C | 知识源 / 索引 / 权限 / 引用 / 拒答（四防）；交付含知识检索/问答时激活 |
-| 08_Agent设计 | C | 角色职责分离（多 Agent 适度）；交付含 Agent/多角色协作时激活 |
-| 09_MCP与工具权限网关 | C | READ/WRITE/DELETE/EXECUTE/ADMIN/EXTERNAL 权限矩阵；涉及工具/外部调用权限时激活 |
-| 10_企业治理与合规 | C | 审计 / SSO / 数据不出域 / 变更管理；涉及企业数据/身份/审批/合规时激活，否则 NOT_APPLICABLE |
-| 11_施工管理与增量实现 | L | 增量实现 + DoD |
-| 12_失败处理与恢复 | L | 根因定位 + 证据保留 + 停止条件（事件驱动进入） |
-| 13_浏览器真实验收 | C | 真实浏览器操作验证 Web 产品；无 Web UI 记 NOT_APPLICABLE 及理由 |
-| 14_验收（多视角） | L | 独立验收不变量：视角随干系人缩放（企业默认四视角；单人项目坍缩为 owner/user），执行者自证无效 |
-| 15_Evidence与防假验收 | L | 统一证据合同，防假验收 |
-| 16_部署 | C | Build→Deploy→回滚，非“本地能跑”；非部署型交付物记 NOT_APPLICABLE 及理由 |
-| 17_License与合规 | C | 代码/依赖/模型/数据许可扫描；交付含可分发产物时激活 |
-| 18_升级与回滚 | C | semver / 迁移 / 兼容 / 回滚演练；需版本演进或回退时激活 |
-| 19_最终交付与经验沉淀 | L | 最终报告 + 经验入库 |
+| 00_总控 | 不变量载体 | 施工前理解门禁 / 状态机 / 任务理解合同 / 计划-合同对账 / DRIFT_CHECK / 权限阶段控制 / 门禁 / 输出合同 |
+| 01_项目理解 | 不变量载体 | 用户真正目标 / 最终结果 / 业务价值（理解先于执行） |
+| 02_当前状态审计 | 工具 | 已有什么 / 完成到哪 / 哪些真哪些假 / 哪些不可改 |
+| 03_需求与范围 | 工具 | 范围 / 非目标 / 禁止项 / 成功标准 / 关键约束 |
+| 04_SDD规格 | 工具（复杂项目可升为 Stage） | 先规格后编码，全维度规格 |
+| 05_TDD与测试策略 | 工具（复杂项目可升为 Stage） | 判断式测试策略 |
+| 06_架构设计 | 工具（复杂项目可升为 Stage） | 架构 / 组件 / 接口 / 部署形态 |
+| 07_RAG设计 | 能力 | 知识源 / 索引 / 权限 / 引用 / 拒答（四防）；交付含检索/问答事实时激活 |
+| 08_Agent设计 | 能力 | 角色职责分离；交付含自治执行/多角色协作事实时激活 |
+| 09_MCP与工具权限网关 | 能力 | 权限矩阵；涉及工具/外部调用权限事实时激活 |
+| 10_企业治理与合规 | 能力 | 审计 / SSO / 数据不出域 / 变更管理；存在企业政策/审批/合规事实时激活 |
+| 11_施工管理与增量实现 | 工具 | 增量实现 + DoD |
+| 12_失败处理与恢复 | 工具（事件驱动） | 根因定位 + 证据保留 + 停止条件（失败时进入，非必经阶段） |
+| 13_浏览器真实验收 | 能力 | 真实浏览器操作验证 Web 产品；无 Web UI 记 NOT_APPLICABLE 及理由 |
+| 14_验收（多视角） | 不变量载体 | 独立验收不变量：视角随干系人缩放（企业默认四视角；单人项目坍缩为 owner/user），执行者自证无效 |
+| 15_Evidence与防假验收 | 不变量载体 | 统一证据合同，防假验收 |
+| 16_部署 | 能力 | Build→Deploy→回滚，非“本地能跑”；非部署型交付物记 NOT_APPLICABLE 及理由 |
+| 17_License与合规 | 能力 | 许可扫描；存在分发/许可约束事实时激活 |
+| 18_升级与回滚 | 能力 | semver / 迁移 / 兼容 / 回滚演练；存在版本演进/回退事实时激活 |
+| 19_最终交付与经验沉淀 | 不变量载体 | 最终报告 + 经验入库 |
 
 ## 输出合同（结构化，可被 JSON Schema 校验）
 

@@ -322,29 +322,49 @@ def active_capabilities(project_profile: dict, enterprise_profile: dict | None =
 
 
 def derive_active_plan(project_profile: dict, enterprise_profile: dict | None = None) -> dict:
-    """Layer 4 — the per-project Active Delivery Plan. Stages are DERIVED, never copied from a
-    historical or enterprise template; capability stages not in scope are recorded NOT_APPLICABLE
-    with a reason. Final acceptance and the lifecycle core are never removable."""
-    caps = active_capabilities(project_profile, enterprise_profile)
-    active_stages = list(LIFECYCLE_STAGES)
+    """DEPRECATED COMPATIBILITY WRAPPER (v1.7.1): delegates to the canonical dynamic
+    planner. The old fixed lifecycle template (LIFECYCLE_STAGES) is no longer the plan
+    source; stages are composed from the project's facts. This wrapper preserves the
+    historical return shape for existing callers/tests only — it must NOT be extended
+    as a second plan model."""
+    from delivery_planning_core import (assess_complexity, compose_stages, make_fact_model,
+                                        reason_capability_needs)
+    facts = make_fact_model(
+        goal=project_profile.get("business_goal", ""),
+        interfaces=project_profile.get("interface_types") or project_profile.get("interfaces") or [],
+        interface_types=project_profile.get("interface_types") or project_profile.get("interfaces") or [],
+        persistence=bool(project_profile.get("database")),
+        existing_database=bool(project_profile.get("database")),
+        data=project_profile.get("database") or None,
+        deployment_requirement=bool(project_profile.get("deployment_target")),
+        compliance=project_profile.get("compliance") or [],
+        roles=(enterprise_profile or {}).get("roles") or project_profile.get("roles") or [],
+        enterprise_policy_present=bool((enterprise_profile or {}).get("required_capabilities")),
+        approval_requirement=bool(project_profile.get("workflow")),
+        migration_requirements=bool(project_profile.get("migration_requirements")),
+        retrieval_requirement=bool(project_profile.get("rag")),
+        workflow=project_profile.get("workflow") or None,
+    )
+    caps = reason_capability_needs(facts, declared=list(project_profile.get("required_capabilities") or []))
+    complexity = assess_complexity({})
+    composed = compose_stages(facts, complexity, caps)
+    active_stage_names = [s["name"] for s in composed["stages"]]
     gates = set(ALWAYS_GATES)
-    for spec in caps.values():
-        for stage in spec["stages"]:
-            if stage not in active_stages:
-                active_stages.append(stage)
-        gates.update(spec["gates"])
-    not_applicable = {stage: NOT_APPLICABLE_REASON for stage in CAPABILITY_REGISTRY_STAGES
-                      if stage not in active_stages}
+    for cap, info in caps["capabilities"].items():
+        if info["required"] is True:
+            gates.update(CAPABILITY_REGISTRY.get(cap, {}).get("gates", []))
     workflow = (enterprise_profile or {}).get("workflow") or {}
     human_gates = list(workflow.get("human_gates") or [])
     return {
-        "active_stages": active_stages,
-        "not_applicable_stages": not_applicable,
+        "active_stages": active_stage_names,
+        "not_applicable_stages": {cap: "capability_not_in_scope" for cap, info in caps["capabilities"].items()
+                                  if info["required"] is not True},
         "active_gates": sorted(gates),
         "required_evidence": ["task_understanding_contract", "gate_results", "acceptance_evidence"],
         "human_gates": human_gates + ["FINAL_ACCEPTANCE"],
         "final_acceptance": "INDEPENDENT_VERIFICATION_NON_OPTIONAL",
         "explicit_invocation_accepted": True,
+        "planner": "delivery_planning_core.compose_stages (dynamic, fact-derived)",
     }
 
 
