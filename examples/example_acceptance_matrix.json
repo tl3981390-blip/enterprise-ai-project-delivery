@@ -1,0 +1,6 @@
+{"items": [
+  {"id": "A01", "area": "Backend", "requirement": "test suite passes"},
+  {"id": "A02", "area": "Persistence", "requirement": "data survives real process restart"},
+  {"id": "A03", "area": "Workflow", "requirement": "full role journey passes in a real browser"},
+  {"id": "A04", "area": "Evidence", "requirement": "canonical telemetry chain verifies"}
+]}

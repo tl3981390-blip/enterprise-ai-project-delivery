@@ -1,66 +1,148 @@
-# 企业AI项目交付 Skill（enterprise-ai-project-delivery）
+# enterprise-ai-project-delivery
 
-> **理解完成之前，禁止施工。**
-> 让企业 AI 项目从「AI 说做完了」变成「真实可以证明已完成」。
+> **A reliability layer for complex AI project delivery.**
+> It turns "the AI said it's done" into "completion that can be proven with real evidence" — and it governs the whole journey: UNDERSTAND → GOVERN → EXECUTE → OBSERVE → RECOVER → VERIFY → LEARN.
 
-## 它解决什么
+This is not an ordinary prompt skill. It is a governance layer for complex, long-running AI projects: it prevents unverified construction, scope drift, unauthorized actions and fake acceptance; it keeps AI working autonomously across stages, failures, resumes and even model handoffs; and it proves — mechanically — what the governance actually did.
 
-企业内部开发 AI 产品（RAG / Agent / 应用）时，先证明 AI「真正理解了用户目标、当前状态、约束、成功标准」，再按门禁式流程交付，最终用真实 Evidence 证明已完成——而不是事后「我说错了/你说得对」的补救。
+## What problem it solves
 
-## 四大价值主张
+When AI agents build complex projects, four failure classes dominate:
 
-1. 防止未理解就施工
-2. 防止施工过程目标漂移
-3. 防止越权和擅自扩展
-4. 防止假验收 / 失败后只改报告不改事实
+1. **Building before understanding** — the root cause of goal drift, overreach and fake acceptance.
+2. **Stalling and fake completion** — agents stop at every stage waiting for "continue", or claim success that evidence contradicts.
+3. **Broken continuity** — failures, resource exhaustion and model switches fragment the work; successors redo or misread state.
+4. **Unverifiable claims** — local "close-enough" telemetry and narrative reports cannot survive independent verification.
 
-## 使用方式
-
-- **入口**：`SKILL.md`（主 Skill，触发 + S0 理解门禁 + 编排）。
-- **任何任务先进入 UNDERSTANDING**：回答施工前八问 → 生成任务理解合同 → 施工前理解门禁 → `READY_TO_PLAN` → 计划-合同对账 → `READY_TO_EXECUTE` 才开放写改。
-- **全程 DRIFT_CHECK**：任何不在合同内的动作 → `CONSTRAINT_CONFLICT` → `BLOCKED`。
-- **持续施工**：目标与计划已锁定后，阶段通过会自动选择下一合法动作；“继续”只在暂停状态触发重新核验，不是对 blocker 已解决或权限已授予的盲信。
-- **执行资源守卫**：模型资源不足时按 GREEN/YELLOW/RED/UNKNOWN 收口——不开危险新 Stage、完成或中止原子单元、生成完整交接包，禁止估算不可见额度。
-- **模型交接**：`MODEL_HANDOFF_PACKAGE` 29 字段合同 + 继任模型 `verify_handoff` 机械核验（HEAD/工作区/合同/Evidence/运行时），核验失败禁止继承。
-- **唯一遥测入口**：项目遥测必须使用核心 Recorder + hash-chain + anchor；项目本地“看似 PASS”的替代实现不能通过最终验收。
-- **基准卫生**：基准私有标记与施工可见文本分离，泄漏即标记 `CONTROLLER_CONTAMINATED`，污染结果不得用于行为效果证明。
-
-## 目录结构（阶段 1 骨架）
+## Architecture
 
 ```text
-SKILL.md                主 Skill（触发 + S0 + 编排）
-00_总控/                 S0：理解门禁 / 状态机 / 任务理解合同 / 计划-合同对账 / DRIFT_CHECK / 权限阶段控制
-01_项目理解 … 19_最终交付_经验沉淀
-共享/
-  references/            DoD、公共检查清单
-  scripts/               validate-skill / check_understanding_gate / check_plan_alignment / check_state_machine / collect_evidence
-  schema/                任务理解合同 / input / output / evidence
-tests/evals/             结构 / 触发 / 状态机 / 理解专项 Eval
-LICENSE / NOTICE / CHANGELOG.md
+enterprise-ai-project-delivery CORE (reliability mechanisms, feature-frozen)
+                │
+        Harness Capability Contract (L1–L10)
+                │
+   ┌────────────┼────────────┐
+Adapter (ZCode) Adapter (Claude) Adapter (TRAE/WorkBuddy …)
+                │
+     ENTERPRISE PROFILE + PROJECT PROFILE (customization without forks)
 ```
 
-## 快速校验
+- **Core**: cross-company, cross-project, cross-harness reliability mechanisms only.
+- **Thin adapters**: per-platform discovery/invocation/lifecycle/permission mappings — never a core fork.
+- **Profiles**: enterprise policies (approval, model, data, evidence…) and project specifics layered under non-overridable core invariants.
+
+## Installation
+
+Requires a harness that can load skills and execute local deterministic tests (Python 3.10+).
 
 ```bash
-python 共享\scripts\validate-skill.py --root .
-python 共享\scripts\check_understanding_gate.py --contract tests\evals\structural\sample_contract_valid.json
-python 共享\scripts\check_state_machine.py --legal tests\evals\state_machine\legal_transitions.json --walk tests\evals\state_machine\walk_happy_path.json
+# ZCode: copy or link the canonical core into your skills directory
+#   ~/.zcode/skills/enterprise-ai-project-delivery/
+# Claude Code: place the thin adapter under
+#   ~/.claude/skills/enterprise-ai-project-delivery/
+# Other harnesses: see adapters/<platform>/INSTALLATION.md
+python 共享/scripts/validate-skill.py --root .   # structural self-check
 ```
 
-## 状态机（12 状态）
+## Basic usage
 
-`UNDERSTANDING → UNDERSTANDING_BLOCKED/UNDERSTANDING_COMPLETE → READY_TO_PLAN → PLANNING → PLAN_BLOCKED/PLAN_COMPLETE → READY_TO_EXECUTE → EXECUTING → EXECUTION_BLOCKED/VERIFYING → COMPLETED`
+The skill gates every task before any byte is written: answer the pre-construction questions → Task Understanding Contract → understanding gate → plan–contract alignment → only then execution opens write permissions, with drift checks throughout.
 
-**禁止**从 UNDERSTANDING 直接跳 EXECUTING。
+## Start from Day 1
 
-## 边界
+```text
+NEW PROJECT → invoke the skill → understand → contract → governed execution
+```
 
-- 不连接/不修改企业生产系统、不修改 Harness（另行授权）。
-- 阶段 1 只建 Skill 自身工程骨架，不做正式业务项目。
-- OpenAI `.system` 全程只读。（License 见 `NOTICE` / `09`）
+Stages pass automatically; the agent continues to the next legal action on its own. Ordinary failures are recovered in bounded loops with mechanical revalidation; only genuine human gates pause the work.
 
-## 版本
-`1.5.0`（FIRST GENERATION PRODUCT CORE COMPLETE；CORE_FEATURE_FREEZE=ACTIVE；Harness 状态：ZCode VALIDATED L9 / Claude L1+BLOCKED_RUNTIME_AUTH / TRAE、WorkBuddy PENDING_EXTERNAL_VALIDATION）。
+## Mid-project attachment
 
-## 授权
-MIT License（见 LICENSE）。上游来源声明见 NOTICE。
+```text
+EXISTING PROJECT → invoke the skill halfway
+  → read-only reconstruction (no writes before the adoption boundary)
+  → adoption boundary (git head, runtime, snapshot, skill version, harness)
+  → historical state classified (VERIFIED / UNVERIFIED / FAILED / UNKNOWN)
+  → continue the existing project — never a rebuilt one
+```
+
+> Pre-attachment AI claims are **not** automatically trusted as verified evidence. Only history that future work actually depends on is verified (lazy historical verification).
+
+## Recovery / Resume / Handoff
+
+- **Recovery ladder**: freeze evidence → classify → bounded auto-recovery (with revalidation + regression) → safe rollback → compliant alternative → complete human recovery package.
+- **Resume**: "continue" is only a request; resumption re-verifies blocker, git, worktree, contract, evidence and runtime identity.
+- **Resource guard & model handoff**: on resource risk the agent closes out atomic units, checkpoints, and emits a complete handoff package; the successor must mechanically verify real state before inheriting the same task.
+
+## Telemetry closed loop
+
+Telemetry is not just reporting — it is a control loop: `OBSERVE → DECIDE → ACT → VERIFY`.
+
+| Signal | Automatic action (always mechanically re-verified) |
+| --- | --- |
+| Failure | freeze → classify → bounded recovery → original-blocker revalidation |
+| Illegal passive stop | legal-stop check → auto-continue |
+| Fake PASS attempt | acceptance re-entry for the missing item |
+| Resource risk | checkpoint / handoff preparation |
+| Context waste | delta-context enforcement |
+| Cache invalidation | relevant-gate reverification |
+
+The runtime closed loop never modifies the formal core — core evolution stays gated behind the candidate pipeline.
+
+## Enterprise customization
+
+`CORE + HARNESS ADAPTER + ENTERPRISE PROFILE + PROJECT PROFILE` — no company forks. See [`examples/`](examples/) for synthetic profiles.
+
+Profiles **cannot override** `NON_OVERRIDABLE_CORE_INVARIANTS`: anti-fake-PASS, evidence integrity, authorization boundary, candidate identity, scope authority. A project profile can never relax an enterprise policy (same-key restrictive overrides are rejected as `PROFILE_CONSTRAINT_CONFLICT`).
+
+## Harness compatibility
+
+| Harness | Status |
+| --- | --- |
+| ZCode 3.10.1 | **VALIDATED L9** (discover/invoke/contract/tools/telemetry/resume/attach/closed-loop/profile) |
+| Claude Code 2.1.235 | L1 VERIFIED / **BLOCKED_RUNTIME_AUTH** (execution blocked by invalid API key in the tested environment) |
+| TRAE | PENDING_EXTERNAL_VALIDATION (adapter ready; not installed in test environment) |
+| WorkBuddy / CodeBuddy | PENDING_EXTERNAL_VALIDATION (adapter ready; not installed) |
+
+Capability differs per platform, so conformance levels differ (L1–L10). Where a harness lacks a capability, the adapter declares an explicit boundary and takes a legal degradation path — the skill never pretends a platform has functions it does not have.
+
+## Reliability efficiency
+
+Delta context + hash-based invalidation, verified-state cache, risk-based gate routing, evidence-by-reference, hot/cold handoff, batched evolution.
+
+`ENGINEERING_OBSERVATIONAL_BENCHMARK` (same-scope controlled replays during development, platform-native agents, model identity not strictly controlled):
+
+| | v1.3 | v1.4 | v1.5 |
+| --- | ---: | ---: | ---: |
+| Total tokens | 9,872,301 | 9,209,337 | 8,970,430 |
+| Elapsed (s) | 2,735 | 1,991 | 1,389.4 |
+| Acceptance | 14/14 | 14/14 | 14/14 |
+
+In the controlled engineering replay used during development, v1.5 consumed fewer total tokens and elapsed time than v1.4 and v1.3 while preserving the acceptance target. No guaranteed or average reductions are claimed.
+
+## Evidence & anti-fake-PASS
+
+One canonical recorder (schema validation, hash chain, anchor) is the single source of truth for delivery telemetry; local substitutes are rejected at acceptance. Completion claims require mechanical evidence; failures are frozen, never rewritten. Internal validation evidence beyond this repository (project labs, benchmark workspaces) is retained privately.
+
+## Core feature freeze
+
+`CORE_FEATURE_FREEZE = ACTIVE`. v1.5.0 is the **First Generation Product Core**. Ordinary new needs go to harness adapters, enterprise/project profiles, or documentation — not the core. The core reopens only if **all** hold: real project failure + current core cannot handle + generalizable + reproducible + evidence-backed.
+
+## Known limitations
+
+- Claude Code execution is currently blocked by runtime authentication in the tested environment (L1 verified mechanically).
+- TRAE and WorkBuddy/CodeBuddy are not yet externally validated.
+- Exact cross-run model identity was not fully controlled; benchmark results are observational.
+- `FULL_SECURITY_AUDIT = NOT_AVAILABLE` (a complete AST security audit has not been executable in the development environment; passing gates cover governance/regression/evidence integrity only).
+
+## Security status
+
+No secrets, credentials or runtime artifacts are tracked (scanned across the full git history). See Known Limitations for the honest security-audit status.
+
+## Versioning
+
+Semver. Formal releases: v1.0.0 → v1.5.0 (v1.5.0 = First Generation Product Core, feature-frozen). Release evidence lives in `evidence/release_vX.Y.Z/`.
+
+## License
+
+MIT — see [LICENSE](LICENSE). Upstream attributions in [NOTICE](NOTICE); source boundaries in `09_License与来源边界.md`.

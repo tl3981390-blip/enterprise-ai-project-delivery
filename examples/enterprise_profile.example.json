@@ -1,0 +1,15 @@
+{
+  "organization": "EXAMPLE-SYNTHETIC-ORG",
+  "roles": ["employee", "reviewer", "approver", "admin"],
+  "approval_policy": {"production_changes": "IT_PLUS_BUSINESS_OWNER"},
+  "model_policy": {"external_model_for_sensitive_data": "DENY", "internal_model_preferred": true},
+  "tool_policy": {"sql_parameter_binding": "REQUIRED", "credentials": "ENV_ONLY", "test_deletion": "DENY"},
+  "data_policy": {"synthetic_only_in_labs": true, "data_residency": "INTERNAL"},
+  "security_policy": {"rbac": "REQUIRED", "audit_chain": "REQUIRED"},
+  "evidence_policy": {"level": "STRICT", "mechanical_only": true},
+  "environment_policy": {"isolation": "DEDICATED_PORTS_AND_VOLUMES"},
+  "deployment_policy": {"target": "ENTERPRISE_INTERNAL"},
+  "human_gate_policy": {"irreversible_operations": "HALT"},
+  "retention_policy": {"evidence": "KEEP_FROZEN"},
+  "audit_policy": {"append_only": true}
+}

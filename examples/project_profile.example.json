@@ -1,0 +1,14 @@
+{
+  "project_type": "synthetic-enterprise-review-lab",
+  "business_goal": "Example goal: deliver a locally runnable document review workflow with verifiable evidence",
+  "risk_level": "HIGH",
+  "required_capabilities": ["persistence", "workflow", "four_role_journeys", "telemetry"],
+  "acceptance_matrix": {"ref": "examples/example_acceptance_matrix.json"},
+  "runtime": {"backend_port": 8000, "frontend_port": 5173},
+  "database": {"engine": "postgresql", "container_name": "example-pg", "host_port": 55432},
+  "rag": {"versioned_knowledge": true},
+  "agent": {"deterministic_review": true},
+  "workflow": {"submit_review_revision_approve": true},
+  "deployment_target": {"local_synthetic": true},
+  "project_specific_constraints": ["idempotent-test-titles-required", "no-real-credentials"]
+}
