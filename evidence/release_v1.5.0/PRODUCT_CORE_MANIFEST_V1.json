@@ -1,0 +1,33 @@
+{
+  "manifest": "PRODUCT_CORE_MANIFEST_V1",
+  "version": "1.5.0",
+  "positioning": "FIRST GENERATION PRODUCT CORE COMPLETE",
+  "core_capabilities": [
+    "Task Understanding", "Task Contract", "Scope Governance", "Autonomous Continuation", "Legal Stop",
+    "Recovery", "Human Recovery", "Resume", "Resource Guard", "Model Handoff", "Evidence", "Telemetry",
+    "Telemetry Closed Loop (OBSERVE-DECIDE-ACT-VERIFY)", "User Journey", "Independent Acceptance",
+    "Runtime Integrity (declared-adapter gate + role workflow coverage gate)", "Role Workflow Coverage",
+    "Requirement Coverage", "Experience Learning", "Controlled Evolution", "Reliability Efficiency",
+    "Mid-project Attachment", "Enterprise Customization", "Harness Capability Architecture",
+    "Value & Reliability Reporting"
+  ],
+  "core_freeze": {"status": "ACTIVE upon this release", "reopen_conditions": ["REAL_PROJECT_FAILURE", "CURRENT_CORE_CANNOT_HANDLE", "GENERALIZABLE", "REPRODUCIBLE", "EVIDENCE_BACKED"], "all_required": true},
+  "freeze_exception_record": {
+    "id": "EXP-018 / LL-014",
+    "class": "CORE_DEFECT",
+    "discovered_by": "harness acceptance profile-block test (mechanical)",
+    "defect": "enterprise test_deletion=DENY silently overridable by project ALLOW (same-key nested leaf)",
+    "fix": "recursive leaf-path restrictive-override conflict detection",
+    "mechanically_reproduced": "YES",
+    "negative_test_added": "YES (CUS-006 strengthened)",
+    "full_regression": "PASS (140/140)"
+  },
+  "harness_status": {
+    "zcode": {"level": "L9", "claim": "VALIDATED"},
+    "claude_code": {"level": "L1", "claim": "VALIDATION_PENDING_AFTER_AUTH", "blocker": "401 invalid API key (real probe)", "class": "INSTALLATION_GAP / RUNTIME_AUTH_BLOCKER"},
+    "trae": {"claim": "PENDING_EXTERNAL_VALIDATION", "state": "NOT_INSTALLED"},
+    "workbuddy_codebuddy": {"claim": "PENDING_EXTERNAL_VALIDATION", "state": "NOT_INSTALLED (extension remnants only)"}
+  },
+  "efficiency": {"ref": "evidence/release_v1.5.0/TOKEN_EFFICIENCY_RECALC.json", "class": "ENGINEERING_OBSERVATIONAL_BENCHMARK"},
+  "post_release_work_modes": ["REAL PROJECT VALIDATION", "HARNESS ADAPTER VALIDATION", "ENTERPRISE PROFILE CONFIGURATION", "PROJECT PROFILE CONFIGURATION", "EXPERIENCE COLLECTION", "BENCHMARK", "BUG FIX"]
+}

@@ -2,6 +2,19 @@
 
 本文件记录企业AI项目交付 Skill 自身版本的变更。遵循 `18`/`08` 的 semver 与 staging/adopt 规则。
 
+## 1.5.0 (2026-08-31)
+
+**FIRST GENERATION PRODUCT CORE COMPLETE**——产品化四能力域 + 多 Harness 架构 + 效率成果保持；发布即 `CORE_FEATURE_FREEZE = ACTIVE`。
+
+- MID_PROJECT_SKILL_ATTACHMENT：只读发现（14 字段）→采纳边界（8 字段 schema）→历史四分类不洗白→惰性依赖验证→继续原项目（禁新建）；价值报告 PRE/POST 分期。
+- TELEMETRY_CLOSED_LOOP：OBSERVE→DECIDE→ACT→**VERIFY**→结果事件（假设成功被机械禁止）；8 类事件→策略；max_attempts+人环 HALT 不可绕；与 Skill Evolution 严格分离。
+- ENTERPRISE_CUSTOMIZATION：CORE+ADAPTER+ENTERPRISE_PROFILE+PROJECT_PROFILE 四层；7 项不可覆盖核心不变量；合并优先级与冲突检出；Global/Company 学习线分离。
+- MULTI_HARNESS_ARCHITECTURE：Harness 能力合同（15 能力×4 状态词表）、L1-L10 连续阶梯、薄适配包×4（零 Core 复制）、运行时能力探测与真实验收矩阵。
+- **唯一冻结例外（CORE_DEFECT）**：EXP-018/LL-014——同键嵌套限制性政策值可被低层静默覆盖（Harness 验收实测发现）；修复=递归叶路径冲突检出，mechanically_reproduced=YES、negative_test_added=YES、full_regression=PASS(140/140)。
+- 效率（ENGINEERING_OBSERVATIONAL_BENCHMARK，同口径回放）：v1.5 8,970,430 token/1389s，未反弹且低于 v1.4（-2.59%）与 v1.3（-9.14%）；时间 -30.2%/-49.2%；v1.4 六效率机制全保留。
+- Harness 真实状态（§6 词表）：ZCode=VALIDATED L9；Claude Code=L1+BLOCKED_RUNTIME_AUTH(401 实证)；TRAE/WorkBuddy=PENDING_EXTERNAL_VALIDATION。
+- 新增规格/schema：HARNESS_CAPABILITY_CONTRACT、MID_PROJECT_ATTACHMENT_SPEC+SKILL_ADOPTION_BOUNDARY_SCHEMA、TELEMETRY_CLOSED_LOOP_SPEC+TELEMETRY_CONTROL_POLICY、双 Profile schema、CUSTOMIZATION_ARCHITECTURE、CORE_BOUNDARY_POLICY、PRODUCT_CORE_MANIFEST_V1。
+
 ## 1.4.0 (2026-08-31)
 
 **Reliability Efficiency / Token Optimization**——同口径隔离回放实测：Token -6.71%（9,872,301 → 9,209,337）、时间 -27.21%、验收 14/14 持平、可靠性九项不回归全 PASS。

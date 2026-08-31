@@ -60,7 +60,7 @@ python 共享\scripts\check_state_machine.py --legal tests\evals\state_machine\l
 - OpenAI `.system` 全程只读。（License 见 `NOTICE` / `09`）
 
 ## 版本
-`1.4.0`（Reliability Efficiency；v1.3.0 及更早版本保持不可变）。
+`1.5.0`（FIRST GENERATION PRODUCT CORE COMPLETE；CORE_FEATURE_FREEZE=ACTIVE；Harness 状态：ZCode VALIDATED L9 / Claude L1+BLOCKED_RUNTIME_AUTH / TRAE、WorkBuddy PENDING_EXTERNAL_VALIDATION）。
 
 ## 授权
 MIT License（见 LICENSE）。上游来源声明见 NOTICE。

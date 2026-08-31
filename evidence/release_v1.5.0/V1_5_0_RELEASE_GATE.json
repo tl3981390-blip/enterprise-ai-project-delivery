@@ -1,0 +1,25 @@
+{
+  "release": "v1.5.0",
+  "positioning": "FIRST GENERATION PRODUCT CORE COMPLETE",
+  "operation": "V1_5_0_FORMAL_RELEASE_OPERATION",
+  "authorized_by": "explicit user release instruction after MULTI_HARNESS_RELEASE_ACCEPTANCE_READY",
+  "candidate_published_unchanged": "0c96b76289678f6b30acd070267cb0aa2497d176",
+  "pre_release_recheck": {
+    "identity": "HEAD 0c96b76 on v1.5.0-dev, worktree CLEAN",
+    "gates": {"PRODUCT_CORE_COMPLETION": "READY", "MULTI_HARNESS": "READY"},
+    "full_regression_fresh_rerun": "140/140 PASS (this operation, not copied)",
+    "structure": "validate-skill 0 errors 0 warnings",
+    "core_freeze_exception": "EXP-018 CORE_DEFECT: mechanically_reproduced=YES, negative_test_added=YES, full_regression=PASS (see PRODUCT_CORE_MANIFEST_V1.json)",
+    "exp018_profile_regression_fresh": "PROFILE_CONSTRAINT_CONFLICT on nested DENY-vs-ALLOW",
+    "telemetry_placement_exp015": "skill repo contains only frozen historical evidence telemetry; zero runtime telemetry writes",
+    "browser_idempotency_exp016": "held (v1.5 replay journeys timestamped-unique; observer reran 10/10 on accumulated db)",
+    "runtime_cleanup_exp017": "port sweep clean except documented frozen ERL lab frontend :5173 (lab live identity, not release asset)",
+    "one_core_multiple_adapters": "PASS (4 platforms x 5 thin files, mappings only, zero core copy)",
+    "token_recalc": "from original evidence files; one drafting-invalid JSON corrected (9209337 // 14 -> 657810, same source); deltas: v1.5 vs v1.4 token -238907 (-2.59%), vs v1.3 -901871 (-9.14%); elapsed -601.6s (-30.22%) / -1345.6s (-49.20%)",
+    "secrets_scan": "no credentials/keys in tracked files; claude 401 test stored no key material"
+  },
+  "scope": ["MID_PROJECT_SKILL_ATTACHMENT", "TELEMETRY_CLOSED_LOOP", "ENTERPRISE_CUSTOMIZATION", "MULTI_HARNESS_ARCHITECTURE (adapters + capability contract + levels + probe + matrix)"],
+  "harness_claims_bound_to_real_evidence": "VALIDATED only for ZCode L9; Claude L1+BLOCKED_RUNTIME_AUTH; TRAE/WorkBuddy PENDING_EXTERNAL_VALIDATION",
+  "security_status": "FULL_SECURITY_AUDIT = NOT_AVAILABLE (honestly recorded; gate PASS is not a security audit conclusion)",
+  "verdict": "RELEASE_GATE_PASS"
+}
