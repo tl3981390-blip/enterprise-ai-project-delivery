@@ -1,0 +1,2 @@
+# TRAE 安装映射（未安装——PENDING_EXTERNAL_HARNESS_VALIDATION）
+安装 TRAE 后：将本目录 INVOCATION/PERMISSIONS 映射配置到其 agent 规则目录；技能经 canonical repo 路径引用；重跑 HARNESS_RUNTIME_CAPABILITY_PROBE。

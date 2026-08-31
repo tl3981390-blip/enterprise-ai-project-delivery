@@ -1,0 +1,6 @@
+{
+  "platform": "claude",
+  "core_source": "canonical repository (single source; no core copy)",
+  "capability_status_rule": "VERIFIED | NOT_AVAILABLE | NOT_TESTED | NOT_INSTALLED — never guessed",
+  "probe_evidence": "see Benchmark_V1_5/MULTI_HARNESS_ACCEPTANCE_MATRIX.md (2026-08-31 real probe)"
+}

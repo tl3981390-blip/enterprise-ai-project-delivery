@@ -194,11 +194,16 @@ class EnterpriseCustomizationTests(unittest.TestCase):
         self.assertEqual(validate_profile(project_profile(risk_level="HIGH"), "project"), [])
 
     def test_cus006_project_violating_enterprise_blocks(self):
-        merged = merge_profiles({}, enterprise_profile(model_policy="external DENY"),
-                                project_profile(model_policy="external ALLOW"), {})
-        self.assertEqual(merged["status"], "MERGED")  # note: simple key override
-        conflict = merge_profiles({}, {"evidence_integrity": True}, {"evidence_integrity": False}, {})
+        # EXP-018 CORE_DEFECT regression: lower layer overriding a same-key restrictive higher value must conflict
+        conflict = merge_profiles({}, {"tool_policy": {"test_deletion": "DENY"}},
+                                  {"tool_policy": {"test_deletion": "ALLOW"}}, {})
         self.assertEqual(conflict["status"], "PROFILE_CONSTRAINT_CONFLICT")
+        self.assertTrue(any("test_deletion" in c for c in conflict["conflicts"]))
+        conflict2 = merge_profiles({}, {"evidence_integrity": True}, {"evidence_integrity": False}, {})
+        self.assertEqual(conflict2["status"], "PROFILE_CONSTRAINT_CONFLICT")
+        # non-restrictive same-key differences still merge (layering, not paralysis)
+        merged = merge_profiles({}, {"deployment_policy": {"target": "LOCAL"}}, {"deployment_policy": {"target": "STAGING-X"}}, {})
+        self.assertEqual(merged["status"], "MERGED")
 
     def test_cus007_core_safety_override_rejected(self):
         self.assertIn("core_invariant_override_attempt:anti_fake_pass", validate_profile(enterprise_profile(allow_fake_pass=True), "enterprise"))

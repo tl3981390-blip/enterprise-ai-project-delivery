@@ -193,13 +193,48 @@ def validate_profile(profile: dict, kind: str) -> list[str]:
     return errors
 
 
+_RESTRICTIVE_MARKERS = ("DENY", "HALT", "REQUIRED", "STRICT", "DENIED", "BLOCK")
+
+
+def _is_restrictive(value) -> bool:
+    if isinstance(value, bool):
+        return value is False
+    if isinstance(value, str):
+        return any(m in value.upper() for m in _RESTRICTIVE_MARKERS)
+    return False
+
+
 def merge_profiles(core: dict, enterprise: dict, project: dict, task: dict) -> dict:
-    """Lower layers must not violate higher ones; conflicts are explicit (§33)."""
+    """Lower layers must not violate higher ones; conflicts are explicit (§33).
+
+    CORE_DEFECT fix (EXP-018, proven by HARNESS acceptance §12 profile-block test):
+    a lower layer overriding a same-key higher-layer RESTRICTIVE value is a
+    PROFILE_CONSTRAINT_CONFLICT — previously merged silently (= policy bypass)."""
     conflicts = []
     for inv in NON_OVERRIDABLE_CORE_INVARIANTS:
         for layer_name, layer in (("enterprise", enterprise), ("project", project), ("task", task)):
             if layer.get(inv) is False or (inv == "anti_fake_pass" and layer.get("allow_fake_pass") is True):
                 conflicts.append(f"PROFILE_CONSTRAINT_CONFLICT:{layer_name}:{inv}")
+    def _restrictive_overrides(hi: dict, lo: dict, path: str) -> list[str]:
+        found = []
+        for key, hval in hi.items():
+            if key not in lo:
+                continue
+            lval = lo[key]
+            here = f"{path}.{key}" if path else key
+            if isinstance(hval, dict) and isinstance(lval, dict):
+                found.extend(_restrictive_overrides(hval, lval, here))
+            elif hval != lval and _is_restrictive(hval):
+                found.append(here)
+        return found
+
+    layers = (("ENTERPRISE_PROFILE", enterprise), ("PROJECT_PROFILE", project), ("TASK_CONTRACT", task))
+    for i in range(len(layers)):
+        for j in range(i + 1, len(layers)):
+            higher_name, higher = layers[i]
+            lower_name, lower = layers[j]
+            for spot in _restrictive_overrides(higher, lower, ""):
+                conflicts.append(f"PROFILE_CONSTRAINT_CONFLICT:{lower_name}:{spot}_overrides_{higher_name}")
     if conflicts:
         return {"status": "PROFILE_CONSTRAINT_CONFLICT", "conflicts": conflicts}
     merged = dict(core)
