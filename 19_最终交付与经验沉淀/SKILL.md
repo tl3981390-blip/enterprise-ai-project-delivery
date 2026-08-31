@@ -22,7 +22,7 @@ metadata:
 所有阶段通过后收尾。
 
 ## Core Process
-1. 汇总各阶段输出与证据（`references/最终报告模板.md`）。
+1. 汇总各阶段输出与证据（`references/Release检查清单.md`）。
 2. 逐项核对是否满足合同 success / acceptance 标准。
 3. 沉淀经验入库（lessons）；可泛化经验按 [`SKILL_EVOLUTION_ENGINE_SPEC`](../共享/references/SKILL_EVOLUTION_ENGINE_SPEC.md) 走 Experience → Learning → Bounded Patch → Negative/Held-out/Regression 流水线（仅 AUTO_PROPOSE，正式发版仍走 Release Gate）。
 4. 缺证据 / 目飘标移 → 禁止宣称完成。

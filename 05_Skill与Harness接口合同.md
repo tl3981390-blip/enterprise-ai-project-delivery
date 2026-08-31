@@ -187,3 +187,12 @@ Permission Gateway 运行时拦截：READ 放行 / WRITE 需检 / EXECUTE|ADMIN|
 - [ ] 与具体 Harness 的解耦适配层 → `04_Harness接入适配` 阶段
 
 > 对输出是否使用 JSON Schema 的推荐：见 `06` 第 6 节（推荐 JSON Schema + 附自然语言摘要）。
+---
+
+## POST_v1.5.0 泛化修订单（2026-08-31）
+
+本合同制定时以企业 AI 内部交付为默认场景；经 WorkBuddy 真实拒绝个人项目显式调用的失效证据（`evidence/post_v1_5_generalization/`）修正如下：
+
+1. 输入合同中 `org_policy_ref` 与 `user_identity` 由必填改为**条件必填**：仅当项目涉及企业数据/身份/审批/合规（enterprise_governance 能力激活）时要求；个人/非企业项目不要求。
+2. 适用范围改为**复杂项目**（企业/个人、AI/非 AI）；`EXPLICIT_INVOCATION` 默认接受，分层编排见 `共享/references/PROJECT_ORCHESTRATION_SPEC.md`。
+3. 本文件其余内容为历史设计记录，运行时语义以 SKILL.md 与 PROJECT_ORCHESTRATION_SPEC.md 为准。

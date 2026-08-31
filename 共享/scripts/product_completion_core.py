@@ -168,10 +168,19 @@ ENTERPRISE_PROFILE_FIELDS = (
     "security_policy", "evidence_policy", "environment_policy", "deployment_policy",
     "human_gate_policy", "retention_policy", "audit_policy",
 )
-PROJECT_PROFILE_FIELDS = (
-    "project_type", "business_goal", "risk_level", "required_capabilities", "acceptance_matrix",
-    "runtime", "database", "rag", "agent", "workflow", "deployment_target", "project_specific_constraints",
+# POST_V1.5_CORE_DEFECT_FIX (generalization): project CLASSIFICATION (who is this project,
+# what risk) and CAPABILITY DECLARATION (which conditional capabilities are in scope) are
+# different layers. Classification is required for every project; capability keys are
+# OPTIONAL — absence means the capability is NOT_IN_SCOPE for this project. Previously all
+# 12 fields were mandatory, structurally forcing AI/enterprise vocabulary onto every project.
+PROJECT_CLASSIFICATION_FIELDS = (
+    "project_type", "business_goal", "risk_level", "required_capabilities",
+    "acceptance_matrix", "project_specific_constraints",
 )
+CAPABILITY_DECLARATION_FIELDS = (
+    "runtime", "database", "rag", "agent", "workflow", "deployment_target",
+)
+PROJECT_PROFILE_FIELDS = PROJECT_CLASSIFICATION_FIELDS + CAPABILITY_DECLARATION_FIELDS
 NON_OVERRIDABLE_CORE_INVARIANTS = (
     "evidence_integrity", "candidate_identity_verification", "human_authorization_boundary",
     "anti_fake_pass", "recovery_evidence", "scope_authority", "telemetry_integrity",
@@ -181,10 +190,17 @@ LEARNING_LINES = ("GLOBAL_FAILURE_PATTERN", "COMPANY_SPECIFIC_PATTERN")
 
 
 def validate_profile(profile: dict, kind: str) -> list[str]:
-    fields = ENTERPRISE_PROFILE_FIELDS if kind == "enterprise" else PROJECT_PROFILE_FIELDS if kind == "project" else None
-    if fields is None:
+    if kind == "enterprise":
+        fields = ENTERPRISE_PROFILE_FIELDS
+    elif kind == "project":
+        fields = PROJECT_CLASSIFICATION_FIELDS  # capability declarations are optional
+    else:
         return [f"profile_kind_invalid:{kind}"]
     errors = [f"missing:{f}" for f in fields if profile.get(f) in (None, "")]
+    for cap in CAPABILITY_DECLARATION_FIELDS:
+        value = profile.get(cap)
+        if value is not None and value != {} and not isinstance(value, (dict, list, str, bool)):
+            errors.append(f"capability_declaration_invalid:{cap}")
     for inv in NON_OVERRIDABLE_CORE_INVARIANTS:
         if profile.get(inv) is not None and profile.get(inv) is not True:
             errors.append(f"core_invariant_override_attempt:{inv}")
@@ -248,3 +264,197 @@ def classify_learning(pattern: dict) -> str:
     if pattern.get("generalizable_across_organizations") is True and pattern.get("organization_specific") is not True:
         return "GLOBAL_FAILURE_PATTERN"
     return "COMPANY_SPECIFIC_PATTERN"
+
+
+# ==================== PART E: PROJECT ORCHESTRATION & GENERALIZATION ====================
+# POST_V1.5_CORE_DEFECT_FIX: the skill's applicability is COMPLEX PROJECT RELIABILITY DELIVERY,
+# not "enterprise AI internal products". Capability modules are CONDITIONAL: a project declares
+# which capabilities are in scope; the Active Delivery Plan is derived per project. Enterprise
+# workflow is EXTERNAL INPUT compiled into an Enterprise Profile, never a built-in core template.
+# Layers: 1 Reliability Core (invariants) / 2 Capability Registry / 3 Project Understanding /
+# 4 Active Delivery Plan / 5 Enterprise Profile / 6 Project Profile / 7 Task Contract.
+
+# Layer 1 — lifecycle stages every governed project executes (reliability lifecycle, domain-neutral).
+LIFECYCLE_STAGES = (
+    "00_总控", "01_项目理解", "02_当前状态审计", "03_需求与范围", "04_SDD规格",
+    "05_TDD与测试策略", "06_架构设计", "11_施工管理与增量实现", "12_失败处理与恢复",
+    "14_多角色验收", "15_Evidence与防假验收", "19_最终交付与经验沉淀",
+)
+EVENT_DRIVEN_STAGES = ("12_失败处理与恢复",)  # entered on failure, exit of the plan, not skipped
+
+# Layer 2 — conditional capability registry: capability -> {stages, gates}.
+CAPABILITY_REGISTRY = {
+    "rag": {"stages": ["07_RAG设计"], "gates": ["rag_gate", "citation_gate"]},
+    "agent": {"stages": ["08_Agent设计"], "gates": []},
+    "tool_permissions": {"stages": ["09_MCP与工具权限网关"], "gates": ["permission_gate"]},
+    "enterprise_governance": {"stages": ["10_企业治理与合规"], "gates": ["governance_gate"]},
+    "browser_acceptance": {"stages": ["13_浏览器真实验收"], "gates": ["targeted_browser_journey"]},
+    "deployment": {"stages": ["16_部署"], "gates": ["deployment_gate"]},
+    "license_compliance": {"stages": ["17_License与合规"], "gates": ["license_gate"]},
+    "upgrade_rollback": {"stages": ["18_升级与回滚"], "gates": ["migration_gate", "rollback_gate"]},
+    "database": {"stages": [], "gates": ["persistence_gate", "restart_gate"]},
+    "workflow": {"stages": [], "gates": ["workflow_gate", "role_e2e_gate"]},
+    "multi_role_approval": {"stages": [], "gates": ["role_e2e_gate"]},
+    "runtime": {"stages": [], "gates": ["adapter_gate", "restart_gate"]},
+}
+# Profile declaration key -> registry key (deployment_target declares the deployment capability).
+CAPABILITY_DECLARATION_ALIASES = {"deployment_target": "deployment"}
+ALWAYS_GATES = ("contract_check",)
+NOT_APPLICABLE_REASON = "capability_not_in_scope"
+CAPABILITY_REGISTRY_STAGES = sorted({s for spec in CAPABILITY_REGISTRY.values() for s in spec["stages"]})
+
+
+def active_capabilities(project_profile: dict, enterprise_profile: dict | None = None) -> dict:
+    """Which registry capabilities are in scope: declared capability objects (non-empty) plus
+    required_capabilities strings; an enterprise profile may ADD capabilities, never remove."""
+    active: set[str] = set()
+    for cap in CAPABILITY_DECLARATION_FIELDS:
+        value = (project_profile or {}).get(cap)
+        if value not in (None, "", {}, []):
+            active.add(CAPABILITY_DECLARATION_ALIASES.get(cap, cap))
+    for cap in (project_profile or {}).get("required_capabilities") or []:
+        if cap in CAPABILITY_REGISTRY:
+            active.add(cap)
+    for cap in ((enterprise_profile or {}).get("required_capabilities") or []):
+        if cap in CAPABILITY_REGISTRY:
+            active.add(cap)
+    return {cap: CAPABILITY_REGISTRY[cap] for cap in sorted(active)}
+
+
+def derive_active_plan(project_profile: dict, enterprise_profile: dict | None = None) -> dict:
+    """Layer 4 — the per-project Active Delivery Plan. Stages are DERIVED, never copied from a
+    historical or enterprise template; capability stages not in scope are recorded NOT_APPLICABLE
+    with a reason. Final acceptance and the lifecycle core are never removable."""
+    caps = active_capabilities(project_profile, enterprise_profile)
+    active_stages = list(LIFECYCLE_STAGES)
+    gates = set(ALWAYS_GATES)
+    for spec in caps.values():
+        for stage in spec["stages"]:
+            if stage not in active_stages:
+                active_stages.append(stage)
+        gates.update(spec["gates"])
+    not_applicable = {stage: NOT_APPLICABLE_REASON for stage in CAPABILITY_REGISTRY_STAGES
+                      if stage not in active_stages}
+    workflow = (enterprise_profile or {}).get("workflow") or {}
+    human_gates = list(workflow.get("human_gates") or [])
+    return {
+        "active_stages": active_stages,
+        "not_applicable_stages": not_applicable,
+        "active_gates": sorted(gates),
+        "required_evidence": ["task_understanding_contract", "gate_results", "acceptance_evidence"],
+        "human_gates": human_gates + ["FINAL_ACCEPTANCE"],
+        "final_acceptance": "INDEPENDENT_VERIFICATION_NON_OPTIONAL",
+        "explicit_invocation_accepted": True,
+    }
+
+
+# Layer 5 — enterprise workflow is INPUT, compiled into an Enterprise Profile entry.
+WORKFLOW_STAGE_FIELDS = ("name",)
+FORBIDDEN_WORKFLOW_KEYS = {"allow_fake_pass", "skip_evidence", "bypass_human_gate", "self_acceptance"}
+
+
+def compile_enterprise_workflow(workflow: dict) -> dict:
+    """Compile a company's REAL delivery workflow (its own stages/roles/approvals/entry-exit
+    conditions/evidence/human gates) into an Enterprise Profile `workflow` entry. Different
+    enterprises may compile completely different workflows on ONE reliability core. The
+    compilation rejects any attempt to weaken NON_OVERRIDABLE_CORE_INVARIANTS."""
+    errors = []
+    stages = workflow.get("stages")
+    if not stages or not isinstance(stages, list):
+        return {"status": "WORKFLOW_INVALID", "errors": ["missing:stages"]}
+    for i, stage in enumerate(stages):
+        if not isinstance(stage, dict) or not stage.get("name"):
+            errors.append(f"stage[{i}]:missing:name")
+        for key in FORBIDDEN_WORKFLOW_KEYS:
+            if stage.get(key) is True:
+                errors.append(f"stage[{i}]:core_invariant_weakened:{key}")
+    if workflow.get("allow_fake_pass") is True:
+        errors.append("core_invariant_weakened:allow_fake_pass")
+    if errors:
+        return {"status": "WORKFLOW_INVALID", "errors": errors}
+    human_gates = [s["name"] for s in stages if s.get("human_gate") is True]
+    return {"status": "WORKFLOW_COMPILED",
+            "workflow": {"stages": stages, "human_gates": human_gates,
+                         "source": "ENTERPRISE_INPUT", "profile_line": "COMPANY_SPECIFIC"}}
+
+
+# Layer 1/5 boundary — acceptance perspectives scale with real stakeholders; the INVARIANT is
+# independent verification (executor self-attestation is never sufficient), not the role count.
+DEFAULT_ENTERPRISE_PERSPECTIVES = ("product", "engineering", "security", "end_user")
+SOLO_PROJECT_PERSPECTIVES = ("owner_user",)
+
+
+def required_acceptance_perspectives(project_profile: dict, enterprise_profile: dict | None = None) -> tuple:
+    declared = (project_profile or {}).get("acceptance_perspectives")
+    if declared:
+        return tuple(declared)
+    if (enterprise_profile or {}).get("roles"):
+        return DEFAULT_ENTERPRISE_PERSPECTIVES
+    if (project_profile or {}).get("stakeholders") in (None, [], 1, "single"):
+        return SOLO_PROJECT_PERSPECTIVES
+    return DEFAULT_ENTERPRISE_PERSPECTIVES
+
+
+# Layer 1 evolution boundary — five-way experience routing with FREQUENCY != GENERALIZABILITY.
+EXPERIENCE_ROUTES = (
+    "GLOBAL_RELIABILITY_PATTERN", "HARNESS_SPECIFIC_PATTERN", "ENTERPRISE_SPECIFIC_PATTERN",
+    "PROJECT_SPECIFIC_PATTERN", "ONE_OFF_OBSERVATION",
+)
+
+
+def classify_experience_route(pattern: dict) -> str:
+    """Route an experience by WHERE it belongs, never by HOW OFTEN it was seen. Frequency /
+    repeat_count can never promote a pattern to GLOBAL: global admission additionally requires
+    cross-project validation and a counterexample check (directive §19/§21)."""
+    if pattern.get("harness_specific") is True:
+        return "HARNESS_SPECIFIC_PATTERN"
+    if pattern.get("organization_specific") is True:
+        return "ENTERPRISE_SPECIFIC_PATTERN"
+    if pattern.get("project_specific") is True:
+        return "PROJECT_SPECIFIC_PATTERN"
+    if pattern.get("generalizable_across_projects") is True:
+        if pattern.get("cross_project_validated") is True and pattern.get("counterexample_checked") is True:
+            return "GLOBAL_RELIABILITY_PATTERN"
+        return "ONE_OFF_OBSERVATION"  # plausible but unproven: archive, do not promote
+    return "ONE_OFF_OBSERVATION"
+
+
+CORE_EVOLUTION_ADMISSION_REQUIREMENTS = (
+    "real_failure_or_reliability_need", "current_core_insufficient", "generalizable",
+    "reproducible", "evidence_backed", "cross_project_validated", "counterexample_checked",
+    "no_template_leakage", "no_enterprise_specific_leakage", "no_project_specific_leakage",
+)
+
+
+def validate_core_evolution_admission(evidence: dict) -> list[str]:
+    """POST_V1.5 gate: a NEW global core rule must satisfy ALL admission requirements;
+    otherwise REJECT / DEFER / RECLASSIFY into the proper layer."""
+    return [f"not_proven:{key}" for key in CORE_EVOLUTION_ADMISSION_REQUIREMENTS
+            if evidence.get(key) is not True]
+
+
+# Assumption change model — invalidate ONLY affected verified state, preserve the rest.
+ASSUMPTION_CHANGE_CLASSES = ("STILL_VALID", "INVALIDATED", "REQUIRES_REVALIDATION", "NEW_REQUIRED")
+
+
+def assumption_change_model(verified_state: dict, changed_assumptions: list,
+                            new_required: list | None = None) -> dict:
+    """verified_state: {item_id: {"assumptions": [...], "capabilities": [...]}}. An item is
+    INVALIDATED when an assumption it depends on changed; REQUIRES_REVALIDATION when it shares
+    a capability with the changed surface (collateral risk); STILL_VALID otherwise. Never
+    'continue the old template' and never 'redo everything from zero'."""
+    changed = set(changed_assumptions or [])
+    result = {}
+    for item_id, spec in (verified_state or {}).items():
+        deps = set(spec.get("assumptions") or [])
+        caps = set(spec.get("capabilities") or [])
+        if deps & changed:
+            result[item_id] = "INVALIDATED"
+        elif caps & changed:
+            result[item_id] = "REQUIRES_REVALIDATION"
+        else:
+            result[item_id] = "STILL_VALID"
+    for item_id in new_required or []:
+        result.setdefault(item_id, "NEW_REQUIRED")
+    return {"classification": result, "changed_assumptions": sorted(changed),
+            "next": "re_run_understanding_for_affected -> recalculate_active_plan -> continue"}

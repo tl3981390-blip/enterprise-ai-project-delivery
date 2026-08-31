@@ -1,0 +1,13 @@
+{
+  "$comment": "EXAMPLE — enterprise A submits its REAL delivery workflow as INPUT; compiled by compile_enterprise_workflow into an Enterprise Profile entry. This is enterprise customization as input, not a built-in core template.",
+  "organization": "EXAMPLE-ENTERPRISE-A",
+  "stages": [
+    {"name": "需求提交", "entry": "业务方提交需求单", "exit": "需求单登记"},
+    {"name": "部门负责人批准", "roles": ["dept_head"], "human_gate": true, "evidence": "approval_record"},
+    {"name": "架构评审", "roles": ["architect"], "evidence": "review_minutes"},
+    {"name": "开发", "evidence": "code_review+tests"},
+    {"name": "安全复核", "roles": ["security_officer"], "human_gate": true, "evidence": "security_checklist"},
+    {"name": "UAT", "roles": ["business_owner"], "human_gate": true},
+    {"name": "生产发布", "evidence": "deploy_record+rollback_drill"}
+  ]
+}

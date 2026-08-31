@@ -1,0 +1,10 @@
+{
+  "$comment": "EXAMPLE — enterprise B submits a COMPLETELY DIFFERENT real workflow (owner-driven, AI-developed). ONE reliability core + MULTIPLE enterprise workflows; no company fork.",
+  "organization": "EXAMPLE-ENTERPRISE-B",
+  "stages": [
+    {"name": "Owner 定义需求", "human_gate": true, "evidence": "owner_brief"},
+    {"name": "AI 开发", "evidence": "task_understanding_contract+tests"},
+    {"name": "测试", "evidence": "test_report"},
+    {"name": "Owner 最终验收", "roles": ["owner"], "human_gate": true, "evidence": "acceptance_record"}
+  ]
+}

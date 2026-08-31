@@ -1,0 +1,21 @@
+{
+  "$comment": "EXAMPLE — complex NON-enterprise, NON-AI project (cross-platform desktop knowledge manager). Demonstrates: complex project with capability activation (database/sync/versioning/plugins/backup) while enterprise governance/SSO/MCP stay NOT_IN_SCOPE.",
+  "project_type": "desktop-knowledge-management-app",
+  "business_goal": "个人/小团队跨 Windows/macOS 的本地优先知识管理，数据自主可控",
+  "risk_level": "HIGH",
+  "required_capabilities": ["database", "upgrade_rollback", "license_compliance"],
+  "acceptance_matrix": {
+    "A1": "本地数据库读写与损坏恢复演练通过",
+    "A2": "离线同步冲突解决路径有真实测试证据",
+    "A3": "版本恢复：回退到上一版本后数据完整",
+    "A4": "文件导入（pdf/md/txt）真实样本通过",
+    "A5": "插件加载/卸载不影响主程序稳定性",
+    "A6": "自动备份可在真实磁盘上恢复"
+  },
+  "runtime": {"platforms": ["windows", "macos"], "offline_first": true},
+  "database": {"engine": "sqlite", "migration": "forward-only + rollback演练"},
+  "project_specific_constraints": ["本地优先，无云依赖（可选同步）", "单用户为主，无多租户", "无企业审批/SSO/数据驻留要求"],
+  "stakeholders": "single",
+  "acceptance_perspectives": ["owner_user", "engineering"],
+  "profile_line": "PROJECT_SPECIFIC"
+}

@@ -1,9 +1,11 @@
 # enterprise-ai-project-delivery
 
-> **A reliability layer for complex AI project delivery.**
+> **A reliability layer for complex project delivery.**
 > It turns "the AI said it's done" into "completion that can be proven with real evidence" — and it governs the whole journey: UNDERSTAND → GOVERN → EXECUTE → OBSERVE → RECOVER → VERIFY → LEARN.
+>
+> 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
-**Current version: v1.5.0** (First Generation Product Core, `CORE_FEATURE_FREEZE = ACTIVE`) · Release commit `491f6c9` · Repository: **private**, owner `tl3981390-blip`
+**Current version: v1.5.0** (First Generation Product Core, `CORE_FEATURE_FREEZE = ACTIVE`; post-v1.5.0 generalization defect fix in progress — see `evidence/post_v1_5_generalization/`) · Release commit `491f6c9` · Repository: **private**, owner `tl3981390-blip`
 
 ## Get the skill — pick one path
 
@@ -57,6 +59,8 @@ python 共享/scripts/validate-skill.py --root .   # structural self-check
 ## Basic usage
 
 The skill gates every task before any byte is written: answer the pre-construction questions → Task Understanding Contract → understanding gate → plan–contract alignment → only then execution opens write permissions, with drift checks throughout.
+
+**Who can use it（适用性）**：任何复杂项目——个人或企业、AI 或非 AI、桌面/Web/数据/自动化。`EXPLICIT_INVOCATION`（用户点名使用）默认接受，不因项目类型拒绝；能力模块（RAG/Agent/MCP 权限/企业治理/浏览器验收/部署等）按项目声明条件激活，未声明记 `NOT_APPLICABLE`。分层编排见 `共享/references/PROJECT_ORCHESTRATION_SPEC.md`。
 
 ## Start from Day 1
 

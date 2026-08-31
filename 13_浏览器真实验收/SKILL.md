@@ -17,13 +17,13 @@ metadata:
 对 Web 产物做真实浏览器操作验收，仅打开不够，须检查 console/网络/交互。
 
 ## When to Use
-交付物含 Web UI，进入验收阶段。
+交付物含 Web UI，进入验收阶段。**条件能力**：无 Web UI 的交付物记 `NOT_APPLICABLE` 及理由（artifact_type / surface_evidence / reviewer），禁止伪造浏览器 PASS，也禁止强行执行。
 
 ## Core Process
 1. 真实打开页面，操作关键交互。
 2. 检查 console 0 错误、网络异常、交互通过。
 3. 产出 browser_capture 证据（截图/console/network）。
-4. 单测/接口证据不能替代浏览器交互证据。
+4. 单测/接口证据不能替代浏览器交互证据（Web UI 交付物）。
 
 ## 反合理化 / Red Flags
 - "页面能打开"当验收 → 不足

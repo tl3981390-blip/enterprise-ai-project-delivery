@@ -1,0 +1,16 @@
+{
+  "$comment": "EXAMPLE — personal, non-AI, low-complexity project. Demonstrates: capability declarations are OPTIONAL (absent = NOT_IN_SCOPE); classification fields required. Solo stakeholders collapse acceptance perspectives; INDEPENDENT_VERIFICATION invariant still applies (owner acceptance + real evidence, never executor self-attestation).",
+  "project_type": "personal-family-menu-app",
+  "business_goal": "家庭点菜更省事、减少每天『吃什么』的决策成本",
+  "risk_level": "LOW",
+  "required_capabilities": [],
+  "acceptance_matrix": {
+    "A1": "菜品增删改可用（本地数据持久化）",
+    "A2": "随机/按标签点菜结果可复现（同种子同结果）",
+    "A3": "owner 按真实使用流程验收通过（含真实操作证据）"
+  },
+  "project_specific_constraints": ["单用户本地使用", "不收集任何外部数据", "无需账号体系"],
+  "stakeholders": "single",
+  "acceptance_perspectives": ["owner_user"],
+  "profile_line": "PROJECT_SPECIFIC"
+}

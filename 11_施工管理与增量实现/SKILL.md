@@ -22,7 +22,7 @@ metadata:
 进入 EXECUTING，开放 WRITE/EDIT/EXECUTE 后。
 
 ## Core Process
-1. 拆可验收增量（按 `references/Definition-of-Done.md`）。
+1. 拆可验收增量（按 `../共享/references/Definition-of-Done.md`）。
 2. 每增量实现→测试→提交→证据，不一次性大段施工。
 3. 任务采用共享分级仪式与单次可完成格式；Quick 也不得跳过权限和证据门禁。
 4. 每动作过 DRIFT_CHECK（与合同对账）。

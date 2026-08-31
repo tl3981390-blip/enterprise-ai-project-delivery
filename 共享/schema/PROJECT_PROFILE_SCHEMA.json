@@ -3,21 +3,25 @@
   "$id": "project_profile.schema.json",
   "title": "PROJECT_PROFILE",
   "type": "object",
-  "required": ["project_type", "business_goal", "risk_level", "required_capabilities", "acceptance_matrix", "runtime", "database", "rag", "agent", "workflow", "deployment_target", "project_specific_constraints"],
+  "required": ["project_type", "business_goal", "risk_level", "required_capabilities", "acceptance_matrix", "project_specific_constraints"],
   "properties": {
     "project_type": {"type": "string", "minLength": 1},
     "business_goal": {"type": "string", "minLength": 1},
     "risk_level": {"enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
     "required_capabilities": {"type": "array", "items": {"type": "string"}},
     "acceptance_matrix": {"type": "object", "additionalProperties": true},
+    "project_specific_constraints": {"type": "array", "items": {"type": "string"}},
     "runtime": {"type": "object", "additionalProperties": true},
     "database": {"type": "object", "additionalProperties": true},
     "rag": {"type": "object", "additionalProperties": true},
     "agent": {"type": "object", "additionalProperties": true},
     "workflow": {"type": "object", "additionalProperties": true},
     "deployment_target": {"type": "object", "additionalProperties": true},
-    "project_specific_constraints": {"type": "array", "items": {"type": "string"}},
-    "allow_fake_pass": {"type": "boolean", "enum": [false]}
+    "stakeholders": {},
+    "acceptance_perspectives": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "allow_fake_pass": {"type": "boolean", "enum": [false]},
+    "profile_line": {"enum": ["PROJECT_SPECIFIC"]}
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "$comment": "POST_V1.5_CORE_DEFECT_FIX: classification fields are required for every project; capability declarations (runtime/database/rag/agent/workflow/deployment_target) are OPTIONAL — absence means NOT_IN_SCOPE, never an error. A personal, non-AI or non-enterprise project is a valid PROJECT_PROFILE."
 }

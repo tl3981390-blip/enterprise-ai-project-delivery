@@ -22,7 +22,7 @@ metadata:
 ## Core Process
 1. 按 [`references/架构决策模板.md`](references/架构决策模板.md) 设计组件与接口、数据流、部署形态、被否决备选与回滚。
 2. 逐项与合同 work_scope / allowed_modify / forbidden_modify 对账。
-3. 架构评审（`references/架构评审清单.md`），识别风险与不可行项。
+3. 架构评审（`references/架构决策模板.md`），识别风险与不可行项。
 4. 涉外部系统/权限 → 需要在合同允许范围，否则 blocked。
 
 ## 反合理化 / Red Flags

@@ -19,7 +19,20 @@
     "retention_policy": {"type": "object", "additionalProperties": true},
     "audit_policy": {"type": "object", "additionalProperties": true},
     "allow_fake_pass": {"type": "boolean", "enum": [false]},
-    "profile_line": {"enum": ["COMPANY_SPECIFIC"]}
+    "profile_line": {"enum": ["COMPANY_SPECIFIC"]},
+    "required_capabilities": {"type": "array", "items": {"type": "string"}},
+    "workflow": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["stages", "human_gates", "source"],
+      "properties": {
+        "stages": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["name"], "additionalProperties": true}},
+        "human_gates": {"type": "array", "items": {"type": "string"}},
+        "source": {"const": "ENTERPRISE_INPUT"},
+        "profile_line": {"const": "COMPANY_SPECIFIC"}
+      },
+      "$comment": "POST_V1.5_CORE_DEFECT_FIX: the enterprise workflow is EXTERNAL INPUT compiled by compile_enterprise_workflow from the company's real delivery process; it is never a built-in core template and can never weaken NON_OVERRIDABLE_CORE_INVARIANTS."
+    }
   },
   "additionalProperties": true
 }

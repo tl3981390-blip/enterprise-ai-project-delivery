@@ -23,7 +23,7 @@ metadata:
 1. semver 判定（`scripts/semver_check.py`），MINOR 不破坏契约，MAJOR 有迁移说明。
 2. candidate → 独立 Gate → staging → adopt（备份旧版）。
 3. 升级失败不破坏当前版本，可一键 Rollback。
-4. 回滚演练真实执行并验证恢复（`references/回滚演练.md`）。
+4. 回滚演练真实执行并验证恢复（`references/升级回滚演练.md`）。
 
 ## 反合理化 / Red Flags
 - 自改自宣布升级成功 → 无独立 Gate

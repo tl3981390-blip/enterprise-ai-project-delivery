@@ -102,7 +102,25 @@ def validate_skill(root: Path):
         try:
             json.loads(sf.read_text(encoding="utf-8"))
         except json.JSONDecodeError as e:
-            errors.append(f"schema 非合法 JSON: {sf.name}: {e}")
+            errors.append(f"schema 非法 JSON: {sf.name}: {e}")
+
+    # 5) POST_V1.5 泛化护栏：适用性不得回退为企业/AI 领域限定
+    orchestration_spec = base / "共享" / "references" / "PROJECT_ORCHESTRATION_SPEC.md"
+    if not orchestration_spec.exists():
+        errors.append("缺 共享/references/PROJECT_ORCHESTRATION_SPEC.md（分层编排规格）")
+    try:
+        sys.path.insert(0, str(base / "共享" / "scripts"))
+        import product_completion_core as pcc
+        if not getattr(pcc, "CAPABILITY_REGISTRY", None) or not callable(getattr(pcc, "derive_active_plan", None)):
+            errors.append("product_completion_core 缺 CAPABILITY_REGISTRY / derive_active_plan（能力条件激活机制缺失）")
+    except Exception as ex:  # noqa: BLE001
+        errors.append(f"product_completion_core 导入失败: {ex}")
+    if main_skill.exists():
+        text = main_skill.read_text(encoding="utf-8")
+        if "EXPLICIT_INVOCATION" not in text:
+            errors.append("根 SKILL.md 缺 EXPLICIT_INVOCATION 语义（显式调用不得因项目类型被拒）")
+        if "企业内部开发一个 AI 产品" in text or "仅限企业" in text:
+            errors.append("根 SKILL.md 适用范围回退为企业限定（泛化缺陷复发）")
 
     # 输出
     result = {"errors": len(errors), "warnings": len(warnings), "error_list": errors, "warning_list": warnings}
