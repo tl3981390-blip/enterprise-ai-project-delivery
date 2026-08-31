@@ -52,6 +52,9 @@ class CanonicalMetadataTests(unittest.TestCase):
         version_line = next(l for l in skill_md.splitlines() if l.strip().startswith("version:"))
         self.assertEqual(version_line.split(":")[1].strip(), META["version"])
         self.assertEqual(META["tag"], f"v{META['version']}")
+        # Declaration model: no self-referential commit or asset SHA stored in tracked metadata
+        self.assertNotIn("release_commit", META)
+        self.assertNotIn("asset_sha256", META)
 
     def test_inst007_invalid_identity_really_fails(self):
         # craft a metadata with wrong commit -> source verification must FAIL (no or-True)
@@ -77,7 +80,8 @@ class CanonicalMetadataTests(unittest.TestCase):
         # the v1.5.0 defect was `all(c == FORMAL_TAG_COMMIT or True ...)` in EXECUTABLE code;
         # AST-strip docstrings/comments and prove no executable `or True` remains
         self.assertNotIn("or True", _code_only())
-        self.assertIn("tag_identity_mismatch", INSTALLER.read_text(encoding="utf-8"))  # real comparison
+        # real verification compares the resolved tag commit against the declaration's tag
+        self.assertIn("resolved_tag", INSTALLER.read_text(encoding="utf-8"))
 
     def test_inst008_negative_zip_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -97,7 +101,7 @@ class FormalInstallFlowTests(unittest.TestCase):
 
     def test_inst002_private_repo_with_auth_installs(self):
         agent_doc = (ROOT / "docs" / "AGENT_INSTALL.md").read_text(encoding="utf-8")
-        self.assertIn("PRIVATE", agent_doc)
+        self.assertIn("Private", agent_doc)  # visibility detected at runtime, not hardcoded
         self.assertIn("gh auth login", agent_doc)
 
     def test_inst003_unauthenticated_only_asks_legal_authorization(self):

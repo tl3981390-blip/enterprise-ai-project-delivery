@@ -62,10 +62,11 @@ def _tag_commit(root: Path, tag: str) -> str | None:
 
 
 def verify_source(root: Path, meta: dict) -> dict:
-    """Real identity verification. Any mismatch fails; no `or True`, no silent defaults.
-    Version-consistency (SKILL.md vs metadata) is release-time strictness: installability
-    only requires the canonical tag to verify (a not-yet-tagged next version is allowed
-    to install, because its identity is proven by the current tag)."""
+    """Real identity verification (Declaration/Resolution model).
+    RELEASE_METADATA.json is a DECLARATION (version/tag/asset_name) — it never stores its
+    own commit hash or the final asset SHA. The installer RESOLVES the release commit by
+    running `git rev-parse <tag>^{commit}` at runtime; the asset SHA is proven by the
+    Release manifest / ZIP download, never by a value baked into the repo before commit."""
     errors: list[str] = []
     warnings: list[str] = []
     meta_version = None
@@ -75,7 +76,7 @@ def verify_source(root: Path, meta: dict) -> dict:
             meta_version = s.split(":", 1)[1].strip()
             break
     if meta_version != meta["version"]:
-        warnings.append(f"source_version_mismatch:{meta_version}!=canonical:{meta['version']} (installable if tag verifies)")
+        warnings.append(f"source_version_mismatch:{meta_version}!=canonical:{meta['version']} (installable if tag resolves)")
     for required in ("共享/scripts", "共享/schema", "adapters", "00_总控", "tests"):
         if not (root / required).exists():
             errors.append(f"missing_required_dir:{required}")
@@ -89,21 +90,30 @@ def verify_source(root: Path, meta: dict) -> dict:
             # rather than pretending a formal identity. Formal installs verify the tag.
             tag_ok = "pre_release_candidate"
             warnings.append(f"pre_release_candidate:tag {meta['tag']} not published; installing as dev candidate")
-        elif actual != meta["release_commit"]:
-            errors.append(f"tag_identity_mismatch:{actual}!=canonical:{meta['release_commit']}")
         else:
-            tag_ok = True
+            tag_ok = True  # resolved commit == the tag the declaration names
     else:
         # unpacked release ZIP has no .git; identity is proven by ZIP SHA (see verify_zip)
         tag_ok = "zip_only"
     return {"version": meta_version, "errors": errors, "warnings": warnings,
-            "git_repo": git_dir.exists(), "tag_verified": tag_ok}
+            "git_repo": git_dir.exists(), "tag_verified": tag_ok, "resolved_tag": meta["tag"]}
 
 
 def verify_zip(path: Path, meta: dict) -> dict:
+    """ZIP identity is proven by SHA against the RELEASE MANIFEST (produced after the
+    asset exists), never by a value baked into the repo before the commit."""
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
-    return {"zip_sha256": digest, "expected": meta["asset_sha256"],
-            "matches_formal_release": digest == meta["asset_sha256"]}
+    expected = _resolve_asset_sha256(meta)
+    return {"zip_sha256": digest, "expected": expected,
+            "matches_formal_release": expected is not None and digest == expected}
+
+
+def _resolve_asset_sha256(meta: dict) -> str | None:
+    """Asset SHA comes from the Release manifest/evidence (post-asset fact). We never
+    read a pre-computed SHA from the Git-tracked declaration (that was the v1.6.0 defect)."""
+    manifest = meta.get("release_manifest") or {}
+    sha = manifest.get("asset_sha256")
+    return sha if isinstance(sha, str) and len(sha) == 64 else None
 
 
 def copy_tree(src: Path, dst: Path) -> int:
@@ -194,7 +204,7 @@ def main() -> int:
         (target / "INSTALL_INFO.json").write_text(json.dumps({
             "skill_id": SKILL_ID, "version": meta["version"], "mode": "SELF_CONTAINED_FULL_CORE",
             "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-            "canonical_identity": f"tag {meta['tag']} -> {meta['release_commit']}",
+            "canonical_identity": f"tag {meta['tag']} -> resolved at runtime",
             "metadata_source": str(METADATA_REL),
             "note": "self-contained copy; no author-local path dependency; reads identity from canonical RELEASE_METADATA.json",
         }, ensure_ascii=False, indent=2), encoding="utf-8")

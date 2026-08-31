@@ -27,15 +27,15 @@ unzip /tmp/eapd-install/*.zip -d /tmp/eapd-install/src && cd /tmp/eapd-install/s
 git clone https://github.com/tl3981390-blip/enterprise-ai-project-delivery.git
 ```
 
-**当前正式版本 = `v1.5.1`**（以仓库 `共享/schema/RELEASE_METADATA.json` 为准；本行仅为说明，安装时以元数据文件读取为准，不照抄本行）。
+**当前正式版本**：**不预写死**。安装时通过 `gh release view --json tagName -R tl3981390-blip/enterprise-ai-project-delivery` 或 `GET /repos/.../releases/latest` 自动发现；本文件只描述机制，不记录「当前版本」。
 
 ### 2. 验证身份（防伪）
 
 ```bash
-# ZIP：SHA-256 必须等于 RELEASE_METADATA.json 的 asset_sha256
-# （v1.5.1 = 733c89b87d9e09c94406bcfbfb2fdd3f08061e4024bf3068e4b755f6b52f8715）
-git clone：git rev-parse v1.5.1^{commit} 必须等于 RELEASE_METADATA.json 的 release_commit
-# （v1.5.1 = ba7ca9e71d90c2a20eb994053a6d2bee21c36f2c；main 可因 docs 前移，合法）
+# ZIP：SHA-256 必须等于 RELEASE_METADATA.json 的 release_manifest.asset_sha256
+# （资产发布后由 Release manifest / GitHub Release 记录，不在 commit 前预写）
+git clone：git rev-parse <TAG>^{commit} 必须等于 RELEASE_METADATA.json 声明的 tag 解析结果
+# （Declaration/Resolution 模型：metadata 声明 tag，commit 由 Git 实时解析，asset SHA 由 Release manifest 提供）
 ```
 
 ### 3.（推荐）安全抽查
@@ -65,13 +65,15 @@ python <技能目录>/共享/scripts/validate-skill.py --root <技能目录>
 调用方式：对话中说 "使用 enterprise-ai-project-delivery 治理：<任务>"
 ```
 
-## 已认证 / 未认证（Private 仓库）
+## 已认证 / 未认证（仓库可见性运行时检测，不写死）
 
-- **已认证**（gh/凭据管理器/SSH 可用）：直接继续，不打扰用户。
-- **未认证**：只请求用户完成合法认证（`gh auth login` 浏览器流 / 系统凭据授权 / 仓库协作者邀请）；认证完成前保持 `PENDING_EXTERNAL_VALIDATION`，不得伪造安装成功。
+- **Public**：直接获取，无需认证。
+- **Private + 已认证**（gh/凭据管理器/SSH 可用）：直接继续，不打扰用户。
+- **Private + 未认证**：只请求用户完成合法认证（`gh auth login` 浏览器流 / 系统凭据授权 / 仓库协作者邀请）；认证完成前保持 `PENDING_EXTERNAL_VALIDATION`，不得伪造安装成功。
 
 ## 已知边界（如实告诉用户）
 
-- **仓库是 PRIVATE**：无读权限的机器装不了——这是访问控制，不是安装器缺陷。需"任何人可装"时由仓库主人决定公开或加协作者（Agent 不得自行改可见性）。
+- **仓库可见性运行时检测**：不写死 Public/Private。无读权限时只要求合法授权，不伪造。
 - **正式安装/更新绝不搜索作者本地开发区**（`D:\企业Skill实验室` 等）。旧式薄适配器指向作者 D 盘的安装（2026-08-31 之前手工装的）在非作者机器上会 `CORE_RELEASE_IDENTITY_BLOCKED`——用本安装器自包含模式覆盖即修复。
 - **正式更新**只能走：Installed Version → Canonical Remote Release Metadata → 远端正式 Release → Download → Verify → Update。不得从任何本地二次开发目录复制。
+- **版本自动发现**：永远安装 Latest Formal Release；发新版后本文件不需要手工改版本号。

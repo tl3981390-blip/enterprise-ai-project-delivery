@@ -21,11 +21,12 @@ def bump(new_version: str) -> None:
     meta["version"] = new_version
     meta["tag"] = f"v{new_version}"
     meta["release_asset"] = f"enterprise-ai-project-delivery-v{new_version}.zip"
-    meta["asset_sha256"] = "PENDING_UNTIL_RELEASE"
     meta["github_release"] = f"v{new_version}"
-    # release_commit is only known once the tag exists; keep the previous value so
-    # a tag-mismatch is never silently accepted. The release pipeline updates it.
-    meta.setdefault("release_commit", meta.get("release_commit"))
+    # Declaration model: never write a self-referential commit hash or a pre-computed
+    # asset SHA into Git-tracked metadata. Both are resolved at install/release time.
+    meta.pop("release_commit", None)
+    meta.pop("asset_sha256", None)
+    meta.pop("release_manifest", None)
     META.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     targets = [ROOT / "SKILL.md"] + [d / "SKILL.md" for d in ROOT.iterdir()
                                      if d.is_dir() and re.fullmatch(r"\d\d_.*", d.name) and (d / "SKILL.md").exists()]
