@@ -122,7 +122,8 @@ class DynamicStageTests(unittest.TestCase):
         names = [s["name"] for s in plan["stages"]]
         self.assertIn("项目理解与目标锁定", names[0])
         self.assertIn("最终验收", names[-1])
-        self.assertIn("数据持久化与一致性验证", names)
+        self.assertNotIn("数据持久化与一致性验证", names)
+        self.assertIs(caps["capabilities"]["database"]["required"], True)
 
     def test_stage002_capability_does_not_auto_create_stage(self):
         facts = make_fact_model(goal="静态页改字", interface_types=["web"], persistence=False,

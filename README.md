@@ -5,7 +5,7 @@
 >
 > 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
-**Candidate version: v1.8.0.** Natural language is the user interface; human plans are
+**Candidate version: v1.8.1.** Natural language is the user interface; human plans are
 authoritative; project facts determine the work; one runtime connects planning, partial
 replanning, recovery and evidence-based completion. Historical tags remain immutable.
 

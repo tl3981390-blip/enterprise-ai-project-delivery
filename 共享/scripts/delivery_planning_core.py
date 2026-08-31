@@ -268,6 +268,9 @@ def compose_stages(fact_model: dict, complexity: dict, capability_needs: dict,
         cls = classify_work_item(unit, complexity)
         entry = {"name": unit["name"], "class": cls, "goal": unit["goal"],
                  "work": unit.get("work", []), "output": unit.get("output", []),
+                 "dependencies": unit.get("dependencies", []),
+                 "assumptions": unit.get("assumptions", []),
+                 "capabilities": unit.get("capabilities", []),
                  "entry_condition": unit.get("entry_condition", "上一工作项完成"),
                  "done_condition": unit.get("done_condition", "验收通过"),
                  "acceptance": unit.get("acceptance", "证据可验证"),
@@ -290,10 +293,13 @@ def compose_stages(fact_model: dict, complexity: dict, capability_needs: dict,
 
 def _discover_work_units(fact_model: dict, capability_needs: dict,
                          human_plan: dict | None, upstream_plan: dict | None) -> list:
-    """Work units from REAL project problems, not from capabilities. Understanding and
-    final acceptance are reliability invariants (always present). Capability-driven units
-    appear ONLY when the capability is required AND represents an independent work problem
-    (otherwise it is a resource/task inside a problem stage, not a stage of its own)."""
+    """Discover project work, never structure from capability identity.
+
+    Human/upstream planners supply semantic work units. In their absence, explicit
+    project `work_units` / `required_changes` and user journeys are retained as tasks.
+    Capabilities are returned separately by reason_capability_needs and may be attached
+    by the planner as resources; they never create or promote a work unit here.
+    """
     units = []
     # invariant entry: understanding (always a stage — the S0 gate)
     units.append({"name": "项目理解与目标锁定", "goal": "证明已理解真实目标与边界",
@@ -301,16 +307,41 @@ def _discover_work_units(fact_model: dict, capability_needs: dict,
                   "acceptance": "PRE_EXECUTION_UNDERSTANDING_GATE=PASS",
                   "failure_handling": "阻塞性未知 → 合法 Human Gate", "markers": ["independent_user_value"],
                   "evidence": ["task_understanding_contract"], "provenance": "SYSTEM_RELIABILITY_REQUIRED"})
-    # human/enterprise plan work units take precedence over AI discovery
+    # Human and mature upstream plans are the primary sources of real work boundaries.
     for src in (human_plan, upstream_plan):
-        for s in (src or {}).get("stages", []):
-            units.append({**s, "markers": s.get("markers") or ["independent_user_value"],
-                          "provenance": s.get("provenance", "HUMAN_PROVIDED")})
-    # capability-driven work problems (only when required AND an independent problem)
-    for cap, info in capability_needs["capabilities"].items():
-        if info["required"] is not True:
-            continue
-        units.append(_capability_work_problem(cap, fact_model))
+        source = src or {}
+        stage_items = [(s, True) for s in source.get("stages", [])]
+        work_items = [(s, False) for s in source.get("work_units", [])]
+        for s, declared_stage in stage_items + work_items:
+            item = dict(s)
+            if declared_stage and "markers" not in item:
+                item["markers"] = ["planner_stage_boundary"]
+            if "class" in item and "markers" not in item:
+                item["markers"] = ["planner_stage_boundary"] if item["class"] == "STAGE" else []
+                if item["class"] == "CHECK": item["verification_only"] = True
+            item.setdefault("provenance", "HUMAN_PROVIDED" if src is human_plan else "UPSTREAM_PLANNER")
+            units.append(item)
+
+    if not human_plan and not upstream_plan:
+        explicit = (_fact(fact_model, "work_units")["value"] or
+                    _fact(fact_model, "required_changes")["value"] or [])
+        for raw in _as_list(explicit):
+            item = dict(raw) if isinstance(raw, dict) else {"name": str(raw), "goal": str(raw)}
+            item.setdefault("work", [item["name"]])
+            item.setdefault("output", [])
+            item.setdefault("provenance", "PROJECT_FACT")
+            units.append(item)
+        for journey in _as_list(_fact(fact_model, "user_journeys")["value"]):
+            if isinstance(journey, dict):
+                item = dict(journey)
+                item.setdefault("name", item.get("goal", "用户旅程"))
+                item.setdefault("goal", item["name"])
+            else:
+                item = {"name": str(journey), "goal": f"完成用户旅程：{journey}"}
+            item.setdefault("work", [item["name"]])
+            item.setdefault("output", [])
+            item.setdefault("provenance", "PROJECT_FACT")
+            units.append(item)
     # invariant exit: final acceptance (always a stage)
     units.append({"name": "最终验收", "goal": "独立验收证明 Final Complete",
                   "work": ["执行验收矩阵"], "output": ["acceptance_record"],
@@ -319,31 +350,6 @@ def _discover_work_units(fact_model: dict, capability_needs: dict,
                   "evidence": ["acceptance_signoff", "evidence_bundle"],
                   "provenance": "SYSTEM_RELIABILITY_REQUIRED"})
     return units
-
-
-def _capability_work_problem(cap: str, fact_model: dict) -> dict:
-    """A required capability becomes a work PROBLEM (not a bare stage): it carries a real
-    goal derived from the project facts and a failure-handling branch. It upgrades to a
-    STAGE only when it represents an independent boundary (marker set by facts, not forced)."""
-    problems = {
-        "browser_acceptance": ("真实浏览器验收关键用户旅程", "console0+交互通过"),
-        "database": ("数据持久化与一致性验证", "读写回读一致+迁移可回退"),
-        "enterprise_governance": ("企业治理与合规核验", "治理清单通过"),
-        "deployment": ("目标环境部署与回滚", "目标环境真实可用"),
-        "rag": ("检索问答设计与四防", "引用可回溯+拒答正确"),
-        "agent": ("Agent 职责分离", "无自我审批"),
-        "tool_permissions": ("工具权限网关", "默认拒绝+越权拦截"),
-        "multi_role_approval": ("多角色验收", "各角色独立证据"),
-        "upgrade_rollback": ("升级与回滚演练", "演练真实恢复"),
-        "license_compliance": ("许可合规扫描", "无红色许可"),
-    }
-    goal, acc = problems.get(cap, (f"满足 {cap} 能力要求", f"{cap} 检查通过"))
-    # marker comes from the FACT that this is an independent risk/boundary, not forced
-    markers = ["independent_risk"] if cap in ("database", "deployment", "upgrade_rollback",
-                                              "enterprise_governance", "multi_role_approval") else []
-    return {"name": goal, "goal": goal, "work": [goal], "output": [f"{cap}_record"],
-            "acceptance": acc, "failure_handling": "冻结证据进入恢复", "evidence": [f"{cap}_evidence"],
-            "markers": markers, "provenance": "AI_GENERATED"}
 
 
 # ==================== FACT-DERIVED FINAL ACCEPTANCE ====================

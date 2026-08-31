@@ -44,13 +44,20 @@ def test_enterprise_plan_is_authority_and_human_can_merge():
 
 
 def test_condition_change_replans_only_dependent_ai_work():
+    upstream = {"stages": [
+        {"name": "数据模型", "goal": "PostgreSQL schema", "work": ["设计 PG schema"],
+         "output": ["pg.sql"], "assumptions": ["database"], "acceptance": "PG test"},
+        {"name": "UI", "goal": "界面", "work": ["render"], "output": ["ui"],
+         "assumptions": ["scope"], "acceptance": "browser"}]}
     s = start_delivery(facts={"goal": "应用", "persistence": True, "existing_database": True,
-        "data": {"entities": ["item"]}, "deployment_requirement": False})
-    for stage in s["plan"]["stages"]:
-        stage["assumptions"] = ["database"] if "数据" in stage["name"] else ["scope"]
-    s2 = change_conditions(s, changed_facts={"database": {"engine": "sqlite"}})
+        "data": {"entities": ["item"]}, "deployment_requirement": False}, upstream_plan=upstream)
+    replacement = {"数据模型": {"name": "数据模型", "goal": "SQLite schema",
+        "work": ["重建 SQLite schema", "移除 PostgreSQL 类型"], "output": ["schema.sqlite.sql"],
+        "assumptions": ["database"], "acceptance": "SQLite 读写回读", "evidence": ["sqlite-test"]}}
+    s2 = change_conditions(s, changed_facts={"database": {"engine": "sqlite"}},
+                           replanned_work_units=replacement)
     assert s2["plan"]["recomputed"]
-    assert all("数据" in name for name in s2["plan"]["recomputed"])
+    assert next(x for x in s2["plan"]["stages"] if x["name"] == "数据模型")["work"] != upstream["stages"][0]["work"]
 
 
 def test_mature_upstream_selected_over_weaker_local():

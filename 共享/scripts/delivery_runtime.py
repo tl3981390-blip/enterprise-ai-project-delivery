@@ -8,7 +8,7 @@ from uuid import uuid4
 from delivery_planning_core import (complexity_from_facts, compose_stages,
                                     derive_final_acceptance, make_fact_model,
                                     reason_capability_needs)
-from plan_governance_core import (apply_human_plan, apply_plan_edit,
+from plan_governance_core import (apply_human_plan, apply_plan_edit, classify_verified_state,
                                   replan_respecting_locks,
                                   resolve_capability_need)
 
@@ -56,17 +56,34 @@ def edit_plan(session: dict, edit: dict) -> dict:
     return _bump(out)
 
 
-def change_conditions(session: dict, *, changed_facts: dict) -> dict:
-    """Recalculate only work whose declared assumptions are affected by changed facts."""
+def change_conditions(session: dict, *, changed_facts: dict,
+                      replanned_work_units: dict | None = None) -> dict:
+    """Replace affected AI work with a planner-produced fragment and reclassify evidence.
+
+    The host model/mature planning Skill supplies `replanned_work_units` keyed by the old
+    work-unit name. Core validates scope and human authority; it does not emulate a planner
+    with project-type rules.
+    """
     out = deepcopy(session)
     raw = {k: deepcopy(v) for k, v in out["facts"].items() if not k.startswith("_")}
     raw.update(changed_facts)
     out["facts"] = make_fact_model(**raw)
     changed = set(changed_facts)
-    out["plan"] = replan_respecting_locks(out["plan"], sorted(changed), new_facts=changed_facts)
+    out["plan"] = replan_respecting_locks(out["plan"], sorted(changed),
+        new_facts=changed_facts, regenerated_stages=replanned_work_units)
     out["complexity"] = complexity_from_facts(out["facts"])
     out["capability_needs"] = reason_capability_needs(out["facts"])
     out["acceptance"] = derive_final_acceptance(out["facts"], out["complexity"])
+    evidence_change_keys = changed | {str(k) for k in changed_facts}
+    classification = classify_verified_state(out.get("verified_state", {}), evidence_change_keys)
+    out["evidence_classification"] = classification
+    out["verified_state"] = {
+        **{k: dict(v, validation_status="STILL_VALID") for k, v in classification["preserved"].items()},
+        **{k: dict(v, validation_status="INVALIDATED") for k, v in classification["invalidated"].items()},
+        **{k: dict(v, validation_status="REQUIRES_REVALIDATION") for k, v in classification["requires_revalidation"].items()},
+    }
+    out["status"] = ("PLANNING" if out["plan"].get("replan_input_required")
+                     else "EXECUTING")
     _event(out, "CONDITIONS_CHANGED", {"changed_facts": sorted(changed),
                                         "recomputed": out["plan"].get("recomputed", [])})
     return _bump(out)

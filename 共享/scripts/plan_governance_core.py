@@ -304,11 +304,15 @@ def apply_human_plan(human_plan: dict, fact_model: dict | None = None) -> dict:
 
 
 def replan_respecting_locks(active_plan: dict, changed_assumptions: list,
-                            new_facts: dict | None = None) -> dict:
-    """REAL partial replan: HUMAN_PROVIDED/HUMAN_MODIFIED/ENTERPRISE_REQUIRED/locked elements
-    keep their ORIGINAL POSITION and are never auto-modified; only AI_GENERATED elements
-    whose assumptions intersect the change are recomputed (real replan, not a flag).
-    New facts participate: a new fact that adds a dependency triggers recomputation."""
+                            new_facts: dict | None = None,
+                            regenerated_stages: dict | None = None) -> dict:
+    """Replace affected AI work with planner-regenerated content.
+
+    `regenerated_stages` is keyed by the old stage name and must contain complete semantic
+    replacements from a mature planner. Without one, affected AI work is reported as
+    REPLAN_INPUT_REQUIRED rather than falsely labelled replanned. Human-owned content is
+    byte-for-byte preserved; only review metadata is added.
+    """
     stages = active_plan.get("stages", [])
     changed = set(changed_assumptions or [])
     new_fact_assumptions = set()
@@ -319,25 +323,49 @@ def replan_respecting_locks(active_plan: dict, changed_assumptions: list,
     changed |= new_fact_assumptions
     out_stages = []
     recomputed_names = []
+    review_required = []
+    replan_input_required = []
+    regenerated_stages = regenerated_stages or {}
     for s in stages:
         protected = s.get("locked") or _prov(s) in HUMAN_PROTECTED
-        if protected:
-            out_stages.append(dict(s))  # original position + content preserved
-            continue
         deps = _stage_assumptions(s)
-        if deps & changed:
-            recomputed = dict(s)
-            recomputed["replanned"] = True
-            recomputed["replan_reason"] = sorted(deps & changed)
-            recomputed["history"] = s.get("history", []) + [{"by": "AI_AUTOMATIC", "op": "replan",
-                                                             "reason": sorted(deps & changed)}]
-            out_stages.append(recomputed)
-            recomputed_names.append(s["name"])
+        reasons = sorted(deps & changed)
+        if protected:
+            preserved = dict(s)
+            if reasons:
+                preserved["review_status"] = "REQUIRES_HUMAN_REVIEW"
+                preserved["revalidation_status"] = "REQUIRES_REVALIDATION"
+                preserved["affected_by"] = reasons
+                review_required.append(s["name"])
+            out_stages.append(preserved)
+            continue
+        if reasons:
+            replacement = regenerated_stages.get(s["name"])
+            if replacement:
+                replacements = replacement if isinstance(replacement, list) else [replacement]
+                for fragment in replacements:
+                    recomputed = dict(fragment)
+                    recomputed.setdefault("name", s["name"])
+                    recomputed.setdefault("provenance", "AI_GENERATED")
+                    recomputed["replaces"] = s["name"]
+                    recomputed["replan_reason"] = reasons
+                    recomputed["history"] = s.get("history", []) + [
+                        {"by": "UPSTREAM_PLANNER", "op": "regenerate", "reason": reasons}]
+                    out_stages.append(recomputed)
+            else:
+                recomputed = dict(s)
+                recomputed["replan_status"] = "REPLAN_INPUT_REQUIRED"
+                recomputed["replan_reason"] = reasons
+                replan_input_required.append(s["name"])
+                out_stages.append(recomputed)
+            if replacement: recomputed_names.append(s["name"])
         else:
             out_stages.append(dict(s))
     return {"stages": out_stages,  # original order preserved
             "locked_preserved": [s["name"] for s in stages if s.get("locked") or _prov(s) in HUMAN_PROTECTED],
             "recomputed": recomputed_names,
+            "requires_human_review": review_required,
+            "replan_input_required": replan_input_required,
             "human_locks_respected": True,
             "new_facts_consumed": sorted(new_fact_assumptions)}
 

@@ -118,15 +118,15 @@ class ApplicabilityTests(unittest.TestCase):
         self.assertIn("项目理解与目标锁定", plan["active_stages"])
         self.assertIn("最终验收", plan["active_stages"])
         self.assertNotIn("企业治理与合规核验", plan["active_stages"])
-        self.assertIn("数据持久化与一致性验证", plan["active_stages"])
-        self.assertIn("升级与回滚演练", plan["active_stages"])
+        self.assertNotIn("数据持久化与一致性验证", plan["active_stages"])
+        self.assertIn("migration_gate", plan["active_gates"])
 
     def test_sys004_enterprise_ai_project_still_supported(self):
         profile = enterprise_ai_profile()
         self.assertEqual(validate_profile(profile, "project"), [])
         plan = derive_active_plan(profile, enterprise_profile_with_roles())
-        self.assertIn("企业治理与合规核验", plan["active_stages"])
-        self.assertIn("多角色验收", plan["active_stages"])
+        self.assertNotIn("企业治理与合规核验", plan["active_stages"])
+        self.assertIn("governance_gate", plan["active_gates"])
         self.assertIn("rag_gate", plan["active_gates"])
 
     def test_sys005_sys006_historical_flow_not_mandatory(self):
@@ -336,8 +336,8 @@ class CrossDomainReplayTests(unittest.TestCase):
         self.assertIn("项目理解与目标锁定", plan["active_stages"])
         self.assertIn("最终验收", plan["active_stages"])
         self.assertNotIn("企业治理与合规核验", plan["active_stages"])
-        self.assertIn("数据持久化与一致性验证", plan["active_stages"])
-        self.assertIn("升级与回滚演练", plan["active_stages"])
+        self.assertNotIn("数据持久化与一致性验证", plan["active_stages"])
+        self.assertIn("migration_gate", plan["active_gates"])
 
 
 class IdentityAndAdapterTests(unittest.TestCase):

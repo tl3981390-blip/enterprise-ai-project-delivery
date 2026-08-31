@@ -138,7 +138,7 @@ class DynamicComposerTests(unittest.TestCase):
                                 deployment_requirement=True, interface_types=["web"])
         caps = reason_capability_needs(facts)
         plan = compose_stages(facts, assess_complexity({"external_systems": 2, "components": 3}), caps)
-        self.assertGreaterEqual(plan["stage_count"], 3)  # more work units -> more stages
+        self.assertEqual(plan["stage_count"], 2)  # complexity/capabilities cannot invent a work boundary
 
     def test_dyn2_015_recovery_event_driven_not_standing_stage(self):
         caps = reason_capability_needs(button_edit_facts())
