@@ -4,7 +4,7 @@ description: 复杂项目可靠性交付 Skill（名称沿用历史，适用范�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 1.5.0
+  version: 1.5.1
   language: zh-CN
   author: 企业Skill实验室
   requires: harness

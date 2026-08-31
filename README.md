@@ -5,7 +5,7 @@
 >
 > 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
-**Current version: v1.5.0** (First Generation Product Core, `CORE_FEATURE_FREEZE = ACTIVE`; post-v1.5.0 generalization defect fix in progress — see `evidence/post_v1_5_generalization/`) · Release commit `491f6c9` · Repository: **private**, owner `tl3981390-blip`
+**Current version: v1.5.1** (v1.5.0 First Generation Product Core + post-v1.5.0 generalization defect fix — applicability decoupled from enterprise-AI domain; see `evidence/post_v1_5_generalization/`) · v1.5.0 release commit `491f6c9` (unchanged) · Repository: **private**, owner `tl3981390-blip`
 
 ## Get the skill — pick one path
 
