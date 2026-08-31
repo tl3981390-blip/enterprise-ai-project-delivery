@@ -10,7 +10,7 @@
   "release_commit": "55207d242aac741d82959de6fd778416c6d304d4",
   "core_identity": "tag v1.6.0 -> 55207d242aac741d82959de6fd778416c6d304d4 (v1.5.1 -> ba7ca9e71d90c2a20eb994053a6d2bee21c36f2c; v1.5.0 -> 491f6c9f76c6c384fd18a21303aba56812eeadb1 unchanged)",
   "release_asset": "enterprise-ai-project-delivery-v1.6.0.zip",
-  "asset_sha256": "PENDING_UNTIL_RELEASE",
+  "asset_sha256": "24c81e69f69354a31a32bb6b7f73149a9d66f7641649f8203b9ec17d1cff7715",
   "repository": {
     "url": "https://github.com/tl3981390-blip/enterprise-ai-project-delivery",
     "visibility": "private",
