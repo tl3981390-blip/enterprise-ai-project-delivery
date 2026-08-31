@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.s0-understanding-gate
 description: 复杂项目可靠性交付 Skill · S0总控（施工前理解门禁）。任何任务进入后被要求先证明理解，再允许施工。Use when 一个复杂项目交付任务刚开始、或任何阶段要推进到写改动作前（项目类型不限：企业/个人、AI/非 AI 均可）。核心：施工前八问 → 任务理解合同 → 施工前理解门禁 → READY_TO_PLAN；执行全程 DRIFT_CHECK。
-version: 1.6.1
+version: 1.7.0
 license: MIT
 compatibility: open
 metadata:

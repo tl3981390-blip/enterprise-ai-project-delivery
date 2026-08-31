@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.08-agent
 description: 模块08·Agent设计。角色职责分离，多 Agent 适度，避免过度 Agent 化。Use when 交付涉及多角色/多agent协作。
-version: 1.6.1
+version: 1.7.0
 license: MIT
 compatibility: open
 metadata:
