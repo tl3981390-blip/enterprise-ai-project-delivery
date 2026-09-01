@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.s0-understanding-gate
 description: 内部模块·S0施工前理解门禁。按决策缺口证明理解后才允许施工；不是独立 Skill，也不是固定问卷。
-version: 3.0.0-rc2
+version: 3.0.0-rc3
 license: MIT
 compatibility: open
 metadata:

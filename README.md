@@ -6,7 +6,7 @@
 > 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
 Current product truth: [`docs/current/FINAL_PRODUCT_TARGET.md`](docs/current/FINAL_PRODUCT_TARGET.md).
-The working tree is a `v3.0.0-rc2` candidate because the new plan-review and capability-lifecycle
+The working tree is a `v3.0.0-rc3` candidate because the new plan-review and capability-lifecycle
 contracts intentionally change the v2 runtime interface. It is not a formal release until Human
 Release Authority approves publication; immutable v2 tags remain historical baselines.
 

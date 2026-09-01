@@ -267,7 +267,9 @@ def main() -> int:
             failed = True
 
     report["installs"] = installs
-    report["post_install_recommendation"] = "run: python <skill-dir>/共享/scripts/validate-skill.py --root <skill-dir> (expect 0 errors)"
+    report["post_install_recommendation"] = (
+        "run: python <skill-dir>/docs/validate_installed_copy.py --root <skill-dir> "
+        "(validator + full regression without cache pollution)")
     report["status"] = "FAILED" if failed else ("DRY_RUN" if args.dry_run else "INSTALLED_SELF_CONTAINED")
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 1 if failed else 0

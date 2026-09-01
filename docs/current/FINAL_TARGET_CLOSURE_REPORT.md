@@ -2,7 +2,7 @@
 
 Date: 2026-09-01 (Asia/Shanghai)
 
-Candidate: `v3.0.0-rc2` (product Core unchanged from rc1; release-identity tooling corrected)
+Candidate: `v3.0.0-rc3` (product Core unchanged from rc1; release-validation tooling corrected)
 
 Formal baseline audited: `v2.0.0` at `d85872172db77d93e8253515f74d6e0c4e8b929a`.
 Development started from the clean `v2.0.1` worktree at
@@ -97,10 +97,10 @@ memory alone.
 
 ## Release status — PENDING_EXTERNAL_VALIDATION
 
-The candidate has not been published as a formal GitHub Release. `v3.0.0-rc2` has no immutable tag,
+The candidate has not been published as a formal GitHub Release. `v3.0.0-rc3` has no immutable tag,
 release asset digest, GitHub asset re-download, or fresh external Harness session. The canonical
 metadata therefore states `release_channel: candidate` and declares the exact intended prerelease
-identity `github_release: v3.0.0-rc2`. Historical tags are not moved.
+identity `github_release: v3.0.0-rc3`. Historical tags are not moved.
 
 Formal Release closure requires an approved exact final version/tag, clean committed candidate,
 release asset and SHA, publication, re-download, tag/asset identity verification, and a fresh Harness

@@ -17,6 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "共享" / "scripts"))
 INSTALLER = ROOT / "docs" / "install.py"
+INSTALLED_VALIDATOR = ROOT / "docs" / "validate_installed_copy.py"
 META_PATH = ROOT / "共享" / "schema" / "RELEASE_METADATA.json"
 META = json.loads(META_PATH.read_text(encoding="utf-8"))
 
@@ -38,6 +39,14 @@ def run_installer(*args, cwd=None):
 
 
 class CanonicalMetadataTests(unittest.TestCase):
+    def test_post_install_recommendation_uses_cache_safe_validation(self):
+        installer = INSTALLER.read_text(encoding="utf-8")
+        validator = INSTALLED_VALIDATOR.read_text(encoding="utf-8")
+        self.assertIn("validate_installed_copy.py", installer)
+        self.assertIn('PYTHONDONTWRITEBYTECODE="1"', validator)
+        self.assertIn('"-p", "no:cacheprovider"', validator)
+        self.assertIn("pollution_after", validator)
+
     def test_candidate_copy_excludes_all_development_state(self):
         spec = importlib.util.spec_from_file_location("candidate_installer", INSTALLER)
         module = importlib.util.module_from_spec(spec)
