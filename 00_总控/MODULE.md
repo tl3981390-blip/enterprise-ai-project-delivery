@@ -1,14 +1,14 @@
 ---
 name: enterprise-ai-project-delivery.s0-understanding-gate
-description: 复杂项目可靠性交付 Skill · S0总控（施工前理解门禁）。任何任务进入后被要求先证明理解，再允许施工。Use when 一个复杂项目交付任务刚开始、或任何阶段要推进到写改动作前（项目类型不限：企业/个人、AI/非 AI 均可）。核心：施工前八问 → 任务理解合同 → 施工前理解门禁 → READY_TO_PLAN；执行全程 DRIFT_CHECK。
-version: 1.7.0
+description: 内部模块·S0施工前理解门禁。按决策缺口证明理解后才允许施工；不是独立 Skill，也不是固定问卷。
+version: 2.0.0
 license: MIT
 compatibility: open
 metadata:
   skill_id: enterprise-ai-project-delivery
   module: 00_总控
   language: zh-CN
-  entrypoint: SKILL.md
+  entrypoint: MODULE.md
   depends_on: 共享/references, 共享/scripts
 ---
 
@@ -25,21 +25,17 @@ UNDERSTANDING 时通过核心 Recorder 初始化项目事件日志与 anchor；t
 > **理解完成之前，禁止施工。**
 
 在任何 `WRITE/EDIT/DELETE/EXECUTE/DEPLOY/MIGRATE/INSTALL/ALTER` 之前，必须：
-1. 回答施工前八问；
+1. 从用户原话与项目证据建立 Known / Unknown / Inferred Fact；
 2. 生成并锁定《任务理解合同》；
 3. 通过 `PRE_EXECUTION_UNDERSTANDING_GATE`；
 4. 推出真实 `UNDERSTANDING_COMPLETE`，进入 `READY_TO_PLAN`。
 
-## 施工前八问（必须全部回答，第 8 项须区分阻塞性/非阻塞性未知项）
+## 决策充分性检查（内部维度，不是向用户逐项提问的问卷）
 
-1. 用户真正要解决什么问题？
-2. 用户为什么要解决这个问题？（业务价值）
-3. 用户最终想得到什么结果？（最终交付物）
-4. 当前项目已经有什么？（当前状态）
-5. 已经完成到什么程度？
-6. 哪些内容禁止修改？（禁止项）
-7. 成功到底如何判断？（成功标准/验收标准）
-8. 还有哪些未知信息会实质改变施工方向？（区分阻塞性/非阻塞性未知项）
+按当前任务实际需要检查：Goal、Scope、User/Journey、Deliverable、现状、禁止项、权限和
+Acceptance。能从用户原话或项目只读证据查明的内容直接记录来源，不再询问；与当前决策无关的维度
+标记 NOT_APPLICABLE。只有缺失且会改变 Scope、Work、Architecture、Capability、Permission 或
+Acceptance 的事实才形成问题，每个问题必须记录对应决策影响。简单明确修改可以零问题。
 
 规则：阻塞性未知项（如“这是新项目还是正在生产的系统”）未解决 → `UNDERSTANDING_BLOCKED`，禁止进入施工。非阻塞性未知项（如“按钮颜色”）记录但不阻塞。
 
@@ -49,7 +45,7 @@ UNDERSTANDING 时通过核心 Recorder 初始化项目事件日志与 anchor；t
 任务进入
   ↓
 UNDERSTANDING（仅只读权限）
-  回答八问 → 收集当前AI上下文/项目证据 → 判断缺失 → 询问必要信息
+  收集用户原话/项目证据 → 判断决策缺口 → 只询问必要信息
   ↓
 生成 TASK UNDERSTANDING CONTRACT（见 references/任务理解合同模板.md）
   逐项标记来源（USER_EXPLICIT / USER_PREVIOUSLY_CONFIRMED / PROJECT_EVIDENCE / SYSTEM_OBSERVED / AI_INFERRED）

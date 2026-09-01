@@ -39,7 +39,9 @@ When AI agents build complex projects, four failure classes dominate:
 ## Architecture
 
 ```text
-enterprise-ai-project-delivery CORE (reliability mechanisms, feature-frozen)
+enterprise-ai-project-delivery (one public SKILL.md)
+                │
+       20 internal MODULE.md references
                 │
         Harness Capability Contract (L1–L10)
                 │
@@ -49,6 +51,8 @@ Adapter (ZCode) Adapter (Claude) Adapter (TRAE/WorkBuddy …)
      ENTERPRISE PROFILE + PROJECT PROFILE (customization without forks)
 ```
 
+- **Discovery boundary**: Codex sees one Skill in `/`; numbered modules are internal references,
+  not separately installable or invocable Skills.
 - **Core**: cross-company, cross-project, cross-harness reliability mechanisms only.
 - **Thin adapters**: per-platform discovery/invocation/lifecycle/permission mappings — never a core fork.
 - **Profiles**: enterprise policies (approval, model, data, evidence…) and project specifics layered under non-overridable core invariants.
@@ -61,7 +65,10 @@ For personal use, say: `Install the latest Stable Release and follow docs/AGENT_
 
 ## Basic usage
 
-The skill gates every task before any byte is written: answer the pre-construction questions → Task Understanding Contract → understanding gate → plan–contract alignment → only then execution opens write permissions, with drift checks throughout.
+The skill gates every task before any byte is written: gather decision-relevant facts from the
+request and existing project evidence → ask only consequential unresolved questions (zero is valid
+for a bounded task) → Task Understanding Contract → understanding gate → plan–contract alignment →
+only then execution opens write permissions, with drift checks throughout.
 
 Questions are generated from consequential information gaps, not a fixed questionnaire. Each
 answer is recorded as a provenance-bearing fact event; model inference remains proposed until

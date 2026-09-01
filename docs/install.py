@@ -175,8 +175,11 @@ def copy_tree(src: Path, dst: Path) -> int:
 
 def self_check(dst: Path) -> list[str]:
     errors = []
-    for required in ("SKILL.md", "共享/scripts/validate-skill.py", "共享/scripts/telemetry_core.py",
+    for required in ("SKILL.md", "00_总控/MODULE.md", "19_最终交付与经验沉淀/MODULE.md",
+                     "共享/scripts/validate-skill.py", "共享/scripts/telemetry_core.py",
                      "共享/scripts/delivery_planning_core.py", "共享/scripts/plan_governance_core.py",
+                     "共享/scripts/understanding_core.py", "共享/scripts/delivery_runtime.py",
+                     "共享/scripts/evidence_core.py", "harness_manifest.json",
                      "共享/schema/RELEASE_METADATA.json",
                      "共享/schema/project_reliability_event.schema.json", "adapters/README.md"):
         if not (dst / required).exists():

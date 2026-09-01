@@ -3,7 +3,7 @@
 > Architecture C 正式模块树：独立 Skill + 选择性上游复用。内部保留主入口+阶段模块；上游只以带来源的 references 适配进入。
 
 共享 references 的正式上游吸收层包含：上游吸收索引、SDD流程与规格模板、Plan模板、Tasks与分级仪式、需求表达与最少提问、Signoff与生产检查清单、Traceability与收敛。禁止引入 Spec Kit Runtime 或第二状态机。
-> 说明：节点模块数量为 20（含 S0 总控）；核心交付模块 19 个，均含 SKILL.md +（按需）references/scripts/tests。施工期可细拆/合并，但需在 `10` 中说明理由，禁止「看情况」式抹平。
+> 说明：这是 **1 个公开 Skill**。节点模块数量为 20（含 S0 总控）；核心交付模块 19 个，均使用不会进入 `/` 发现菜单的 `MODULE.md` +（按需）references/scripts/tests。施工期可细拆/合并，但需在 `10` 中说明理由，禁止「看情况」式抹平。
 
 ---
 
@@ -17,7 +17,7 @@
 ├── CHANGELOG.md / README.md        # 版本变更与使用说明（施工期签发）
 │
 ├── 00_总控/                         # S0：施工前理解门禁 / 状态机 / 任务理解合同 / 计划-合同对账 / DRIFT_CHECK / 权限阶段控制 / 门禁 / 输出合同
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/
 │       ├── 任务理解合同模板.md        # Task Understanding Contract 全文模板
 │       ├── 施工前理解门禁.md          # UNDERSTANDING 门禁判定规则
@@ -25,86 +25,86 @@
 │       └── 状态与权限矩阵.md          # 12 状态状态机 + 各状态权限矩阵
 │
 ├── 01_项目理解/
-│   ├── SKILL.md                    # 强化：用户真正目标 / 最终结果 / 业务价值
+│   ├── MODULE.md                    # 强化：用户真正目标 / 最终结果 / 业务价值
 │   └── references/目标声明模板.md
 │
 ├── 02_当前状态审计/
-│   ├── SKILL.md                    # 强化：已有什么/完成到哪/哪些真哪些假/哪些不可改
+│   ├── MODULE.md                    # 强化：已有什么/完成到哪/哪些真哪些假/哪些不可改
 │   ├── references/存量审计清单.md
 │   └── scripts/audit_scan.py        # 只读扫描辅助（施工期）
 │
 ├── 03_需求与范围/
-│   ├── SKILL.md                    # 强化：范围/非目标/禁止项/成功标准/关键约束
+│   ├── MODULE.md                    # 强化：范围/非目标/禁止项/成功标准/关键约束
 │   ├── references/禁用词检查.md
 │   └── scripts/check_requirements.py
 │
 ├── 04_SDD规格/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/SDD规格模板.md
 │
 ├── 05_TDD与测试策略/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/TDD适用性判断.md
 │
 ├── 06_架构设计/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/架构评审清单.md
 │
 ├── 07_RAG设计/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   ├── references/RAG四防检查.md
 │   └── scripts/verify_citation.py    # 防假引用（施工期）
 │
 ├── 08_Agent设计/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/多角色职责分离.md
 │
 ├── 09_MCP与工具权限网关/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   ├── references/权限矩阵模板.md
 │   └── scripts/check_permission.py
 │
 ├── 10_企业治理与合规/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/治理检查清单.md
 │
 ├── 11_施工管理与增量实现/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/Definition-of-Done.md
 │
 ├── 12_失败处理与恢复/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   ├── references/失败处理流程.md
 │   └── scripts/stop_condition.py
 │
 ├── 13_浏览器真实验收/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/浏览器验收检查.md
 │
 ├── 14_多角色验收/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/四角色验收模板.md
 │
 ├── 15_Evidence与防假验收/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   ├── references/证据schema.md
 │   └── scripts/collect_evidence.py
 │
 ├── 16_部署/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/部署检查清单.md
 │
 ├── 17_License与合规/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── scripts/scan_license.py
 │
 ├── 18_升级与回滚/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   ├── references/回滚演练.md
 │   └── scripts/semver_check.py
 │
 ├── 19_最终交付与经验沉淀/
-│   ├── SKILL.md
+│   ├── MODULE.md
 │   └── references/最终报告模板.md
 │
 ├── 共享/
@@ -183,4 +183,4 @@ S0 → 01 → 02 → 03 → 04 → 05 → 06 → [07 | 08 | 09 | 10] → 11 ⇄ 
 3. **共享 references/scripts 去重**：DoD、权限矩阵、evidence schema 等公共件放共享区，多个模块引用（依据 addyosmani references/ 模式）。
 4. **未照抄 addyosmani 26 个**：去掉了 code-simplification/performance-optimization 等偏通用工程项（它们更像是企业内部其他 Skill 的职责），保留企业 AI 交付必需的 19 项。此项判断为工程推断，施工期可回检。
 
-> 模块树的最终可执行化（每个模块写什么 SKILL 章节、放哪些脚本）在 `10_正式施工计划.md` 分阶段落地。
+> 模块树的最终可执行化（每个模块写什么内部章节、放哪些脚本）在 `10_正式施工计划.md` 分阶段落地。

@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2.0.0 Candidate (2026-09-01)
+
+- Breaking discovery fix: the package now exposes exactly one public `SKILL.md`; the 20
+  numbered implementation references are internal `MODULE.md` files and no longer pollute
+  the Codex `/` Skill menu.
+- Breaking runtime fix: the public Planning entry accepts only a mechanically sufficient
+  Understanding Session. Raw caller-created `facts` can no longer bypass provenance and scope gates.
+- Added a candidate-, revision-, Work-Unit- and acceptance-bound append-only Evidence Ledger;
+  model prose, arbitrary strings, wrong-candidate, stale and invalidated evidence are rejected.
+- Bound capability invocation, failure, recovery, suspend/resume and completion to the same
+  authoritative Delivery Session and real manifest handlers.
+- Added duplicate-callback, recovery-regression, condition-change, single-discovery and formal
+  installed-copy regressions. This is a major version because packaging and runtime APIs break
+  compatibility with callers that depended on the unsafe v1.x surfaces.
+
 ## 1.10.0 Candidate (2026-09-01)
 
 - Added a Harness-neutral multi-turn Understanding Runtime with consequential questions,

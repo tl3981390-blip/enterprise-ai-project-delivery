@@ -154,6 +154,9 @@ class DryRunSelfCheckTests(unittest.TestCase):
             self.assertTrue((target / "INSTALL_INFO.json").exists())
             self.assertTrue((target / "共享" / "schema" / "RELEASE_METADATA.json").exists())
             self.assertTrue((target / "共享" / "scripts" / "delivery_planning_core.py").exists())
+            self.assertTrue((target / "共享" / "scripts" / "evidence_core.py").exists())
+            self.assertEqual(list(target.rglob("SKILL.md")), [target / "SKILL.md"])
+            self.assertEqual(len(list(target.glob("[0-9][0-9]_*/MODULE.md"))), 20)
             check = subprocess.run(
                 [sys.executable, str(target / "共享" / "scripts" / "validate-skill.py"),
                  "--root", str(target)], capture_output=True, text=True, encoding="utf-8")

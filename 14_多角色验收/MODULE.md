@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.14-multi-perspective-acceptance
 description: 模块14·多视角独立验收。恒活生命周期模块：以「独立验证」为不变量，验收视角随真实干系人缩放（企业默认需求/工程/安全/用户四视角；单人项目坍缩为 owner/user 视角）。Use when 交付物完成、进入最终验收。
-version: 1.7.0
+version: 2.0.0
 license: MIT
 compatibility: open
 metadata:

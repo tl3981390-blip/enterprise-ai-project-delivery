@@ -7,8 +7,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "共享" / "scripts"))
 
-from delivery_runtime import (record_capability_result, record_recovery,
-                              request_capability_invocation, start_from_understanding)
+from delivery_runtime import (record_capability_result, record_evidence,
+                              record_recovery, request_capability_invocation,
+                              start_from_understanding)
 from understanding_core import apply_answer, begin_understanding, propose_inference
 
 
@@ -64,7 +65,24 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
         understanding["facts"]["required_capabilities"] = {
             "state": "ACTIVE", "value": ["legal_review"], "source": "USER_CONFIRMED",
             "evidence": "answer", "history": [{"event_id": "cap", "state": "ACTIVE"}]}
+        understanding["facts"]["work_units"] = {
+            "state": "ACTIVE", "value": [{
+                "name": "quote-review", "goal": "审查报价条款", "class": "TASK",
+                "work": ["核对合同和价格"], "capabilities": ["legal_review"],
+                "acceptance": "审查工具结果可追溯",
+            }], "source": "USER_CONFIRMED", "evidence": "answer",
+            "history": [{"event_id": "work", "state": "ACTIVE"}]}
         return start_from_understanding(understanding=understanding, capability_registry=registry)
+
+    def _evidence(self, delivery, evidence_id, *, status="PASS"):
+        return record_evidence(delivery, evidence={
+            "evidence_id": evidence_id, "type": "TEST_RESULT", "producer": "TEST_RUNNER",
+            "source_ref": f"pytest://{evidence_id}", "candidate_id": delivery["candidate_id"],
+            "work_id": "quote-review", "observed_at": "2026-09-01T00:00:00+00:00",
+            "content_hash": (evidence_id.encode().hex() + "0" * 64)[:64],
+            "status": status, "session_revision": delivery["revision"],
+            "dependencies": [], "acceptance_items": [],
+        })
 
     def test_resolution_is_bound_to_invocation_work_and_evidence(self):
         delivery = self._delivery()
@@ -72,9 +90,10 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
                                                  capability="legal_review",
                                                  input_payload={"document": "quote-1"})
         iid = delivery["capability_invocations"][0]["invocation_id"]
+        delivery = self._evidence(delivery, "tool-result")
         delivery = record_capability_result(delivery, invocation_id=iid, status="PASS",
                                             output={"approved": True},
-                                            evidence=[{"type": "tool_result", "id": "r1"}])
+                                            evidence_ids=["tool-result"])
         self.assertEqual(delivery["verified_state"]["quote-review"]["status"], "PASS")
 
     def test_unready_or_unauthorized_capability_cannot_invoke(self):
@@ -87,8 +106,10 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
                     "license_compatible": True, "permission_granted": False}}
         delivery = start_from_understanding(understanding=understanding,
                                             capability_registry=registry)
+        work_id = next(item["name"] for bucket in ("stages", "tasks", "checks")
+                       for item in delivery["plan"].get(bucket, []) if item.get("name"))
         with self.assertRaises(PermissionError):
-            request_capability_invocation(delivery, work_id="w", capability="legal_review",
+            request_capability_invocation(delivery, work_id=work_id, capability="legal_review",
                                           input_payload={})
 
     def test_recovery_requires_regression_and_has_budget(self):
@@ -96,17 +117,21 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
         delivery = request_capability_invocation(delivery, work_id="quote-review",
                                                  capability="legal_review", input_payload={})
         iid = delivery["capability_invocations"][0]["invocation_id"]
+        delivery = self._evidence(delivery, "timeout", status="FAIL")
         delivery = record_capability_result(delivery, invocation_id=iid, status="FAIL",
-                                            output=None, evidence=[{"log": "timeout"}])
+                                            output=None, evidence_ids=["timeout"])
         fid = delivery["failures"][0]["failure_id"]
+        delivery = self._evidence(delivery, "fixed")
+        delivery = self._evidence(delivery, "blocker-pass")
         delivery = record_recovery(delivery, failure_id=fid, action="retry after fix",
-                                   evidence=[{"log": "fixed"}],
-                                   blocker_revalidation={"status": "PASS"})
+                                   recovery_evidence_ids=["fixed"],
+                                   blocker_evidence_ids=["blocker-pass"])
         self.assertEqual(delivery["status"], "RECOVERING")
+        delivery = self._evidence(delivery, "regression")
         delivery = record_recovery(delivery, failure_id=fid, action="verify regression",
-                                   evidence=[{"log": "fixed"}],
-                                   blocker_revalidation={"status": "PASS"},
-                                   regression_evidence=[{"suite": "related", "status": "PASS"}])
+                                   recovery_evidence_ids=["fixed"],
+                                   blocker_evidence_ids=["blocker-pass"],
+                                   regression_evidence_ids=["regression"])
         self.assertEqual(delivery["status"], "EXECUTING")
 
 

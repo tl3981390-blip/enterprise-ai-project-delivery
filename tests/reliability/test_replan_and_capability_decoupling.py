@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "共享" / "scripts"))
 
 from delivery_planning_core import assess_complexity, compose_stages, make_fact_model, reason_capability_needs
-from delivery_runtime import change_conditions, start_delivery
+from delivery_runtime import _start_delivery_from_facts, change_conditions
 
 
 def plan(facts, upstream):
@@ -53,7 +53,7 @@ def test_case_c_real_partial_replan_human_authority_and_evidence():
          "output": ["sync"], "assumptions": ["database_engine"], "acceptance": "并发测试"},
         {"name": "UI", "goal": "录入界面", "work": ["render"], "output": ["ui"],
          "assumptions": ["ui_contract"], "acceptance": "浏览器通过"}]}
-    s = start_delivery(facts={"goal": "记账", "persistence": True, "existing_database": True,
+    s = _start_delivery_from_facts(facts={"goal": "记账", "persistence": True, "existing_database": True,
         "database_engine": "PostgreSQL", "data": {"entities": ["entry"]}}, upstream_plan=upstream)
     # Simulate a human-owned affected element without changing its content.
     human = next(x for x in s["plan"]["stages"] if x["name"] == "同步逻辑")
@@ -90,7 +90,7 @@ def test_case_c_real_partial_replan_human_authority_and_evidence():
 def test_affected_ai_work_without_planner_fragment_never_fake_replans():
     upstream = {"stages": [{"name": "数据模型", "goal": "PG", "work": ["PG"],
         "assumptions": ["database_engine"], "acceptance": "PG PASS"}]}
-    s = start_delivery(facts={"goal": "应用", "database_engine": "PostgreSQL"}, upstream_plan=upstream)
+    s = _start_delivery_from_facts(facts={"goal": "应用", "database_engine": "PostgreSQL"}, upstream_plan=upstream)
     out = change_conditions(s, changed_facts={"database_engine": "SQLite"})
     stage = next(x for x in out["plan"]["stages"] if x["name"] == "数据模型")
     assert stage["replan_status"] == "REPLAN_INPUT_REQUIRED"

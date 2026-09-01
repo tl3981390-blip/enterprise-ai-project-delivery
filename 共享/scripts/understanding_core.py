@@ -26,13 +26,19 @@ DECISION_DIMENSIONS = {
 
 
 def begin_understanding(*, raw_goal: str, mode: str = "NEW_PROJECT",
-                        observed_facts: dict | None = None) -> dict:
+                        observed_facts: dict | None = None,
+                        required_dimensions: list[str] | None = None) -> dict:
     if not isinstance(raw_goal, str) or not raw_goal.strip():
         raise ValueError("natural_language_goal_required")
     if mode not in {"NEW_PROJECT", "EXISTING_PROJECT"}:
         raise ValueError("understanding_mode_invalid")
+    required_dimensions = required_dimensions or list(DECISION_DIMENSIONS)
+    unknown_dimensions = sorted(set(required_dimensions) - set(DECISION_DIMENSIONS))
+    if unknown_dimensions:
+        raise ValueError(f"decision_dimension_invalid:{unknown_dimensions}")
     session = {"understanding_id": str(uuid4()), "raw_goal": raw_goal.strip(),
                "mode": mode, "facts": {}, "fact_events": [], "asked_questions": [],
+               "required_dimensions": list(dict.fromkeys(required_dimensions)),
                "status": "UNDERSTANDING", "created_at": _now(), "updated_at": _now()}
     _put(session, "user_real_goal", raw_goal.strip(), "USER_EXPLICIT", "initial_goal")
     for name, entry in (observed_facts or {}).items():
@@ -55,10 +61,11 @@ def apply_answer(session: dict, *, question_id: str, fact_updates: dict) -> dict
     known_ids = {q["question_id"] for q in out.get("questions", [])}
     if question_id not in known_ids:
         raise ValueError("answer_question_not_outstanding")
-    if not fact_updates:
-        raise ValueError("answer_fact_update_required")
-    for name, value in fact_updates.items():
-        _put(out, name, value, "USER_CONFIRMED", f"answer:{question_id}")
+    question = next(q for q in out.get("questions", []) if q["question_id"] == question_id)
+    if set(fact_updates) != {question["fact"]}:
+        raise ValueError("answer_must_update_exact_question_fact")
+    _put(out, question["fact"], fact_updates[question["fact"]], "USER_CONFIRMED",
+         f"answer:{question_id}")
     out["asked_questions"].append(question_id)
     return evaluate_understanding(out)
 
@@ -67,10 +74,11 @@ def evaluate_understanding(session: dict) -> dict:
     out = deepcopy(session)
     facts = out["facts"]
     questions, blockers = [], []
-    required = list(DECISION_DIMENSIONS)
+    required = list(out.get("required_dimensions") or DECISION_DIMENSIONS)
     # Existing projects must be reconstructed before interviewing the user again.
     if out["mode"] == "EXISTING_PROJECT":
         required += ["existing_state", "existing_plan", "existing_evidence"]
+    discovery_actions = []
     for name in required:
         item = facts.get(name)
         active = item and item["state"] == "ACTIVE" and item["source"] != "AI_INFERRED"
@@ -78,10 +86,15 @@ def evaluate_understanding(session: dict) -> dict:
             continue
         impacts = DECISION_DIMENSIONS.get(name, ("Plan", "Work Unit", "Acceptance"))
         qid = f"gap:{name}"
-        questions.append({"question_id": qid, "fact": name,
+        question = {"question_id": qid, "fact": name,
                           "why": f"缺少该事实会改变 {', '.join(impacts)}",
                           "decision_impacts": list(impacts),
-                          "prompt": _prompt(name, out["mode"])})
+                          "prompt": _prompt(name, out["mode"])}
+        if out["mode"] == "EXISTING_PROJECT" and name in {
+                "existing_state", "existing_plan", "existing_evidence"}:
+            discovery_actions.append(dict(question, action="READ_PROJECT_BEFORE_ASKING_USER"))
+        else:
+            questions.append(question)
         blockers.append(name)
     conflicts = sorted(k for k, v in facts.items() if v["state"] == "CONFLICTED")
     for name in conflicts:
@@ -91,6 +104,7 @@ def evaluate_understanding(session: dict) -> dict:
                           "prompt": f"关于“{name}”目前有冲突信息，请确认哪一个为准。"})
     blockers += conflicts
     out["questions"] = questions[:4]  # one high-value round, not a one-round limit
+    out["discovery_actions"] = discovery_actions
     out["blocking_unknowns"] = sorted(set(blockers))
     out["sufficiency"] = {
         "goal_fidelity": _active(facts, "user_real_goal"),
@@ -99,10 +113,12 @@ def evaluate_understanding(session: dict) -> dict:
         "provenance_integrity": not any(v["state"] == "ACTIVE" and
                                           v["source"] == "AI_INFERRED"
                                           for v in facts.values()),
-        "scope_clarity": _active(facts, "final_deliverable") and _active(facts, "explicit_constraints"),
-        "acceptance_clarity": _active(facts, "acceptance_requirements"),
+        "scope_clarity": ("final_deliverable" not in required or _active(facts, "final_deliverable"))
+                         and ("explicit_constraints" not in required or _active(facts, "explicit_constraints")),
+        "acceptance_clarity": ("acceptance_requirements" not in required or
+                               _active(facts, "acceptance_requirements")),
         "contradiction_check": not conflicts,
-        "permission_boundary": _active(facts, "permissions"),
+        "permission_boundary": "permissions" not in required or _active(facts, "permissions"),
     }
     out["gate_pass"] = all(out["sufficiency"].values())
     out["status"] = "UNDERSTANDING_SUFFICIENT" if out["gate_pass"] else "UNDERSTANDING"

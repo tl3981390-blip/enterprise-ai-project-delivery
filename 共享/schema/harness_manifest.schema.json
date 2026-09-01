@@ -1,1 +1,30 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","required":["skill_id","entrypoint","version","states","permissions","operations"],"properties":{"skill_id":{"const":"enterprise-ai-project-delivery"},"entrypoint":{"const":"SKILL.md"},"version":{"type":"string","pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z-]+)?$"},"states":{"type":"array","minItems":12},"permissions":{"type":"object","required":["default","understanding","execute"]},"operations":{"type":"array","items":{"enum":["discover","invoke","advance","suspend","resume"]}}},"additionalProperties":false}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["skill_id", "entrypoint", "version", "runtime", "understanding_runtime", "interface", "plan_authority", "permissions", "operations", "operation_handlers"],
+  "properties": {
+    "skill_id": {"const": "enterprise-ai-project-delivery"},
+    "entrypoint": {"const": "SKILL.md"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z-]+)?$"},
+    "runtime": {"const": "共享/scripts/delivery_runtime.py"},
+    "understanding_runtime": {"const": "共享/scripts/understanding_core.py"},
+    "interface": {"const": "natural_language"},
+    "plan_authority": {"const": "human"},
+    "permissions": {
+      "type": "object",
+      "required": ["default", "understanding", "execute"],
+      "additionalProperties": false
+    },
+    "operations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["understand", "answer", "plan", "edit_plan", "change_conditions", "record_evidence", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "verify"]}
+    },
+    "operation_handlers": {
+      "type": "object",
+      "required": ["understand", "answer", "plan", "edit_plan", "change_conditions", "record_evidence", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "verify"],
+      "additionalProperties": {"type": "string", "pattern": "^[a-z_]+:[a-z_]+$"}
+    }
+  },
+  "additionalProperties": false
+}

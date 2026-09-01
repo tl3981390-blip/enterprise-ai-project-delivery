@@ -4,7 +4,7 @@ description: 通过自然语言接手并可靠交付复杂项目：理解真实�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 1.10.0
+  version: 2.0.0
   language: zh-CN
 ---
 
@@ -13,6 +13,9 @@ metadata:
 产品定位：`AI DELIVERY CONTROLLER`。`understanding_core` 负责多轮目标理解、事实来源、
 信息缺口与 Understanding Gate；动态计划的唯一编排真源是
 `delivery_planning_core.compose_stages`；`delivery_runtime` 连接计划、能力调用、恢复和验收。
+
+本目录只有根 `SKILL.md` 是用户可发现入口。`00–19/*/MODULE.md` 是按事件读取的内部参考，
+绝不能作为独立 Skill 注册或展示在 `/` 菜单。
 
 让用户只需要描述想完成什么。内部治理默认静默；对用户优先展示必要问题、项目理解、可编辑计划、执行结果、真实阻塞和最终证据，不展示状态码、Gate 名称或治理协议，除非用户要求诊断细节。
 用户点名本 Skill 时记为 `EXPLICIT_INVOCATION` 并接受真实项目交付请求；项目标签不是拒绝或加重流程的理由。
@@ -26,6 +29,11 @@ Harness 必须把自然语言入口接到 `understanding_core.begin_understandin
 但只要回答暴露新的 consequential unknown 就继续澄清。只有 `gate_pass=true` 后，才可通过
 `delivery_runtime.start_from_understanding` 进入 Planning；不得直接构造一个看似完整的 facts 对象绕过理解。
 
+不要把澄清做成产品经理问卷。先从用户原话和只读项目证据提取已经明确的 Goal、Scope、Journey、
+Deliverable、Permission 与 Acceptance；只问仍会改变决策的缺口。边界明确的小修改允许零问题。
+稀疏目标不得自行补充平台、登录、图片、随机功能、历史、并发或企业能力；这些只能作为待确认建议，
+不能进入 Fact、Work Unit 或施工范围。
+
 不要把关键词当作流程选择器。复杂度只决定检查深度（内部记为 `DELIVERY_INTENSITY`），不是项目分类器，也不是三套固定流程模板；所需工作来自这个项目的真实问题、依赖、风险和交付物。
 
 ## 计划由人类拥有
@@ -37,7 +45,9 @@ Harness 必须把自然语言入口接到 `understanding_core.begin_understandin
 - 用户可用自然语言增删、移动、合并、拆分、替换或锁定任何部分。把该表达转成内部语义编辑后执行，不要求用户提供 ID、JSON 或状态码，也不得偷偷恢复 AI 原计划。
 - 条件变化时，找出依赖该条件的工作和证据，调用成熟 Planner 重新生成受影响 Work Unit 的完整内容；没有新规划片段时保持规划中而不是只加“已重规划”标签。保留未受影响内容与仍有效 Evidence；人类拥有的受影响内容保持原文并请求人类复核。
 
-需要确定性会话状态时，使用 `共享/scripts/delivery_runtime.py` 作为唯一编排入口；不要另建平行计划模型。
+必须使用 `共享/scripts/delivery_runtime.py` 维护确定性会话状态；公开 Planning 入口只接受已通过的
+Understanding Session，不能直接注入 facts。Harness 操作与真实 handler 的映射以
+`harness_manifest.json.operation_handlers` 为准，不要另建平行计划、Evidence、Resume 或 Handoff 模型。
 Capability 只能作为已发现 Work Unit 的施工或验证资源，绝不能创建 Work Unit 或决定其升级为 Stage。
 
 ## 组合成熟能力
@@ -51,6 +61,11 @@ Capability 只能作为已发现 Work Unit 的施工或验证资源，绝不能�
 选择能力后，Harness 使用 `request_capability_invocation` 取得绑定 Work Unit 的调用信封，实际执行后必须用
 `record_capability_result` 回写输出和真实 Evidence。未授权、未兼容或仍需验证的候选不能生成可执行调用；
 失败结果自动进入同一 Delivery Session 的 Failure/Recovery，不能以“已选中 Skill”冒充跨 Skill 协作完成。
+
+所有执行、失败、恢复和验收 Evidence 必须先通过 `record_evidence` 写入候选绑定的 Evidence Ledger。
+模型文字、任意字符串、错误 candidate、未知 Work Unit、过期或失效 Evidence 都必须拒绝；后续接口只接收
+ledger 中的 evidence_id。需求变化后按依赖分类 STILL_VALID / INVALIDATED /
+REQUIRES_REVALIDATION，未完成重验不得 COMPLETE。
 
 只加载与当前项目事实有关的模块。例如有 Web 用户旅程才读取浏览器验收模块；有部署目标才读取部署模块；发生失败才读取恢复模块。目录编号是能力库历史标识，不是项目阶段。
 

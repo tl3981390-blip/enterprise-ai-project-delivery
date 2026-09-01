@@ -71,23 +71,26 @@ def validate_skill(root: Path):
             if len(data.get("description", "")) > 1024:
                 errors.append(f"{main_skill.name}: description 超过 1024 字符")
 
-    # 2) Historical numbered directories are a conditional capability library, not
-    # sub-skills in a fixed lifecycle. Validate their structure, but do not force every
-    # library document to share the release version of the orchestration entrypoint.
+    # 2) There is exactly one discoverable Skill entry. Numbered modules are internal
+    # references and MUST NOT be named SKILL.md, otherwise Codex exposes each in `/`.
+    discoverable = list(base.rglob("SKILL.md"))
+    if discoverable != [main_skill]:
+        errors.append(f"公开 Skill 入口必须唯一，实际发现 {len(discoverable)} 个: "
+                      f"{[str(path.relative_to(base)) for path in discoverable]}")
     for mod in MODULES:
         mdir = base / mod
-        sk = mdir / "SKILL.md"
+        sk = mdir / "MODULE.md"
         if not mdir.exists():
             errors.append(f"{mod}: 目录不存在（骨架要求完整模块树）")
             continue
         if not sk.exists():
-            errors.append(f"{mod}: 缺少 SKILL.md")
+            errors.append(f"{mod}: 缺少 MODULE.md")
             continue
         data, err = parse_frontmatter(sk.read_text(encoding="utf-8"))
         if err:
-            errors.append(f"{mod}/SKILL.md: {err}")
+            errors.append(f"{mod}/MODULE.md: {err}")
         elif data.get("version") and not SEMVER_RE.match(data["version"]):
-            errors.append(f"{mod}/SKILL.md: version 非 semver")
+            errors.append(f"{mod}/MODULE.md: version 非 semver")
 
     # 3) references/scripts 引用路径存在的文件（markdown 内相对链接抽查）
     ref_pattern = re.compile(r"\]\(([^)#]+\.(?:md|py|json))")
@@ -129,6 +132,17 @@ def validate_skill(root: Path):
                 runtime = manifest.get(runtime_key)
                 if runtime and not (base / Path(runtime)).exists():
                     errors.append(f"manifest {runtime_key} 不存在: {runtime}")
+            handlers = manifest.get("operation_handlers") or {}
+            if set(handlers) != set(manifest.get("operations", [])):
+                errors.append("manifest operations 与 operation_handlers 不一致")
+            runtime_module = __import__(Path(manifest["runtime"]).stem)
+            understanding_module = __import__(Path(manifest["understanding_runtime"]).stem)
+            for operation, handler in handlers.items():
+                module_name, _, function_name = handler.partition(":")
+                module = runtime_module if module_name == "delivery_runtime" else (
+                    understanding_module if module_name == "understanding_core" else None)
+                if module is None or not callable(getattr(module, function_name, None)):
+                    errors.append(f"manifest operation handler 不可调用: {operation}={handler}")
         except (json.JSONDecodeError, OSError) as ex:
             errors.append(f"Release identity surface 无法读取: {ex}")
 
