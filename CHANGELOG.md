@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 3.0.3 (2026-09-01)
+
+- Repaired the public `SKILL.md` YAML frontmatter so Codex can discover the single root Skill through `/`.
+- Made the validator reject body text inside public frontmatter and added a regression for that discovery failure.
+
 ## 3.0.2 (2026-09-01)
 
 - Made all six Adaptive Strategy catalog fields change the corresponding decision before it is made: consequential-question selection, real-work plan ordering, eligible capability ordering, recovery sequence, dependency-legal work selection and structured Host interaction guidance.
