@@ -6,6 +6,8 @@ Harness must assert `user_origin_ref` from the actual conversation user for appr
 
 When validating an installed copy, invoke `docs/validate_installed_copy.py` first and use its cache-safe environment for every additional Python/pytest probe (`PYTHONDONTWRITEBYTECODE=1`, pytest cache provider disabled). Never run ordinary pytest first inside the installed Skill: that changes the artifact under test and invalidates the zero-pollution assertion.
 
+Harness operations `get_adaptive_strategy`, `get_strategy_guidance` and `update_adaptive_strategy` route through Delivery Runtime. The update operation accepts only `evidence_ids`; Harness must never call Adaptive Core with a caller-made Evidence object. Human plan/change/correction/pause/resume/cancel operations must attach the real conversation authority reference with distinct USER or ENTERPRISE origin. Observed project/system changes require current PASS Evidence and never update the user-confirmed baseline.
+
 One core, thin adapters, honest levels. Switching harness = changing the adapter, never the core.
 
 ## Support matrix (real validation status only)

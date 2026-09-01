@@ -25,11 +25,11 @@
     "operations": {
       "type": "array",
       "uniqueItems": true,
-      "items": {"enum": ["interpret_intent", "understand", "answer", "plan", "bind_execution_context", "approve_plan", "edit_plan", "change_conditions", "record_user_correction", "resolve_user_correction", "record_evidence", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "verify"]}
+      "items": {"enum": ["interpret_intent", "understand", "answer", "plan", "bind_execution_context", "approve_plan", "edit_plan", "change_conditions", "record_user_correction", "resolve_user_correction", "record_evidence", "get_adaptive_strategy", "get_strategy_guidance", "update_adaptive_strategy", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "cancel_delivery", "verify"]}
     },
     "operation_handlers": {
       "type": "object",
-      "required": ["interpret_intent", "understand", "answer", "plan", "bind_execution_context", "approve_plan", "edit_plan", "change_conditions", "record_user_correction", "resolve_user_correction", "record_evidence", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "verify"],
+      "required": ["interpret_intent", "understand", "answer", "plan", "bind_execution_context", "approve_plan", "edit_plan", "change_conditions", "record_user_correction", "resolve_user_correction", "record_evidence", "get_adaptive_strategy", "get_strategy_guidance", "update_adaptive_strategy", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "cancel_delivery", "verify"],
       "additionalProperties": {"type": "string", "pattern": "^[a-z_]+:[a-z_]+$"}
     }
   },

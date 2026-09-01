@@ -8,6 +8,8 @@ sys.path.insert(0, str(ROOT / "共享" / "scripts"))
 from delivery_planning_core import assess_complexity, compose_stages, make_fact_model, reason_capability_needs
 from delivery_runtime import _start_delivery_from_facts, change_conditions
 
+USER_REF = {"origin": "USER", "harness": "pytest", "conversation_id": "replan", "message_id": "change"}
+
 
 def plan(facts, upstream):
     model = make_fact_model(**facts)
@@ -70,7 +72,9 @@ def test_case_c_real_partial_replan_human_authority_and_evidence():
         "assumptions": ["database_engine", "data"], "acceptance": "SQLite 迁移与读写回读 PASS",
         "evidence": ["sqlite-migration.log", "sqlite-readback.log"]}}
     out = change_conditions(s, changed_facts={"database_engine": "SQLite",
-        "data": {"entities": ["entry", "category"]}}, replanned_work_units=replacements)
+        "data": {"entities": ["entry", "category"]}},
+        change_source="USER_REQUIREMENT_CHANGE", authority_ref=USER_REF,
+        replanned_work_units=replacements)
     new_data = next(x for x in out["plan"]["stages"] if x["name"] == "数据模型")
     new_human = next(x for x in out["plan"]["stages"] if x["name"] == "同步逻辑")
     new_ui = next(x for x in out["plan"]["stages"] if x["name"] == "UI")
@@ -91,7 +95,8 @@ def test_affected_ai_work_without_planner_fragment_never_fake_replans():
     upstream = {"stages": [{"name": "数据模型", "goal": "PG", "work": ["PG"],
         "assumptions": ["database_engine"], "acceptance": "PG PASS"}]}
     s = _start_delivery_from_facts(facts={"goal": "应用", "database_engine": "PostgreSQL"}, upstream_plan=upstream)
-    out = change_conditions(s, changed_facts={"database_engine": "SQLite"})
+    out = change_conditions(s, changed_facts={"database_engine": "SQLite"},
+                            change_source="USER_REQUIREMENT_CHANGE", authority_ref=USER_REF)
     stage = next(x for x in out["plan"]["stages"] if x["name"] == "数据模型")
     assert stage["replan_status"] == "REPLAN_INPUT_REQUIRED"
     assert out["status"] == "PLANNING"

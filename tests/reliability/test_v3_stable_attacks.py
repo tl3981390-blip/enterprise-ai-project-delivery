@@ -6,8 +6,9 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "共享" / "scripts"))
 
-from adaptive_strategy_core import default_strategy, load_strategy, update_strategy
-from delivery_runtime import _start_delivery_from_facts, approve_plan, edit_plan, start_from_understanding
+from adaptive_strategy_core import apply_verified_strategy_patch, default_strategy, load_strategy
+from delivery_runtime import (_start_delivery_from_facts, approve_plan, edit_plan,
+                              start_from_understanding, update_adaptive_strategy)
 from intent_core import record_intent
 from understanding_core import begin_understanding, planning_facts
 
@@ -78,21 +79,15 @@ def test_edit_plan_fails_closed_without_actor_or_trusted_authority():
                               "stage_name": "把首页按钮改成提交", "patch": {"goal": "x"}})
 
 
-def evidence():
-    return [{"evidence_id": "e1", "type": "TEST_RESULT", "producer": "pytest",
-             "source_ref": "pytest://strategy", "content_hash": "a" * 64, "status": "PASS"}]
-
-
 def test_strategy_001_to_005_is_optional_evidence_bound_and_cannot_change_core():
     assert load_strategy() == default_strategy()
-    changed = update_strategy(None, {"question_strategy": "prefer_one_question"}, evidence=evidence())
-    assert changed["question_strategy"] == "prefer_one_question"
-    with pytest.raises(ValueError, match="requires_real_pass_evidence"):
-        update_strategy(None, {"question_strategy": "x"}, evidence=[])
+    with pytest.raises((KeyError, ValueError)):
+        update_adaptive_strategy(session(), patch={
+            "question_strategy": "ask_one_highest_impact_first"}, evidence_ids=["made-up"])
     with pytest.raises(PermissionError, match="forbidden"):
-        update_strategy(None, {"core_invariants": "weaker"}, evidence=evidence())
+        apply_verified_strategy_patch(None, {"core_invariants": "weaker"})
     with pytest.raises(PermissionError, match="forbidden"):
-        update_strategy(None, {"workspace_path": "D:/author/work"}, evidence=evidence())
+        apply_verified_strategy_patch(None, {"workspace_path": "D:/author/work"})
 
 
 def test_portable_001_manifest_uses_only_relative_runtime_paths():
@@ -120,6 +115,6 @@ def test_portable_003_strategy_default_has_no_storage_or_author_path():
 def test_portable_004_release_metadata_declares_self_contained_asset():
     import json
     meta = json.loads((ROOT / "共享" / "schema" / "RELEASE_METADATA.json").read_text(encoding="utf-8"))
-    assert meta["version"] == "3.0.0"
+    assert meta["version"] == "3.0.1"
     assert meta["release_channel"] == "stable"
-    assert meta["release_asset"] == "enterprise-ai-project-delivery-v3.0.0.zip"
+    assert meta["release_asset"] == "enterprise-ai-project-delivery-v3.0.1.zip"

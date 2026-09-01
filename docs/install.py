@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -99,10 +100,29 @@ def verify_source(root: Path, meta: dict) -> dict:
         else:
             tag_ok = True  # resolved commit == the tag the declaration names
     else:
-        # unpacked release ZIP has no .git; identity is proven by ZIP SHA (see verify_zip)
-        tag_ok = "zip_only"
+        identity_errors, resolved = _validate_formal_asset_identity(root, meta)
+        errors.extend(identity_errors)
+        tag_ok = resolved if not identity_errors else False
     return {"version": meta_version, "errors": errors, "warnings": warnings,
             "git_repo": git_dir.exists(), "tag_verified": tag_ok, "resolved_tag": meta["tag"]}
+
+
+def _validate_formal_asset_identity(root: Path, meta: dict) -> tuple[list[str], str | None]:
+    info_path = root / "INSTALL_INFO.json"
+    if not info_path.exists():
+        return ["FORMAL_ASSET_IDENTITY_MISSING_OR_INVALID:missing_INSTALL_INFO"], None
+    try:
+        info = json.loads(info_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return ["FORMAL_ASSET_IDENTITY_MISSING_OR_INVALID:invalid_json"], None
+    identity = info.get("canonical_identity")
+    match = re.fullmatch(r"tag (v\d+\.\d+\.\d+) -> commit ([0-9a-f]{40})", str(identity))
+    if not match:
+        return ["FORMAL_ASSET_IDENTITY_MISSING_OR_INVALID:canonical_identity"], None
+    tag, commit = match.groups()
+    if tag != meta.get("tag") or info.get("version") != meta.get("version"):
+        return ["FORMAL_ASSET_IDENTITY_MISSING_OR_INVALID:tag_or_version_mismatch"], None
+    return [], commit
 
 
 def verify_zip(path: Path, meta: dict) -> dict:

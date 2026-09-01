@@ -4,12 +4,14 @@ description: 通过自然语言接手并可靠交付复杂项目：理解真实�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 3.0.0
+  version: 3.0.1
   language: zh-CN
 
 # v3 Stable execution boundary
 
 Only caller-selected consequential unknowns may trigger questions. A clear bounded task may ask zero questions and must produce at least one real work unit. Internal reliability gates remain internal. Plan approval and human/enterprise edits require a Harness-asserted conversation-user reference bound to the current plan revision and scope. Optional adaptive strategy state may tune question, planning, capability, recovery, order and interaction preferences only; missing state uses safe defaults and never blocks delivery.
+
+Adaptive Strategy values are closed catalog IDs, are loaded into every Delivery Session, and are exposed as phase guidance. Updates must call `delivery_runtime:update_adaptive_strategy` with Evidence IDs already stored as current PASS records in the same session ledger. Human plans, requirement changes, user corrections, user pause/resume and cancellation all require the matching trusted Harness origin; AI inference can only remain proposed.
 ---
 
 # Reliable project delivery

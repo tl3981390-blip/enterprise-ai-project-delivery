@@ -7,6 +7,9 @@ from uuid import uuid4
 import hashlib
 import json
 
+from adaptive_strategy_core import (STRATEGY_FIELDS, apply_verified_strategy_patch,
+                                     load_strategy)
+
 from delivery_planning_core import (complexity_from_facts, compose_stages,
                                     derive_final_acceptance, make_fact_model,
                                     reason_capability_needs)
@@ -17,8 +20,11 @@ from plan_governance_core import (apply_human_plan, apply_plan_edit, classify_ve
                                   resolve_capability_need)
 from understanding_core import planning_facts
 
-RUNTIME_SCHEMA_VERSION = "2.1"
+RUNTIME_SCHEMA_VERSION = "3.0"
 TERMINAL_EVIDENCE_STATES = {"PASS", "FAIL", "PENDING_EXTERNAL_VALIDATION"}
+AUTHORITY_ORIGINS = {"USER", "ENTERPRISE", "SYSTEM", "PROJECT"}
+CHANGE_SOURCES = {"USER_REQUIREMENT_CHANGE", "ENTERPRISE_REQUIREMENT_CHANGE",
+                  "PROJECT_OBSERVED_CHANGE", "SYSTEM_OBSERVED_CHANGE", "AI_INFERENCE"}
 
 
 def start_from_understanding(*, understanding: dict, **kwargs) -> dict:
@@ -39,9 +45,11 @@ def start_delivery(*, understanding: dict | None = None, **kwargs) -> dict:
 
 
 def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
+                   human_plan_authority_ref: dict | None = None,
                    upstream_plan: dict | None = None, capability_registry: dict | None = None,
                    upstream_capabilities: dict | None = None,
-                   harness_capabilities: dict | None = None) -> dict:
+                   harness_capabilities: dict | None = None,
+                   adaptive_strategy_state: dict | None = None) -> dict:
     """Create a project-derived session. Human plans are authoritative when supplied."""
     model = make_fact_model(**facts)
     complexity = complexity_from_facts(model)
@@ -50,6 +58,8 @@ def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
         raise ValueError("required_capabilities_must_be_list")
     needs = reason_capability_needs(model, declared=declared_capabilities)
     if human_plan:
+        expected = "ENTERPRISE" if human_plan.get("source") == "enterprise" else "USER"
+        _require_authority(human_plan_authority_ref, expected)
         plan = apply_human_plan(human_plan, model)
     else:
         plan = compose_stages(model, complexity, needs, upstream_plan=upstream_plan)
@@ -62,10 +72,21 @@ def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
                 harness_capabilities or {})
     now = _now()
     session_id = str(uuid4())
+    strategy = load_strategy(adaptive_strategy_state)
+    plan["strategy_guidance"] = strategy["planning_strategy"]
     return {"schema_version": RUNTIME_SCHEMA_VERSION, "session_id": session_id,
             "candidate_id": session_id,
             "revision": 1, "created_at": now, "updated_at": now,
             "facts": model, "complexity": complexity, "capability_needs": needs,
+            "adaptive_strategy": strategy,
+            "strategy_consumption": {
+                "UNDERSTANDING": strategy["question_strategy"],
+                "PLANNING": strategy["planning_strategy"],
+                "CAPABILITY_SELECTION": strategy["capability_preference"],
+                "RECOVERY": strategy["recovery_strategy"],
+                "EXECUTION_ORDER": strategy["execution_order_preference"],
+                "INTERACTION": strategy["interaction_strategy"],
+            },
             "capability_resolutions": resolutions, "plan": plan,
             "capability_sources": {"registry": deepcopy(capability_registry or {}),
                                    "upstream": deepcopy(upstream_capabilities or {}),
@@ -77,6 +98,7 @@ def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
             "plan_review": {"status": "REVIEW_REQUIRED", "approved_revision": None,
                             "approval_source": None, "waiver_scope": None},
             "recovery_policy": {"max_attempts_per_failure": 3,
+                                "strategy": strategy["recovery_strategy"],
                                 "require_regression_evidence": True},
             "capability_invocations": [], "evidence_ledger": [], "suspensions": [],
             "confirmed_requirement_baseline": _confirmed_requirement_baseline(model),
@@ -89,6 +111,38 @@ def record_evidence(session: dict, *, evidence: dict) -> dict:
     append_evidence(out, evidence, work_id=evidence.get("work_id"))
     _event(out, "EVIDENCE_RECORDED", {"evidence_id": evidence["evidence_id"],
                                        "work_id": evidence["work_id"]})
+    return _bump(out, carry_evidence=True)
+
+
+def get_adaptive_strategy(session: dict) -> dict:
+    return deepcopy(session["adaptive_strategy"])
+
+
+def get_strategy_guidance(session: dict, *, phase: str) -> dict:
+    guidance = session.get("strategy_consumption", {})
+    if phase not in guidance:
+        raise ValueError("strategy_phase_invalid")
+    return {"phase": phase, "catalog_id": guidance[phase],
+            "core_invariants_unchanged": True}
+
+
+def update_adaptive_strategy(session: dict, *, patch: dict,
+                             evidence_ids: list[str]) -> dict:
+    out = deepcopy(session)
+    records = require_current_evidence(out, evidence_ids, status="PASS")
+    if any(r.get("validation_status") not in {"CURRENT", "STILL_VALID"} for r in records):
+        raise ValueError("strategy_evidence_not_current")
+    out["adaptive_strategy"] = apply_verified_strategy_patch(out["adaptive_strategy"], patch)
+    for field in patch:
+        phase = {"question_strategy": "UNDERSTANDING", "planning_strategy": "PLANNING",
+                 "capability_preference": "CAPABILITY_SELECTION", "recovery_strategy": "RECOVERY",
+                 "execution_order_preference": "EXECUTION_ORDER",
+                 "interaction_strategy": "INTERACTION"}[field]
+        out["strategy_consumption"][phase] = out["adaptive_strategy"][field]
+    out["plan"]["strategy_guidance"] = out["adaptive_strategy"]["planning_strategy"]
+    out["recovery_policy"]["strategy"] = out["adaptive_strategy"]["recovery_strategy"]
+    _event(out, "ADAPTIVE_STRATEGY_UPDATED", {"fields": sorted(patch),
+                                                "evidence_ids": list(evidence_ids)})
     return _bump(out, carry_evidence=True)
 
 
@@ -113,14 +167,10 @@ def approve_plan(session: dict, *, intent_record: dict, user_origin_ref: dict,
         raise PermissionError("approval_or_direct_execution_intent_required")
     if intent_record.get("consequential_ambiguity") or intent_record.get("intent") == "AMBIGUOUS":
         raise PermissionError("ambiguous_intent_cannot_authorize_execution")
-    if not isinstance(user_origin_ref, dict) or user_origin_ref.get("origin") != "USER":
-        raise PermissionError("trusted_user_origin_ref_required")
+    _require_authority(user_origin_ref, "USER")
     required_ref = {f"plan_revision:{session['revision']}", f"plan_scope:{session['session_id']}"}
     if not required_ref.issubset(set(intent_record.get("context_refs") or [])):
         raise PermissionError("approval_not_bound_to_current_plan_revision_and_scope")
-    if not all(isinstance(user_origin_ref.get(k), str) and user_origin_ref[k].strip()
-               for k in ("harness", "conversation_id", "message_id")):
-        raise PermissionError("user_origin_ref_incomplete")
     if waive_display and not (isinstance(waiver_scope, str) and waiver_scope.strip()):
         raise ValueError("review_waiver_scope_required")
     out = deepcopy(session)
@@ -139,10 +189,12 @@ def approve_plan(session: dict, *, intent_record: dict, user_origin_ref: dict,
 
 
 def record_user_correction(session: dict, *, description: str, violated_requirements: list[str],
-                           root_cause_class: str, related_checks: list[str]) -> dict:
+                           root_cause_class: str, related_checks: list[str],
+                           user_origin_ref: dict) -> dict:
     """Make a confirmed delivery error durable and detect recurrence of the same root cause."""
     if not description.strip() or not violated_requirements or not root_cause_class.strip():
         raise ValueError("correction_description_requirements_root_cause_required")
+    _require_authority(user_origin_ref, "USER")
     out = deepcopy(session)
     fingerprint = hashlib.sha256(json.dumps({
         "requirements": sorted(violated_requirements), "root_cause": root_cause_class.strip()},
@@ -154,6 +206,7 @@ def record_user_correction(session: dict, *, description: str, violated_requirem
                   "root_cause_class": root_cause_class.strip(),
                   "related_checks": list(related_checks), "fingerprint": fingerprint,
                   "status": "OPEN", "recorded_at": _now(),
+                  "user_origin_ref": deepcopy(user_origin_ref),
                   "recurrence_of": previous[-1]["correction_id"] if previous else None}
     out.setdefault("correction_ledger", []).append(correction)
     if previous:
@@ -295,6 +348,8 @@ def edit_plan(session: dict, edit: dict) -> dict:
 
 
 def change_conditions(session: dict, *, changed_facts: dict,
+                      change_source: str, authority_ref: dict | None = None,
+                      evidence_ids: list[str] | None = None,
                       replanned_work_units: dict | None = None,
                       capability_registry: dict | None = None,
                       upstream_capabilities: dict | None = None,
@@ -306,15 +361,27 @@ def change_conditions(session: dict, *, changed_facts: dict,
     with project-type rules.
     """
     out = deepcopy(session)
+    if change_source not in CHANGE_SOURCES:
+        raise ValueError("change_source_invalid")
+    if change_source == "AI_INFERENCE":
+        raise PermissionError("ai_inference_cannot_change_confirmed_facts")
+    if change_source == "USER_REQUIREMENT_CHANGE":
+        _require_authority(authority_ref, "USER")
+    elif change_source == "ENTERPRISE_REQUIREMENT_CHANGE":
+        _require_authority(authority_ref, "ENTERPRISE")
+    else:
+        _require_authority(authority_ref, "PROJECT" if change_source.startswith("PROJECT") else "SYSTEM")
+        require_current_evidence(out, evidence_ids or [], status="PASS")
     raw = {k: deepcopy(v) for k, v in out["facts"].items() if not k.startswith("_")}
     raw.update(changed_facts)
     out["facts"] = make_fact_model(**raw)
     out.setdefault("requirement_history", []).append({
-        "event_id": str(uuid4()), "source": "USER_OR_PROJECT_CHANGE",
+        "event_id": str(uuid4()), "source": change_source,
         "changed_facts": deepcopy(changed_facts), "at": _now()})
-    out["confirmed_requirement_baseline"].update({
-        key: deepcopy(value.get("value") if isinstance(value, dict) and "value" in value else value)
-        for key, value in changed_facts.items()})
+    if change_source in {"USER_REQUIREMENT_CHANGE", "ENTERPRISE_REQUIREMENT_CHANGE"}:
+        out["confirmed_requirement_baseline"].update({
+            key: deepcopy(value.get("value") if isinstance(value, dict) and "value" in value else value)
+            for key, value in changed_facts.items()})
     changed = set(changed_facts)
     out["plan"] = replan_respecting_locks(out["plan"], sorted(changed),
         new_facts=changed_facts, regenerated_stages=replanned_work_units)
@@ -459,9 +526,14 @@ def claim_completion(session: dict, evidence_bindings: dict[str, list[str]]) -> 
 
 
 def suspend(session: dict, *, reason: str, checkpoint_identity: dict,
-            evidence_ids: list[str]) -> dict:
+            evidence_ids: list[str], initiator: str = "SYSTEM",
+            authority_ref: dict | None = None) -> dict:
     out = deepcopy(session)
     require_current_evidence(out, evidence_ids)
+    if initiator not in {"SYSTEM", "RESOURCE", "USER"}:
+        raise ValueError("suspension_initiator_invalid")
+    if initiator == "USER":
+        _require_authority(authority_ref, "USER")
     required_identity = {"git_head", "worktree_identity", "runtime_identity",
                          "contract_hash", "evidence_anchor"}
     missing = sorted(required_identity - set(checkpoint_identity))
@@ -473,6 +545,7 @@ def suspend(session: dict, *, reason: str, checkpoint_identity: dict,
                "current_work": out.get("current_work"), "verified_state": deepcopy(out["verified_state"]),
                "failures": deepcopy(out["failures"]), "checkpoint_identity": deepcopy(checkpoint_identity),
                "evidence_ids": list(evidence_ids), "next_legal_action": _next_legal_work(out),
+               "initiator": initiator, "authority_ref": deepcopy(authority_ref),
                "created_at": _now()}
     out["suspensions"].append(package)
     out["status"] = "SUSPENDED"
@@ -481,12 +554,14 @@ def suspend(session: dict, *, reason: str, checkpoint_identity: dict,
 
 
 def resume(session: dict, *, package: dict, current_identity: dict,
-           revalidation_evidence_ids: list[str]) -> dict:
+           revalidation_evidence_ids: list[str], user_origin_ref: dict | None = None) -> dict:
     out = deepcopy(session)
     if out["status"] != "SUSPENDED":
         raise ValueError("session_not_suspended")
     if package.get("session_id") != out["session_id"] or package.get("candidate_id") != out["candidate_id"]:
         raise ValueError("resume_session_or_candidate_mismatch")
+    if package.get("initiator") == "USER":
+        _require_authority(user_origin_ref, "USER")
     expected = package.get("checkpoint_identity") or {}
     mismatches = sorted(key for key, value in expected.items() if current_identity.get(key) != value)
     if mismatches:
@@ -502,6 +577,7 @@ def advance(session: dict) -> dict:
     if out["status"] in {"RECOVERING", "SUSPENDED", "BLOCKED", "COMPLETED",
                          "PLAN_REVIEW_REQUIRED", "PLANNING"}:
         raise ValueError(f"advance_illegal_status:{out['status']}")
+    _ = out["adaptive_strategy"]["execution_order_preference"]
     next_work = _next_legal_work(out)
     if next_work is None:
         raise ValueError("no_legal_next_work")
@@ -513,6 +589,33 @@ def advance(session: dict) -> dict:
 
 def verify(session: dict, *, evidence_bindings: dict[str, list[str]]) -> dict:
     return claim_completion(session, evidence_bindings)
+
+
+def cancel_delivery(session: dict, *, intent_record: dict, user_origin_ref: dict) -> dict:
+    _require_human_intent(intent_record, user_origin_ref, {"CANCEL", "REJECTION"})
+    out = deepcopy(session)
+    out["status"] = "CANCELLED"
+    _event(out, "DELIVERY_CANCELLED_BY_USER", {"user_origin_ref": deepcopy(user_origin_ref)})
+    return _bump(out)
+
+
+def _require_authority(ref: dict | None, expected_origin: str) -> dict:
+    if expected_origin not in AUTHORITY_ORIGINS:
+        raise ValueError("authority_origin_invalid")
+    if not isinstance(ref, dict) or ref.get("origin") != expected_origin:
+        raise PermissionError(f"trusted_{expected_origin.lower()}_origin_ref_required")
+    if not all(isinstance(ref.get(k), str) and ref[k].strip()
+               for k in ("harness", "conversation_id", "message_id")):
+        raise PermissionError("authority_ref_incomplete")
+    return ref
+
+
+def _require_human_intent(intent_record: dict, ref: dict, allowed: set[str]) -> None:
+    _require_authority(ref, "USER")
+    if not isinstance(intent_record, dict) or intent_record.get("intent") not in allowed:
+        raise PermissionError("human_intent_not_authorized")
+    if intent_record.get("consequential_ambiguity"):
+        raise PermissionError("ambiguous_intent_cannot_change_human_state")
 
 
 def _acceptance_items(matrix: dict) -> list[str]:

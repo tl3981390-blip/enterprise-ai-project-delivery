@@ -9,6 +9,9 @@ from delivery_runtime import (_acceptance_items, _start_delivery_from_facts, app
                               record_evidence, record_failure, record_recovery,
                               resume, start_delivery, suspend)
 
+USER_REF = {"origin": "USER", "harness": "pytest", "conversation_id": "delivery", "message_id": "change"}
+ENTERPRISE_REF = {**USER_REF, "origin": "ENTERPRISE"}
+
 
 def start_unit_delivery(**kwargs):
     """Component tests may bypass the public understanding gate explicitly."""
@@ -126,7 +129,8 @@ def test_enterprise_plan_is_authority_and_human_can_merge():
         {"name": "业务确认", "goal": "确认", "acceptance": "owner"},
         {"name": "开发", "goal": "实现", "acceptance": "tests"},
         {"name": "测试", "goal": "验证", "acceptance": "evidence"}]}
-    s = start_unit_delivery(facts={"goal": "按公司计划交付"}, human_plan=human)
+    s = start_unit_delivery(facts={"goal": "按公司计划交付"}, human_plan=human,
+                            human_plan_authority_ref=ENTERPRISE_REF)
     assert s["plan"]["authority"] == "HUMAN_PLAN_KEPT_AI_ADVISORY_ONLY"
     s = edit_plan(s, {"op": "merge", "stage_name": "开发", "merge_with": "测试",
                       "target": "开发与测试", "actor": "ENTERPRISE_AUTHORIZED",
@@ -147,6 +151,7 @@ def test_condition_change_replans_only_dependent_ai_work():
         "work": ["重建 SQLite schema", "移除 PostgreSQL 类型"], "output": ["schema.sqlite.sql"],
         "assumptions": ["database"], "acceptance": "SQLite 读写回读", "evidence": ["sqlite-test"]}}
     s2 = change_conditions(s, changed_facts={"database": {"engine": "sqlite"}},
+                           change_source="USER_REQUIREMENT_CHANGE", authority_ref=USER_REF,
                            replanned_work_units=replacement)
     assert s2["plan"]["recomputed"]
     assert next(x for x in s2["plan"]["stages"] if x["name"] == "数据模型")["work"] != upstream["stages"][0]["work"]
@@ -197,6 +202,7 @@ def test_condition_change_recomputes_capability_resolution_from_visible_catalog(
             "validation_status": "VALIDATED", "permission_granted": True}})
     changed = change_conditions(
         s, changed_facts={"required_capabilities": ["legal_review"]},
+        change_source="USER_REQUIREMENT_CHANGE", authority_ref=USER_REF,
         replanned_work_units={})
     assert changed["capability_resolutions"]["legal_review"]["resolution"] == "legal-department-skill"
     assert changed["capability_resolutions"]["legal_review"]["readiness"] == "REQUIRES_VALIDATION"

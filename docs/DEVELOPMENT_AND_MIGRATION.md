@@ -10,6 +10,8 @@
 
 仅含六项执行偏好：question、planning、capability、recovery、execution order、interaction。Harness 若支持项目隔离状态同步可自行迁移；Skill 不规定物理存储或绝对路径。无状态必须使用默认策略，永不阻塞正式 Skill。
 
+历史状态只能包含安全 Catalog ID。再次提供给 Runtime 时由 `load_strategy()` 验证；Strategy 更新只能通过当前 Delivery 的 Canonical Evidence Ledger ID，不能迁移或导入裸 PASS dict。
+
 ### C. Publisher 开发空间迁移（仅维护者）
 
 只有明确需要在新电脑续开发整个实验室时，旧电脑 Harness 才导出私有 Workspace Bundle，新电脑 Harness 校验并恢复 Git/dirty state、重建依赖与验收。Bundle 禁止上传公开 Release，也不是正式 Skill 的运行条件。完整交接见开发空间 `06_项目说明文档/整个开发空间迁移指南.md`。

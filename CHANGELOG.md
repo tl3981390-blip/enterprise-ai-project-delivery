@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 3.0.1 (2026-09-01)
+
+- Wired the six-field Adaptive Strategy catalog into Delivery Session, phase guidance and runtime update operations.
+- Restricted Strategy learning to current PASS records resolved from the canonical Evidence Ledger.
+- Unified trusted provenance for human plans, requirement changes, corrections, user pause/resume and cancellation.
+- Added fail-closed formal-asset identity validation and end-to-end Release-like source-to-install tests.
+
 ## 3.0.0 (2026-09-01)
 
 - Closed the final product target: real-work-only plans, canonical goal binding and task-scaled understanding.

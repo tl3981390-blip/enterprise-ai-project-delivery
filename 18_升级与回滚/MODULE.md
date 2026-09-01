@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.18-upgrade-rollback
 description: 模块18·升级与回滚。semver/迁移/兼容/回滚演练。Use when 需版本演进或回退。
-version: 3.0.0
+version: 3.0.1
 license: MIT
 compatibility: open
 metadata:
@@ -10,6 +10,8 @@ metadata:
 ## v3 Stable 边界
 
 正式 Skill 只从已验证 Release Asset 升级/回滚。Adaptive Strategy 是 Harness 可选状态，可清空并安全回到默认值；它不是版本升级。Core 修改属于 Publisher Maintenance，运行时不得自行提交、打 Tag 或发布。
+
+升级前后必须核对安装副本的 exact tag、40-character commit、version 与 Asset digest。失败版本不可被 Latest Valid Stable 选择；历史 tag/asset 不覆盖。
   module: 18_升级与回滚
   language: zh-CN
   gate: 发布/回滚时

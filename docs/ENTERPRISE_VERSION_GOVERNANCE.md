@@ -2,6 +2,8 @@
 
 > v3 Stable：Runtime Adaptive Strategy 不属于版本治理，不得产生代码或 Release；Publisher Core Maintenance 才进入 SemVer、独立验证、人类批准和回滚治理。正式安装只认不可移动 Stable Tag 对应的 Release Asset 与 SHA。
 
+`v3.0.0` 保持不可移动的失败历史，禁止批准使用。企业环境只安装明确批准、完成发布后回下载与 installed exact identity 验证的版本；不得把 prerelease、FAILED POST-RELEASE VALIDATION 或 main 当作 Stable。
+
 Skill 的版本选择是交付控制的一部分，不是一个隐藏的安装细节。历史 tag 和已发布资产不可移动、不可覆盖、不可删除。
 
 ## 两条安装路径

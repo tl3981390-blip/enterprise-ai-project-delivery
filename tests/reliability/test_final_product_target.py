@@ -14,6 +14,8 @@ from intent_core import INTENT_TYPES, record_intent
 from plan_governance_core import plan_authority_order
 from skill_evolution_core import validate_core_candidate, validate_transition
 
+USER_REF = {"origin": "USER", "harness": "pytest", "conversation_id": "final", "message_id": "correction"}
+
 
 def test_intent_contract_is_semantic_and_punctuation_neutral():
     phrases = ["你确定这个可以吗", "你确定这个可以", "这个确定可以", "这样真行"]
@@ -127,7 +129,7 @@ def test_confirmed_requirements_and_corrections_survive_beyond_model_prose():
     session = record_user_correction(session, description="review skipped required price check",
                                      violated_requirements=["price must be checked"],
                                      root_cause_class="CHECKLIST_NOT_BOUND_TO_WORK",
-                                     related_checks=["price regression"])
+                                     related_checks=["price regression"], user_origin_ref=USER_REF)
     first = session["correction_ledger"][0]
     assert first["status"] == "OPEN"
     # An open confirmed correction blocks a narrative completion claim.
@@ -141,7 +143,7 @@ def test_repeated_confirmed_error_enters_recovery_and_resolution_needs_evidence(
     kwargs = dict(description="same missed price check",
                   violated_requirements=["price must be checked"],
                   root_cause_class="CHECKLIST_NOT_BOUND_TO_WORK",
-                  related_checks=["price regression"])
+                  related_checks=["price regression"], user_origin_ref=USER_REF)
     session = record_user_correction(session, **kwargs)
     work_id = "review"
     session = record_evidence(session, evidence={

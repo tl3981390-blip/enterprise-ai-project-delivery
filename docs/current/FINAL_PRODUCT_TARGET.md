@@ -4,6 +4,8 @@ Status: `CURRENT`
 
 Stable v3 clarification: user-visible plans contain only real work; clear bounded goals may require zero questions; user intent authorization is Harness-origin and current-plan-bound. Runtime self optimization is Evidence-backed Adaptive Execution Strategy only and never modifies Core or publishes a version. Formal installation is self-contained and portable without author workspace or saved strategy state.
 
+Implementation boundary for v3.0.1: Strategy is a closed safe catalog consumed through Delivery Runtime and may update only from current PASS Evidence IDs in the same canonical ledger. Every public transition of user-owned state uses one trusted origin validator. Formal assets fail closed unless installed identity proves the exact immutable tag and 40-character commit. This synchronizes implementation without changing the product goal above.
+
 This is the repository's only current final product target. Release closures, historical evidence,
 old SDD and architecture documents describe earlier states; they do not override this target.
 

@@ -13,7 +13,7 @@ Current product truth: [`docs/current/FINAL_PRODUCT_TARGET.md`](docs/current/FIN
 - Runtime Self Optimization means optional, Evidence-backed execution-strategy preferences. It never edits Core, source, version, commit, tag or Release.
 - Publisher Core Maintenance is a separate repository workflow governed by tests, review and a formal Release.
 - Normal users install the GitHub Release Asset. They never need the author's development workspace or adaptive-state files.
-The working tree is a `v3.0.0-rc3` candidate because the new plan-review and capability-lifecycle
+The working tree is a `v3.0.1` Stable candidate because the runtime Strategy, unified human authority and exact installed identity
 contracts intentionally change the v2 runtime interface. It is not a formal release until Human
 Release Authority approves publication; immutable v2 tags remain historical baselines.
 
