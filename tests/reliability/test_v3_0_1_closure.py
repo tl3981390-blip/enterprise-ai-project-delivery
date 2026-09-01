@@ -149,6 +149,8 @@ def _release_like_source(base: Path, identity: str | None) -> Path:
         info.write_text(json.dumps({"skill_id": "enterprise-ai-project-delivery",
             "version": "3.0.1", "mode": "SELF_CONTAINED_FULL_CORE",
             "canonical_identity": identity}), encoding="utf-8")
+    elif info.exists():
+        info.unlink()  # make INSTALL-ID-002 genuinely absent, even if dev root has ignored state
     return src
 
 
