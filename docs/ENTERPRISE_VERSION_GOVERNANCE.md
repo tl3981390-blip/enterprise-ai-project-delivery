@@ -4,6 +4,8 @@
 
 `v3.0.0` 保持不可移动的失败历史，禁止批准使用。企业环境只安装明确批准、完成发布后回下载与 installed exact identity 验证的版本；不得把 prerelease、FAILED POST-RELEASE VALIDATION 或 main 当作 Stable。
 
+当前公开 Valid Stable 是 `v3.0.1`，但企业环境仍必须显式批准 exact tag；其正式身份为 `tag v3.0.1 -> commit 1d4eb860f175505e2e12f4f56ed54ad64e3f1236`，Asset SHA-256 为 `11b253026efd5dac7b7e40ed6bb49d340c153c4ef8113cb6d8dd4a8e9267aa46`。
+
 Skill 的版本选择是交付控制的一部分，不是一个隐藏的安装细节。历史 tag 和已发布资产不可移动、不可覆盖、不可删除。
 
 ## 两条安装路径

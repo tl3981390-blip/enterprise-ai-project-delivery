@@ -4,6 +4,8 @@
 
 正式安装必须同时验证 Release SHA 与 Asset 内 exact `tag -> commit` identity；安装后的 `INSTALL_INFO.json` 必须原样保留该 identity。`v3.0.0` 是 FAILED POST-RELEASE VALIDATION 历史，不得解析为 Valid Stable。
 
+当前 Valid Stable 是 [`v3.0.1`](https://github.com/tl3981390-blip/enterprise-ai-project-delivery/releases/tag/v3.0.1)：Asset SHA-256 `11b253026efd5dac7b7e40ed6bb49d340c153c4ef8113cb6d8dd4a8e9267aa46`，exact identity `tag v3.0.1 -> commit 1d4eb860f175505e2e12f4f56ed54ad64e3f1236`。
+
 正式使用、维护公开源码和迁移作者完整实验室是三条不同路径。
 
 ## 使用正式 Skill（推荐）
