@@ -15,7 +15,7 @@ MANIFEST = ROOT / "harness_manifest.json"
 
 
 def bump(new_version: str) -> None:
-    if not re.fullmatch(r"\d+\.\d+\.\d+", new_version):
+    if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+)?", new_version):
         raise SystemExit(f"invalid semver: {new_version}")
     meta = json.loads(META.read_text(encoding="utf-8"))
     old = meta["version"]
@@ -23,6 +23,7 @@ def bump(new_version: str) -> None:
     meta["tag"] = f"v{new_version}"
     meta["release_asset"] = f"enterprise-ai-project-delivery-v{new_version}.zip"
     meta["github_release"] = f"v{new_version}"
+    meta["release_channel"] = "candidate" if "-" in new_version else "stable"
     # Declaration model: never write a self-referential commit hash or a pre-computed
     # asset SHA into Git-tracked metadata. Both are resolved at install/release time.
     meta.pop("release_commit", None)

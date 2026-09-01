@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.09-permission-gateway
 description: 模块09·MCP与工具权限网关。READ/WRITE/DELETE/EXECUTE/ADMIN/EXTERNAL 权限矩阵。Use when 需定义工具/MCP权限边界。
-version: 2.0.1
+version: 3.0.0-rc2
 license: MIT
 compatibility: open
 metadata:

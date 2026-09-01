@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.15-evidence
 description: 模块15·Evidence与防假验收。统一证据合同，防假验收。Use when 需打包/核验阶段证据。
-version: 2.0.1
+version: 3.0.0-rc2
 license: MIT
 compatibility: open
 metadata:

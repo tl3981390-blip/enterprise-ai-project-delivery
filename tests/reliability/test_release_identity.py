@@ -8,6 +8,8 @@ import json
 import subprocess
 import sys
 import unittest
+import importlib.util
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,6 +21,18 @@ AGENT = ROOT / "docs" / "AGENT_INSTALL.md"
 
 
 class ReleaseIdentityModelTests(unittest.TestCase):
+    def test_version_bump_supports_release_candidates(self):
+        source = (ROOT / "docs" / "bump_version.py").read_text(encoding="utf-8")
+        self.assertIn('"candidate" if "-" in new_version else "stable"', source)
+        self.assertIn('[0-9A-Za-z-]+', source)
+
+    def test_release_asset_builder_uses_immutable_tag_archive(self):
+        source = (ROOT / "docs" / "build_release_asset.py").read_text(encoding="utf-8")
+        self.assertIn('f"{tag}^{{commit}}"', source)
+        self.assertIn('"git", "archive"', source)
+        self.assertIn('--prefix=enterprise-ai-project-delivery/', source)
+        self.assertIn("release_build_requires_clean_worktree", source)
+
     def _is_git_checkout(self):
         return (ROOT / ".git").exists()
 
