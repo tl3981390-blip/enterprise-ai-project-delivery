@@ -19,6 +19,9 @@ AGENT = ROOT / "docs" / "AGENT_INSTALL.md"
 
 
 class ReleaseIdentityModelTests(unittest.TestCase):
+    def _is_git_checkout(self):
+        return (ROOT / ".git").exists()
+
     def test_rel001_metadata_is_declaration_not_self_reference(self):
         # tracked metadata never records its own commit hash or a pre-computed asset SHA
         self.assertNotIn("release_commit", META)
@@ -28,6 +31,11 @@ class ReleaseIdentityModelTests(unittest.TestCase):
             self.assertIn(required, META)
 
     def test_rel002_tag_resolved_at_runtime(self):
+        if not self._is_git_checkout():
+            info = json.loads((ROOT / "INSTALL_INFO.json").read_text(encoding="utf-8"))
+            self.assertEqual(info["version"], META["version"])
+            self.assertIn(META["tag"], info["canonical_identity"])
+            return
         rc = subprocess.run(["git", "rev-parse", f"{META['tag']}^{{commit}}"], cwd=ROOT,
                             capture_output=True, text=True, shell=False)
         resolved = rc.stdout.strip()
@@ -75,6 +83,11 @@ class ReleaseIdentityModelTests(unittest.TestCase):
         self.assertIn("self-referential", history["v1.6.0_defect"])
 
     def test_rel008_new_release_identity_complete(self):
+        if not self._is_git_checkout():
+            self.assertEqual(META["tag"], f"v{META['version']}")
+            self.assertEqual(META["release_asset"],
+                             f"enterprise-ai-project-delivery-{META['tag']}.zip")
+            return
         # if the tag is published it must resolve to a 40-char commit; pre-release is legal
         rc = subprocess.run(["git", "rev-parse", f"refs/tags/{META['tag']}"], cwd=ROOT,
                             capture_output=True, text=True, shell=False)
@@ -86,6 +99,11 @@ class ReleaseIdentityModelTests(unittest.TestCase):
                             or "ambiguous" in (rc.stderr + rc.stdout).lower())
 
     def test_rel010_main_and_release_identity_not_conflated(self):
+        if not self._is_git_checkout():
+            info = json.loads((ROOT / "INSTALL_INFO.json").read_text(encoding="utf-8"))
+            self.assertEqual(info["mode"], "SELF_CONTAINED_FULL_CORE")
+            self.assertFalse((ROOT / ".git").exists())
+            return
         head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
                               capture_output=True, text=True, shell=False).stdout.strip()
         rc = subprocess.run(["git", "rev-parse", f"{META['tag']}^{{commit}}"], cwd=ROOT,

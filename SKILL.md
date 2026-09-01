@@ -4,14 +4,15 @@ description: 通过自然语言接手并可靠交付复杂项目：理解真实�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 1.9.1
+  version: 1.10.0
   language: zh-CN
 ---
 
 # Reliable project delivery
 
-产品定位：`COMPLEX PROJECT RELIABILITY DELIVERY SYSTEM`。动态计划的唯一编排真源是
-`delivery_planning_core.compose_stages`，会话入口只负责连接它与人类计划、恢复和验收。
+产品定位：`AI DELIVERY CONTROLLER`。`understanding_core` 负责多轮目标理解、事实来源、
+信息缺口与 Understanding Gate；动态计划的唯一编排真源是
+`delivery_planning_core.compose_stages`；`delivery_runtime` 连接计划、能力调用、恢复和验收。
 
 让用户只需要描述想完成什么。内部治理默认静默；对用户优先展示必要问题、项目理解、可编辑计划、执行结果、真实阻塞和最终证据，不展示状态码、Gate 名称或治理协议，除非用户要求诊断细节。
 用户点名本 Skill 时记为 `EXPLICIT_INVOCATION` 并接受真实项目交付请求；项目标签不是拒绝或加重流程的理由。
@@ -19,6 +20,11 @@ metadata:
 ## 先理解，再行动
 
 在产生不可逆或写入性影响前，读取项目规则、当前状态、已有计划、证据和约束。只追问会实质改变方案且无法从现状查明的问题；其余不确定项明确记录并继续安全的只读工作。识别用户真正目标、成功标准、非目标、权限边界、已完成状态和验证方法。
+
+Harness 必须把自然语言入口接到 `understanding_core.begin_understanding`，将每轮用户回答通过
+`apply_answer` 写回事实事件；AI 推断只可 `PROPOSED`，不能静默成为事实。每轮最多展示四个当前最高价值问题，
+但只要回答暴露新的 consequential unknown 就继续澄清。只有 `gate_pass=true` 后，才可通过
+`delivery_runtime.start_from_understanding` 进入 Planning；不得直接构造一个看似完整的 facts 对象绕过理解。
 
 不要把关键词当作流程选择器。复杂度只决定检查深度（内部记为 `DELIVERY_INTENSITY`），不是项目分类器，也不是三套固定流程模板；所需工作来自这个项目的真实问题、依赖、风险和交付物。
 
@@ -42,13 +48,17 @@ Capability 只能作为已发现 Work Unit 的施工或验证资源，绝不能�
 
 当前 Harness 或企业目录可见的部门 Skill 可以作为项目资源，但不可凭名称直接信任。把项目/Planner 识别出的任意能力需求传给统一 Runtime，只从身份、兼容性、验证状态和权限允许的候选中选择；需要跨部门授权时先请求人类授权。看不见的 Skill 不能凭空发现，未提供企业 Skill Registry 时不得宣称已扫描全公司能力。Capability 只支持已有 Work Unit，不能产生项目结构。
 
+选择能力后，Harness 使用 `request_capability_invocation` 取得绑定 Work Unit 的调用信封，实际执行后必须用
+`record_capability_result` 回写输出和真实 Evidence。未授权、未兼容或仍需验证的候选不能生成可执行调用；
+失败结果自动进入同一 Delivery Session 的 Failure/Recovery，不能以“已选中 Skill”冒充跨 Skill 协作完成。
+
 只加载与当前项目事实有关的模块。例如有 Web 用户旅程才读取浏览器验收模块；有部署目标才读取部署模块；发生失败才读取恢复模块。目录编号是能力库历史标识，不是项目阶段。
 
 ## 执行和恢复
 
 按计划持续完成下一合法动作，不因一个内部检查通过而被动停下。每次动作受当前范围与权限约束；外部写入、生产变更、凭据或不可逆操作仍需相应授权。
 
-失败时保留原始错误、环境和候选身份，定位根因，进行有界恢复，并重新验证原 blocker 和相关回归后继续。只改报告、换一条较弱路径或用户说“继续”都不能证明恢复。资源或上下文不足时，在原子工作单元边界保存事实、未完成项、证据引用、blocker 和下一动作，供后续模型机械核验后接手。
+失败时保留原始错误、环境和候选身份，定位根因，按会话 Recovery Budget 进行有界恢复，并重新验证原 blocker 和相关回归后继续。预算耗尽时输出包含原始证据、尝试、根因、人工动作与恢复后重验方法的接手包。只改报告、换一条较弱路径或用户说“继续”都不能证明恢复。资源或上下文不足时，在原子工作单元边界保存事实、未完成项、证据引用、blocker 和下一动作，供后续模型机械核验后接手。
 
 ## 完成标准
 

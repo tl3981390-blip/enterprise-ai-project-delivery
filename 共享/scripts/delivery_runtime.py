@@ -11,9 +11,20 @@ from delivery_planning_core import (complexity_from_facts, compose_stages,
 from plan_governance_core import (apply_human_plan, apply_plan_edit, classify_verified_state,
                                   replan_respecting_locks,
                                   resolve_capability_need)
+from understanding_core import planning_facts
 
 RUNTIME_SCHEMA_VERSION = "1.0"
 TERMINAL_EVIDENCE_STATES = {"PASS", "FAIL", "PENDING_EXTERNAL_VALIDATION"}
+
+
+def start_from_understanding(*, understanding: dict, **kwargs) -> dict:
+    """The only legal multi-turn boundary from natural-language understanding to planning."""
+    session = start_delivery(facts=planning_facts(understanding), **kwargs)
+    session["understanding"] = deepcopy(understanding)
+    session["events"].append({"type": "UNDERSTANDING_BOUND_TO_FACT_MODEL", "at": _now(),
+                              "details": {"understanding_id": understanding["understanding_id"],
+                                          "fact_events": len(understanding["fact_events"])}})
+    return session
 
 
 def start_delivery(*, facts: dict, human_plan: dict | None = None,
@@ -48,7 +59,66 @@ def start_delivery(*, facts: dict, human_plan: dict | None = None,
                                    "harness": deepcopy(harness_capabilities or {})},
             "acceptance": derive_final_acceptance(model, complexity),
             "verified_state": {}, "failures": [], "events": [],
-            "status": "PLANNED", "current_work": None}
+            "status": "PLANNED", "current_work": None,
+            "recovery_policy": {"max_attempts_per_failure": 3,
+                                "require_regression_evidence": True},
+            "capability_invocations": []}
+
+
+def request_capability_invocation(session: dict, *, work_id: str, capability: str,
+                                  input_payload: dict) -> dict:
+    """Create an authorized Harness invocation envelope bound to one Work Unit."""
+    out = deepcopy(session)
+    resolution = out.get("capability_resolutions", {}).get(capability)
+    if not resolution:
+        raise ValueError("capability_not_resolved")
+    if resolution.get("readiness") != "READY" or resolution.get("action") != "use_capability":
+        raise PermissionError(f"capability_not_ready:{resolution.get('action')}")
+    invocation = {"invocation_id": str(uuid4()), "work_id": work_id,
+                  "capability": capability, "provider": resolution["resolution"],
+                  "input": deepcopy(input_payload), "status": "REQUESTED", "requested_at": _now()}
+    out["capability_invocations"].append(invocation)
+    out["current_work"] = work_id
+    _event(out, "CAPABILITY_INVOCATION_REQUESTED", {"invocation_id": invocation["invocation_id"],
+                                                     "work_id": work_id,
+                                                     "capability": capability})
+    return _bump(out)
+
+
+def record_capability_result(session: dict, *, invocation_id: str, status: str,
+                             output, evidence: list) -> dict:
+    """Bind Harness output to its Work Unit; failed invocation enters Recovery."""
+    if status not in {"PASS", "FAIL"}:
+        raise ValueError("capability_result_status_invalid")
+    if not evidence:
+        raise ValueError("capability_result_evidence_required")
+    out = deepcopy(session)
+    invocation = next((i for i in out["capability_invocations"]
+                       if i["invocation_id"] == invocation_id), None)
+    if invocation is None:
+        raise KeyError("capability_invocation_not_found")
+    if invocation["status"] != "REQUESTED":
+        raise ValueError("capability_invocation_already_terminal")
+    invocation.update({"status": status, "output": deepcopy(output),
+                       "evidence": deepcopy(evidence), "completed_at": _now()})
+    if status == "FAIL":
+        failure = {"failure_id": str(uuid4()), "work_id": invocation["work_id"],
+                   "evidence": deepcopy(evidence), "root_cause": None, "status": "OPEN",
+                   "recorded_at": _now(), "recovery_attempts": [],
+                   "source_invocation_id": invocation_id}
+        out["failures"].append(failure)
+        out["status"] = "RECOVERING"
+        _event(out, "CAPABILITY_INVOCATION_FAILED", {"invocation_id": invocation_id,
+                                                      "failure_id": failure["failure_id"]})
+    else:
+        out["verified_state"][invocation["work_id"]] = {
+            "status": "PASS", "candidate": out["session_id"],
+            "capability": invocation["capability"], "evidence": deepcopy(evidence),
+            "output": deepcopy(output)}
+        out["status"] = "EXECUTING"
+        _event(out, "CAPABILITY_INVOCATION_VERIFIED", {"invocation_id": invocation_id,
+                                                        "work_id": invocation["work_id"]})
+    return _bump(out)
 
 
 def edit_plan(session: dict, edit: dict) -> dict:
@@ -133,20 +203,42 @@ def record_failure(session: dict, *, work_id: str, evidence: list,
 
 
 def record_recovery(session: dict, *, failure_id: str, action: str,
-                    evidence: list, blocker_revalidation: dict) -> dict:
+                    evidence: list, blocker_revalidation: dict,
+                    regression_evidence: list | None = None) -> dict:
     """Recovery succeeds only when the original blocker is mechanically revalidated."""
     out = deepcopy(session)
     failure = next((f for f in out["failures"] if f["failure_id"] == failure_id), None)
     if failure is None:
         raise KeyError("failure_not_found")
+    budget = out.get("recovery_policy", {}).get("max_attempts_per_failure", 3)
+    if len(failure["recovery_attempts"]) >= budget:
+        failure["status"] = "HUMAN_INTERVENTION_REQUIRED"
+        out["status"] = "BLOCKED"
+        out["human_recovery_package"] = _recovery_package(failure, "RECOVERY_BUDGET_EXHAUSTED")
+        _event(out, "RECOVERY_BUDGET_EXHAUSTED", {"failure_id": failure_id})
+        return _bump(out)
+    regression_evidence = regression_evidence or []
     failure["recovery_attempts"].append({"action": action, "evidence": evidence,
-        "blocker_revalidation": blocker_revalidation, "recorded_at": _now()})
-    passed = bool(evidence) and blocker_revalidation.get("status") == "PASS"
+        "blocker_revalidation": blocker_revalidation,
+        "regression_evidence": deepcopy(regression_evidence), "recorded_at": _now()})
+    require_regression = out.get("recovery_policy", {}).get("require_regression_evidence", True)
+    passed = (bool(evidence) and blocker_revalidation.get("status") == "PASS" and
+              (bool(regression_evidence) or not require_regression))
     failure["status"] = "RECOVERED_REVALIDATED" if passed else "RECOVERY_UNVERIFIED"
     out["status"] = "EXECUTING" if passed else "RECOVERING"
     _event(out, "RECOVERY_REVALIDATED" if passed else "RECOVERY_REVALIDATION_FAILED",
            {"failure_id": failure_id})
     return _bump(out)
+
+
+def _recovery_package(failure: dict, stop_reason: str) -> dict:
+    return {"failure_id": failure["failure_id"], "work_id": failure["work_id"],
+            "original_evidence": deepcopy(failure["evidence"]),
+            "root_cause": failure.get("root_cause"),
+            "attempts": deepcopy(failure["recovery_attempts"]),
+            "human_action_required": "提供新的权限、业务判断或外部修复后重新验证原 blocker",
+            "resume_verification": "重跑 original blocker 与相关 regression",
+            "stop_reason": stop_reason}
 
 
 def claim_completion(session: dict, evidence_results: dict) -> dict:
@@ -172,6 +264,8 @@ def claim_completion(session: dict, evidence_results: dict) -> dict:
 def _acceptance_items(matrix: dict) -> list[str]:
     items = []
     for key, value in matrix.items():
+        if key.startswith("_") or isinstance(value, dict):
+            continue
         if isinstance(value, list): items.extend(f"{key}:{v}" for v in value)
         elif value not in (None, "", [], {}): items.append(key)
     return items

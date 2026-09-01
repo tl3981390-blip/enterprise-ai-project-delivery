@@ -6,8 +6,9 @@
 > 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
 **Stable Release identity is verified at install time from GitHub and `共享/schema/RELEASE_METADATA.json`.** Personal users may resolve the latest Stable Release; enterprise-controlled environments install an approved exact tag and do not auto-upgrade. Natural language is the user interface; human plans are
-authoritative; project facts determine the work; one runtime connects planning, partial
-replanning, recovery and evidence-based completion. Historical tags remain immutable.
+authoritative; project facts determine the work; one runtime connects multi-turn understanding,
+planning, capability invocation, partial replanning, bounded recovery and evidence-based
+completion. Historical tags remain immutable.
 
 ## Get the skill — pick one path
 
@@ -61,6 +62,16 @@ For personal use, say: `Install the latest Stable Release and follow docs/AGENT_
 ## Basic usage
 
 The skill gates every task before any byte is written: answer the pre-construction questions → Task Understanding Contract → understanding gate → plan–contract alignment → only then execution opens write permissions, with drift checks throughout.
+
+Questions are generated from consequential information gaps, not a fixed questionnaire. Each
+answer is recorded as a provenance-bearing fact event; model inference remains proposed until
+confirmed. The Harness may ask up to four high-value questions in one round and continues only
+when new answers expose further decision-changing gaps. Planning cannot start through the
+multi-turn entry until the mechanical understanding gate passes.
+
+When a Skill or Tool is selected, the Runtime issues a Work-Unit-bound invocation envelope.
+The Harness performs the real call and returns output plus Evidence; failures enter the same
+bounded recovery lifecycle. Capability selection alone is never reported as execution.
 
 **Who can use it（适用性）**：任何复杂项目——个人或企业、AI 或非 AI、桌面/Web/数据/自动化。`EXPLICIT_INVOCATION`（用户点名使用）默认接受，不因项目类型拒绝；能力模块（RAG/Agent/MCP 权限/企业治理/浏览器验收/部署等）按项目声明条件激活，未声明记 `NOT_APPLICABLE`。分层编排见 `共享/references/PROJECT_ORCHESTRATION_SPEC.md`。
 

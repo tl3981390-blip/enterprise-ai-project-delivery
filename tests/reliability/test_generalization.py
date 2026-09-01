@@ -61,9 +61,11 @@ def enterprise_profile_with_roles():
 class PositioningTests(unittest.TestCase):
     """SYS-001 / SYS-031 / SYS-033 / SYS-034 / SYS-035"""
 
-    def test_sys001_positioning_is_complex_project_reliability(self):
+    def test_sys001_positioning_is_ai_delivery_controller(self):
         text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("COMPLEX PROJECT RELIABILITY DELIVERY SYSTEM", text)
+        self.assertIn("AI DELIVERY CONTROLLER", text)
+        self.assertIn("understanding_core", text)
+        self.assertIn("delivery_runtime", text)
         self.assertIn("EXPLICIT_INVOCATION", text)
         for banned in ("企业内部开发一个 AI 产品", "仅限企业"):
             self.assertNotIn(banned, text)
@@ -361,6 +363,11 @@ class IdentityAndAdapterTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
 
     def test_sys029_v150_tag_unchanged(self):
+        if not (ROOT / ".git").exists():
+            meta = json.loads((ROOT / "共享" / "schema" / "RELEASE_METADATA.json").read_text(encoding="utf-8"))
+            self.assertEqual(meta["history"]["v1.5.0"],
+                             "491f6c9f76c6c384fd18a21303aba56812eeadb1")
+            return
         try:
             head = subprocess.run(["git", "rev-parse", "v1.5.0^{commit}"], cwd=ROOT,
                                   capture_output=True, text=True).stdout.strip()

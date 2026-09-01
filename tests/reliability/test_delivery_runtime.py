@@ -128,3 +128,17 @@ def test_failure_requires_revalidation_and_pending_external_blocks_completion():
     out = claim_completion(s, evidence)
     assert not out["completion_gate"]["pass"]
     assert out["completion_gate"]["pending_external_validation"]
+
+
+def test_acceptance_metadata_is_not_an_evidence_obligation():
+    s = start_delivery(facts={"goal": "simple", "acceptance_requirements": ["result works"],
+                              "deployment_requirement": False})
+    evidence = {
+        "业务验收:result works": {"status": "PASS", "evidence": ["run"]},
+        "证明 Final Complete 的 Evidence:test_result": {"status": "PASS", "evidence": ["run"]},
+        "证明 Final Complete 的 Evidence:acceptance_signoff": {"status": "PASS", "evidence": ["signoff"]},
+        "证明 Final Complete 的 Evidence:evidence_bundle": {"status": "PASS", "evidence": ["bundle"]},
+    }
+    out = claim_completion(s, evidence)
+    assert out["completion_gate"]["pass"]
+    assert "_metadata" not in out["completion_gate"]["missing"]

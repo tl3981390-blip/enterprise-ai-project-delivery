@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """MIG2-001..010 — workspace portability regressions with REAL fixtures (v1.6.1)."""
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -9,7 +10,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "共享" / "scripts"))
-BOOTSTRAP = ROOT.parent.parent / "workspace-bootstrap"
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -74,53 +74,32 @@ class BootstrapPortabilityTests(unittest.TestCase):
                 json.loads(fake.read_text(encoding="utf-8"))
 
 
-class BootstrapContentTests(unittest.TestCase):
-    def test_bootstrap_mirror_not_canonical(self):
-        manifest = BOOTSTRAP / "WORKSPACE_MANIFEST.json"
-        if not manifest.exists():
-            self.fail("PORTABLE_FIXTURE_MISSING: bootstrap manifest absent (MIG2-002 FAIL, not skip)")
-        m = json.loads(manifest.read_text(encoding="utf-8"))
-        for asset in m.get("critical_non_git_assets", []):
-            self.assertNotIn("canonical", asset.get("source_of_truth", "").lower())
-            self.assertIn("bootstrap", asset.get("source_of_truth", "").lower())
+class PublicReleaseBoundaryTests(unittest.TestCase):
+    """The public Skill release must not require the author's private workspace bootstrap."""
 
-    def test_no_secret_in_portable_assets(self):
-        text = (BOOTSTRAP / "WORKSPACE_MANIFEST.json").read_text(encoding="utf-8")
-        self.assertIn("NONE stored", text)
-        for banned in ("ghp_", "github_pat_", "-----BEGIN", "oauth_token"):
-            self.assertNotIn(banned, text)
+    def test_private_bootstrap_not_packaged(self):
+        self.assertFalse((ROOT / "workspace-bootstrap").exists())
 
+    def test_release_docs_separate_skill_install_from_workspace_migration(self):
+        text = (ROOT / "docs" / "INSTALL_AND_ACQUISITION.md").read_text(encoding="utf-8")
+        self.assertIn("三条不同路径", text)
+        self.assertIn("本公开仓库不包含", text)
 
-class RestoreIdempotencyTests(unittest.TestCase):
-    def test_checkpoint_file_created_and_reused(self):
-        script = BOOTSTRAP / "restore_workspace.py"
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "ws"
-            cp = root / ".workspace-restore-checkpoint.json"
-            command = [sys.executable, str(script), "--plan-only", "--root", str(root)]
-            subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
-                           errors="replace", cwd=BOOTSTRAP, shell=False)
-            self.assertTrue(cp.exists())
-            subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
-                           errors="replace", cwd=BOOTSTRAP, shell=False)
-            cp2 = json.loads(cp.read_text(encoding="utf-8"))
-            self.assertIn("preflight", cp2["steps"])
+    def test_installer_is_self_contained_and_has_no_bootstrap_import(self):
+        text = (ROOT / "docs" / "install.py").read_text(encoding="utf-8")
+        self.assertNotIn("import workspace-bootstrap", text)
+        self.assertNotIn("ROOT.parent.parent", text)
 
-    def test_second_run_recognizes_existing_state(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "ws"
-            script = BOOTSTRAP / "restore_workspace.py"
-            r1 = subprocess.run([sys.executable, str(script), "--root", str(root)],
-                                capture_output=True, text=True, encoding="utf-8", errors="replace",
-                                cwd=BOOTSTRAP, shell=False)
-            if "AUTH_REQUIRED" in (r1.stdout + r1.stderr):
-                self.skipTest("GitHub auth transiently unavailable (EXTERNAL_LIVE_TEST)")
-            r2 = subprocess.run([sys.executable, str(script), "--root", str(root)],
-                                capture_output=True, text=True, encoding="utf-8", errors="replace",
-                                cwd=BOOTSTRAP, shell=False)
-            out = r2.stdout
-            self.assertTrue("VALID_EXISTING_STATE" in out or "READY" in out,
-                            f"second run did not recognize existing state: {out[:200]}")
+    def test_release_contains_no_secret_material(self):
+        combined = "\n".join(p.read_text(encoding="utf-8", errors="ignore")
+                             for p in ROOT.rglob("*") if p.is_file() and
+                             p != Path(__file__) and
+                             p.suffix.lower() in {".md", ".py", ".json", ".txt"})
+        patterns = (r"ghp_[A-Za-z0-9]{20,}", r"github_pat_[A-Za-z0-9_]{20,}",
+                    r"-----BEGIN PRIVATE KEY-----[\s\S]+-----END PRIVATE KEY-----",
+                    r"oauth_token\s*=\s*[A-Za-z0-9_-]{16,}")
+        for pattern in patterns:
+            self.assertIsNone(re.search(pattern, combined))
 
 
 if __name__ == "__main__":

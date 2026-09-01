@@ -109,6 +109,29 @@ def validate_skill(root: Path):
         except json.JSONDecodeError as e:
             errors.append(f"schema 非法 JSON: {sf.name}: {e}")
 
+    # 4b) Release identity has one version across every Harness-visible surface.
+    manifest_path = base / "harness_manifest.json"
+    release_meta_path = schema_dir / "RELEASE_METADATA.json"
+    if not manifest_path.exists():
+        errors.append("缺 harness_manifest.json")
+    elif release_meta_path.exists() and root_version:
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            release_meta = json.loads(release_meta_path.read_text(encoding="utf-8"))
+            versions = {"SKILL.md": root_version,
+                        "harness_manifest.json": str(manifest.get("version", "")),
+                        "RELEASE_METADATA.json": str(release_meta.get("version", ""))}
+            if len(set(versions.values())) != 1:
+                errors.append(f"版本身份不一致: {versions}")
+            if manifest.get("skill_id") != release_meta.get("skill_id"):
+                errors.append("harness manifest 与 release metadata 的 skill_id 不一致")
+            for runtime_key in ("runtime", "understanding_runtime"):
+                runtime = manifest.get(runtime_key)
+                if runtime and not (base / Path(runtime)).exists():
+                    errors.append(f"manifest {runtime_key} 不存在: {runtime}")
+        except (json.JSONDecodeError, OSError) as ex:
+            errors.append(f"Release identity surface 无法读取: {ex}")
+
     # 5) POST_V1.5 泛化护栏：适用性不得回退为企业/AI 领域限定
     orchestration_spec = base / "共享" / "references" / "PROJECT_ORCHESTRATION_SPEC.md"
     if not orchestration_spec.exists():

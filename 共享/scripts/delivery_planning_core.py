@@ -390,7 +390,9 @@ def derive_final_acceptance(fact_model: dict, complexity: dict) -> dict:
     for r in _as_list(_fact(fact_model, "acceptance_requirements")["value"]):
         matrix.setdefault("业务验收", []).append(r)
     matrix["证明 Final Complete 的 Evidence"] = ["test_result", "acceptance_signoff", "evidence_bundle"]
-    matrix["复杂度"] = {"risk_level": complexity["risk_level"], "rationale": complexity["rationale"]}
+    # Metadata explains verification depth; it is not itself an acceptance obligation.
+    matrix["_metadata"] = {"complexity": {"risk_level": complexity["risk_level"],
+                                           "rationale": complexity["rationale"]}}
     return matrix
 
 

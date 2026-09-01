@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 1.10.0 Candidate (2026-09-01)
+
+- Added a Harness-neutral multi-turn Understanding Runtime with consequential questions,
+  answer-to-fact binding, provenance history, conflict/supersede states and a mechanical
+  sufficiency gate before Planning.
+- Bound capability resolution to real Work Unit invocation requests, Harness results,
+  failure transitions and Evidence.
+- Added recovery budgets, required related-regression evidence and complete human recovery
+  packages when automatic recovery stops.
+- Made installed Release regression self-contained: public tests no longer depend on `.git`
+  or the author's private workspace bootstrap.
+- Added mechanical version alignment checks across `SKILL.md`, `harness_manifest.json` and
+  `RELEASE_METADATA.json`.
+- Added product-behaviour regressions for sparse goals, existing-project reconstruction,
+  AI-inference guards, authorization, invocation binding and recovery.
+
 ## 1.9.1 Candidate (2026-09-01)
 
 - Corrected the released installation contract: personal exploration may select Latest Stable,
