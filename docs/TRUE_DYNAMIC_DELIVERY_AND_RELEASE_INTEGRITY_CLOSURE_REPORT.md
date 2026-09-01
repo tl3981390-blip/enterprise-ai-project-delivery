@@ -10,7 +10,7 @@
 | RC-16 | 结构因子→能力固定路由 | `FACTOR_CAPABILITY_NEEDS`：user_journeys→browser_acceptance、component_dependencies→database、security_surface→enterprise_governance、cross_platform→deployment（桌面≠浏览器、内存组件≠数据库、个人安全≠企业治理、跨平台≠部署） |
 | RC-17 | 固定生命周期阶段模板 | `LIFECYCLE_STAGES` 默认塞入 00/01/02/03/04/05/06/11/12/14/15/19（12 阶段模板） |
 | RC-18 | Final Acceptance 占位生成 | `journey1/journey2/journey3` + 无持久化项目仍写「核心实体读写回读一致」 |
-| RC-19 | 迁移测试假绿 | `test_migration.py` 依赖 `D:\企业Skill实验室`、`assertGreaterEqual(x,0)` 恒真、`@skipUnless` 关键测试缺失即跳过 |
+| RC-19 | 迁移测试假绿 | `test_migration.py` 依赖历史作者工作区绝对路径、`assertGreaterEqual(x,0)` 恒真、`@skipUnless` 关键测试缺失即跳过 |
 | RC-20 | AGENT_INSTALL 陈旧 | 写死「当前正式版本=v1.5.1」「仓库是 PRIVATE」（实际 Latest=v1.6.0、Public） |
 
 ## 2. 来自外部 GitHub 核验的事实
@@ -60,7 +60,7 @@ Git 内 RELEASE_METADATA.json（Declaration）：version/tag/release_asset/repos
 
 ## 11. Migration 假绿修复
 
-`test_migration_v2.py`：真实 git fixture（clean/dirty/unpushed/local-only 各 Case 真检测）；不依赖 `D:\企业Skill实验室`；缺便携 fixture → FAIL 非 SKIP；幂等/续跑在合成工作区证明（网络瞬断时如实 skip 标 EXTERNAL_LIVE_TEST）。
+`test_migration_v2.py`：真实 git fixture（clean/dirty/unpushed/local-only 各 Case 真检测）；不依赖作者本地工作区；缺便携 fixture → FAIL 非 SKIP；幂等/续跑在合成工作区证明（网络瞬断时如实 skip 标 EXTERNAL_LIVE_TEST）。
 
 ## 12. WorkBuddy real replay
 

@@ -1,9 +1,15 @@
 # CHANGELOG
 
+## 3.0.5 (2026-09-02)
+
+- Preserves the discovery and tagged-document gates while removing author-local absolute paths from the formal Asset payload.
+- Adds an installed-copy full-text regression that rejects author-local paths in Markdown, JSON, Python and text files.
+
 ## 3.0.4 (2026-09-02)
 
 - Keeps the v3.0.3 Codex discovery repair and adds a release-builder gate that rejects a tagged Asset whose operational documentation names another version as Current Stable.
 - Removes the circular practice of hardcoding a not-yet-created tag commit and Asset digest into pre-release source documentation; formal identity remains exact through the immutable tag, GitHub digest and `INSTALL_INFO.json`.
+- **REJECTED BEFORE PUBLICATION.** The isolated Asset scan found author-local absolute paths in historical text files.
 
 ## 3.0.3 (2026-09-01)
 

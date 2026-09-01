@@ -10,7 +10,7 @@
 | RC-10 无 DELIVERY_EXECUTION_PLAN | `derive_active_plan` 只输出阶段/Gate 清单，无每阶段 目标/工作/输出/进入/完成/验收/失败处理，无 Final Acceptance Matrix → Harness 退化输出「分析需求/开发/测试/交付」 |
 | RC-11 无 USER_INTERACTION_BOUNDARY | 无 INTERACTION_MODE / WHAT_TO_EXPOSE / 内部状态翻译 → WorkBuddy 把 UNDERSTANDING_BLOCKED、Core/Gate 流水账直接倒给用户（真实症状） |
 | RC-12 Release 身份多源维护 | 版本分散在 SKILL.md / install.py(FORMAL_VERSION="1.5.0" 已 stale) / AGENT_INSTALL.md(钉 v1.5.0) / README / adapter manifest，人工同步；install.py:73 字面 `or True` 恒真验证；v1.5.1 未建 GitHub Release（只 push tag ≠ 正式发布） |
-| RC-13 INSTALLED_MODE 实为开发指针 | 唯一安装实例（~/.zcode 薄适配器）core_path 指向作者 `D:\企业Skill实验室` checkout → 正式使用依赖作者本机；Installed/Development 模式未分离 |
+| RC-13 INSTALLED_MODE 实为开发指针 | 唯一安装实例（~/.zcode 薄适配器）core_path 指向历史作者 checkout → 正式使用依赖作者本机；Installed/Development 模式未分离 |
 | RC-14 工作区纯本地资产 | `企业业务流程数据沉淀Skill`（15+ 设计文档，非 Git、无远端）、05 验收证据、06 评审文档、03 发布台账/规划说明 均只存本机；无 Manifest/Bootstrap/Handoff/就绪度度量 → 换机即丢失 |
 
 ## 已达标项（勿重复施工）

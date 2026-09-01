@@ -178,11 +178,16 @@ def test_install_id_001_005_006_007_008_exact_identity_behavior():
         assert len(list(target.glob("[0-9][0-9]_*/MODULE.md"))) == 20
         forbidden = {".git", ".mimosa", ".pytest_cache", "__pycache__"}
         assert not [p for p in target.rglob("*") if p.name in forbidden or p.suffix == ".pyc"]
+        for path in target.rglob("*"):
+            if path.is_file() and path.suffix.lower() in {".md", ".json", ".py", ".txt"}:
+                text = path.read_text(encoding="utf-8", errors="ignore")
+                assert "D:\\企业Skill实验室" not in text
+                assert "C:\\Users\\34718" not in text
 
 
 @pytest.mark.parametrize("identity,error", [
     (None, "missing_INSTALL_INFO"),
-    ("tag v3.0.4 -> commit not-a-sha", "canonical_identity"),
+    ("tag v3.0.5 -> commit not-a-sha", "canonical_identity"),
     ("tag v9.9.9 -> commit " + "a" * 40, "tag_or_version_mismatch"),
 ])
 def test_install_id_002_003_004_formal_asset_identity_fails_closed(identity, error):

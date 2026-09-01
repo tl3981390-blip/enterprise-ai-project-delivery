@@ -55,7 +55,7 @@ Value（有证据绑定）：过程可证明（三链 0 错的失败/恢复/交�
 - Candidate（已验证原样发布）：`31a1f22f95c49afffa0596ae85f9848c605dc95`
 - 基线不变：v1.0.0 `713baa7` / v1.1.0 `4525ca7` / v1.2.0 `6ba0699`（tag 均未移动）
 - Release Commit / tag `v1.3.0`：见本仓 git（tag 为 annotated，指向本报告所在发布提交）
-- ZIP：`D:\企业Skill实验室\03_我的企业Skill成品\enterprise-ai-project-delivery-v1.3.0.zip`（自 tag `git archive` 构建，非工作树打包）；**SHA-256 记录于同目录 `v1.3.0_RELEASE_NOTE.md`**（tag 后构建，故由仓外发布记录承载）。
+- ZIP：`<historical-release-output>/enterprise-ai-project-delivery-v1.3.0.zip`（自 tag `git archive` 构建，非工作树打包）；**SHA-256 记录于同目录 `v1.3.0_RELEASE_NOTE.md`**（tag 后构建，故由仓外发布记录承载）。
 
 ## 7. 发布后即停止
 

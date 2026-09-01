@@ -54,7 +54,7 @@ Core（8 文件）：`SKILL.md`（根）、`共享/scripts/product_completion_co
 | R7 经验正确去向 | **PASS**：Harness→Adapter / 企业→Enterprise / 项目→Project / 通用→Core 候选，无串层 |
 | 真实 WorkBuddy 复验 | **PENDING_EXTERNAL_VALIDATION**（本机无 WorkBuddy CLI；绝不伪造 PASS。复验合同：同一显式请求应到达业务澄清停止而非 Skill 拒绝） |
 
-重放产物：`D:\企业Skill实验室\05_测试与验收证据\post_v1_5_generalization\replay_report.json`。
+重放产物：`<historical-evidence-root>/post_v1_5_generalization/replay_report.json`。
 
 ## 7. 版本与身份
 
