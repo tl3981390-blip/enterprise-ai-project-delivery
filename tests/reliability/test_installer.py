@@ -160,6 +160,8 @@ class FormalInstallFlowTests(unittest.TestCase):
         text = INSTALLER.read_text(encoding="utf-8")
         self.assertIn("SELF_CONTAINED_FULL_CORE", text)  # installed copy is self-contained
         info_template = text  # INSTALL_INFO written with canonical identity, not a local pointer
+        self.assertIn("release_asset_identity_preserved", info_template)
+        self.assertIn('source_identity["canonical_identity"]', info_template)
         self.assertIn("no author-local path dependency", info_template)
 
 

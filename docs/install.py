@@ -254,13 +254,27 @@ def main() -> int:
             target.rename(backup)
             installs.append({"target": str(target), "backup": str(backup)})
         copied = copy_tree(root, target)
-        (target / "INSTALL_INFO.json").write_text(json.dumps({
+        source_info_path = root / "INSTALL_INFO.json"
+        source_identity = None
+        if source_info_path.exists():
+            try:
+                source_identity = json.loads(source_info_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                source_identity = None
+        install_info = {
             "skill_id": SKILL_ID, "version": meta["version"], "mode": "SELF_CONTAINED_FULL_CORE",
             "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
             "canonical_identity": f"tag {meta['tag']} -> resolved at runtime",
             "metadata_source": str(METADATA_REL),
             "note": "self-contained copy; no author-local path dependency; reads identity from canonical RELEASE_METADATA.json",
-        }, ensure_ascii=False, indent=2), encoding="utf-8")
+        }
+        # A Release Asset already contains the builder-resolved tag -> commit
+        # identity. Preserve that stronger fact instead of degrading it during copy.
+        if source_identity and source_identity.get("canonical_identity"):
+            install_info["canonical_identity"] = source_identity["canonical_identity"]
+            install_info["release_asset_identity_preserved"] = True
+        (target / "INSTALL_INFO.json").write_text(json.dumps(
+            install_info, ensure_ascii=False, indent=2), encoding="utf-8")
         errors = self_check(target)
         installs.append({"target": str(target), "files_copied": copied, "self_check": errors or "PASS"})
         if errors:
