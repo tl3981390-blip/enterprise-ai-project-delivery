@@ -73,6 +73,27 @@ class UpstreamCapabilityTests(unittest.TestCase):
         wrapped = {**upstream}  # a correct wrapper preserves all
         self.assertTrue(capability_regression_guard(upstream, wrapped)["pass"])
 
+    def test_untrusted_high_maturity_candidate_does_not_beat_verified_candidate(self):
+        upstream = {
+            "untrusted": {"capabilities": ["review"], "maturity": 10,
+                          "source_identity_verified": False, "validation_status": "VALIDATED"},
+            "verified": {"capabilities": ["review"], "maturity": 7,
+                         "source_identity_verified": True, "license_compatible": True,
+                         "compatible": True, "permission_granted": True,
+                         "validation_status": "VALIDATED"},
+        }
+        result = resolve_capability_need("review", {}, upstream)
+        self.assertEqual(result["resolution"], "verified")
+        rejected = next(c for c in result["candidates"] if c["source"] == "untrusted")
+        self.assertFalse(rejected["eligible"])
+
+    def test_unverified_candidate_requires_validation_before_reliance(self):
+        result = resolve_capability_need(
+            "review", {}, {"department-skill": {"capabilities": ["review"], "maturity": 9}})
+        self.assertEqual(result["resolution"], "department-skill")
+        self.assertEqual(result["readiness"], "REQUIRES_VALIDATION")
+        self.assertEqual(result["action"], "validate_before_reliance")
+
 
 if __name__ == "__main__":
     unittest.main()

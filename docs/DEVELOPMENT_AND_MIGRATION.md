@@ -1,48 +1,44 @@
 # Development & Migration Guide
 
-GitHub is the single central source of version truth. Machines come and go through it — never through USB drives, chat-app folder transfers, or rebuilding history from a release ZIP.
+## 只维护本公开 Skill
 
-## New-machine development migration (canonical flow)
+GitHub 是公开 Skill 版本与历史的中央真源。新电脑 clone 仓库、获取 tags、验证 origin 后从开发分支继续：
 
-```text
-1. Install Git
-2. Set up legitimate GitHub authentication (GCM / gh auth login / SSH key)
-3. Copy the HTTPS repository URL (GitHub → Code → HTTPS)
-4. git clone https://github.com/tl3981390-blip/enterprise-ai-project-delivery.git
-5. git fetch --tags
-6. Verify repository identity: owner tl3981390-blip, repo enterprise-ai-project-delivery, origin URL, default branch = main
-7. Verify formal tag:      git rev-parse v1.5.0^{commit}   → 491f6c9f76c6c384fd18a21303aba56812eeadb1
-8. Verify release commit:  git show --stat v1.5.0          → "release: ... v1.5.0 ..."
-9. Verify main:            git rev-parse origin/main       → matches GitHub branch view
-10. Create your development branch (e.g. git checkout -b <work>-dev) — never commit directly to main
-11. Only then start modifying
+```bash
+git clone https://github.com/tl3981390-blip/enterprise-ai-project-delivery.git
+cd enterprise-ai-project-delivery
+git fetch --tags
+git remote get-url origin
+git tag --sort=-version:refname
+git switch -c <work>-dev
 ```
 
-## Identity rules
+不要在文档中长期写死“当前版本”；以 GitHub Latest Stable 和 `共享/schema/RELEASE_METADATA.json` 为准。历史 tag 和 Release 资产不可移动、重建或覆盖。
 
-**Commit hashes do not change when you change computers.** The same commit is `491f6c9` on every machine; Git commit identity is content-derived. A *new* hash appears only when a *new commit* is made (new content/metadata), not because of the machine.
+## 继续开发整个企业 Skill 实验室
 
-**Tag immutability.** `v1.5.0 → 491f6c9` is frozen. Never move, rewrite, recreate or force-push historical release identity.
+单独 clone 本仓库不等于恢复整个实验室。完整 Workspace 还包括多个上游 Git 仓、非 Git 文档、证据、Harness 接入、历史区以及未提交/未跟踪内容。
 
-## ZIP SHA-256 vs Git hash — two different identities
+正确迁移方式：
 
-- **Git commit hash** = identity of the source tree + history entry (stable across machines).
-- **Release asset SHA-256** = identity of the published ZIP file. Formal v1.5.0: `020a759ab78ba3678ff68dd10cd74a5ef54a51036162c6ef40c7f2e0521e4e8d`.
+```text
+旧电脑 Honey
+→ 读取私有 Bootstrap 的 OLD_COMPUTER_MIGRATION_INSTRUCTION.md
+→ 预检、生成 Workspace Bundle、逐文件校验
+→ 用户只携带 ZIP + 同名 .sha256
+→ 新电脑 Honey 读取 NEW_MACHINE_RESTORE_INSTRUCTION.md
+→ 校验、恢复、重建依赖、运行验收
+```
 
-**Re-zipping changes the hash.** Even with identical source content, timestamps, entry ordering, compression metadata and archive parameters can differ, so a freshly built ZIP generally will NOT match the release SHA-256. Therefore formal identity verification is always performed against the **original GitHub Release asset**, never against a self-made archive.
+完整 Workspace Bundle 属于私有资产，不进入本公开 Skill Release。`.venv`、`node_modules`、缓存、凭据、Harness 用户目录和 Docker 运行态不直接迁移；数据库唯一数据按具体数据库单独备份。
 
-## Upgrading without breaking history
+## 身份规则
 
-Future releases add new tags (`v1.5.1`, `v1.6.0`, …) and new release assets. Old tags and old release assets stay untouched. Consumers pin to the tag they validated; developers move forward on branches.
+- Git commit hash 跨电脑保持不变；只有新提交才产生新 hash。
+- Git tag 标识历史源码身份；Release 资产 SHA-256 标识已发布 ZIP，二者不是一回事。
+- 重新压缩同样文件通常会得到不同 ZIP SHA-256，因此正式安装只验证原始 GitHub Release 资产。
+- AI/Honey 可以代为运行 clone、验证和恢复，但不能绕过 GitHub、文件系统或企业权限边界。
 
-## AI-assisted migration (allowed pattern)
+## Release 之后
 
-You may open a fresh AI coding harness on the new machine, hand the model the private repository HTTPS URL, and let it — under legitimate GitHub authentication — clone, verify tag/commit/main, create a development branch and continue maintenance. The AI must not and cannot bypass the GitHub authentication boundary; credentials stay in GCM/gh/SSH, never in the conversation.
-
-## Connector note (ChatGPT / GitHub App)
-
-Connector access to a **private** repository requires explicit authorization in the GitHub App / Connector Repository Access settings. If a connector cannot read the repo, authorize `tl3981390-blip/enterprise-ai-project-delivery` there — this is `CONNECTOR_ACCESS_CONFIGURATION`, not a repository failure. Do not make the repo public, create duplicate repos, or re-publish v1.5.0 to work around it.
-
-## What may change after a release
-
-Post-release documentation commits on `main` (like this guide) are legitimate: they sit *after* the frozen tag and never move it. Rule of thumb: documentation, adapters, profiles and examples evolve on main; the core is feature-frozen (reopen only for evidence-backed, reproducible, generalizable failures the core cannot handle).
+main 可以包含正式 tag 之后的文档、测试、适配器或候选改动；这不改变历史 Release。涉及 Core 的新行为必须满足真实失效、可泛化、可复现、有证据，并重新经过 Candidate 验收与新版本发布。

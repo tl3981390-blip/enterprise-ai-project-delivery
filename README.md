@@ -5,7 +5,7 @@
 >
 > 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
-**Candidate version: v1.8.1.** Natural language is the user interface; human plans are
+**Stable Release identity is resolved at install time from GitHub and `共享/schema/RELEASE_METADATA.json`.** Natural language is the user interface; human plans are
 authoritative; project facts determine the work; one runtime connects planning, partial
 replanning, recovery and evidence-based completion. Historical tags remain immutable.
 
@@ -54,14 +54,7 @@ Adapter (ZCode) Adapter (Claude) Adapter (TRAE/WorkBuddy …)
 
 Requires a harness that can load skills and execute local deterministic tests (Python 3.10+).
 
-```bash
-# ZCode: copy or link the canonical core into your skills directory
-#   ~/.zcode/skills/enterprise-ai-project-delivery/
-# Claude Code: place the thin adapter under
-#   ~/.claude/skills/enterprise-ai-project-delivery/
-# Other harnesses: see adapters/<platform>/INSTALLATION.md
-python 共享/scripts/validate-skill.py --root .   # structural self-check
-```
+Give an agent-capable Harness the repository URL and say: `Install the latest Stable Release and follow docs/AGENT_INSTALL.md.` The Harness must report a real limitation instead of claiming success when it cannot load Skills, access GitHub or write its Skill directory. See [Installation & Acquisition](docs/INSTALL_AND_ACQUISITION.md).
 
 ## Basic usage
 
@@ -116,6 +109,8 @@ The runtime closed loop never modifies the formal core — core evolution stays 
 
 Profiles **cannot override** `NON_OVERRIDABLE_CORE_INVARIANTS`: anti-fake-PASS, evidence integrity, authorization boundary, candidate identity, scope authority. A project profile can never relax an enterprise policy (same-key restrictive overrides are rejected as `PROFILE_CONSTRAINT_CONFLICT`).
 
+Harness-visible or enterprise-catalogued Skills can support project work when the host supplies their capability metadata. The runtime accepts arbitrary declared support needs, excludes candidates explicitly marked unauthorized, incompatible, identity-unverified or runtime-blocked, and records the selection. A capability never creates a Stage. This repository does **not** include a company-wide Skill Registry, SSO/RBAC or cross-department execution bus; those remain enterprise integration responsibilities.
+
 ## Harness compatibility
 
 | Harness | Status |
@@ -147,12 +142,13 @@ One canonical recorder (schema validation, hash chain, anchor) is the single sou
 
 ## Core feature freeze
 
-`CORE_FEATURE_FREEZE = ACTIVE`. v1.5.0 is the **First Generation Product Core**. Ordinary new needs go to harness adapters, enterprise/project profiles, or documentation — not the core. The core reopens only if **all** hold: real project failure + current core cannot handle + generalizable + reproducible + evidence-backed.
+`CORE_FEATURE_FREEZE = ACTIVE`. v1.5.0 established the **First Generation Product Core**; later immutable releases contain admitted, evidence-backed corrections and generalizations. Ordinary new needs go to harness adapters, enterprise/project profiles, or documentation—not the core. The core reopens only if **all** hold: real project failure + current core cannot handle + generalizable + reproducible + evidence-backed.
 
 ## Known limitations
 
 - Claude Code execution is currently blocked by runtime authentication in the tested environment (L1 verified mechanically).
 - TRAE and WorkBuddy/CodeBuddy are not yet externally validated.
+- Company-wide Skill discovery, SSO/RBAC and a cross-department execution bus are not bundled; only capabilities visible to and authorized in the current Harness/catalog can be selected.
 - Exact cross-run model identity was not fully controlled; benchmark results are observational.
 - `FULL_SECURITY_AUDIT = NOT_AVAILABLE` (a complete AST security audit has not been executable in the development environment; passing gates cover governance/regression/evidence integrity only).
 
@@ -162,7 +158,7 @@ No secrets, credentials or runtime artifacts are tracked (scanned across the ful
 
 ## Versioning
 
-Semver. Formal releases: v1.0.0 → v1.5.0 (v1.5.0 = First Generation Product Core, feature-frozen). Release evidence lives in `evidence/release_vX.Y.Z/`.
+Semver. Resolve the latest formal release from GitHub; every historical tag remains immutable. Release evidence and candidate acceptance records live under `evidence/` and `docs/`.
 
 ## License
 

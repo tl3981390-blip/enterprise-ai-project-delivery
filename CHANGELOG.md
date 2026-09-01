@@ -1,6 +1,23 @@
 # CHANGELOG
 
-## 1.8.0 Candidate (2026-08-31)
+## 1.9.0 Candidate (2026-09-01)
+
+- Added arbitrary project-declared capability needs without allowing capabilities to create Stages.
+- Added auditable selection of Harness-visible/enterprise Skills; explicitly unauthorized,
+  incompatible, identity-unverified or runtime-blocked candidates cannot be selected.
+- Recomputes capability resolution when project conditions or visible catalogs change.
+- Replaced stale public/private and v1.5-only acquisition/migration instructions with current,
+  version-resolving guidance and an honest company-wide Skill Registry boundary.
+
+## 1.8.1 (2026-08-31)
+
+- Real partial replanning replaces affected AI work with complete planner-generated fragments
+  and reclassifies Evidence; missing planner output cannot fake PASS.
+- Human-owned affected work remains unchanged and is marked for review/revalidation.
+- Capability identity no longer creates or promotes Work Units; capabilities only support
+  project work discovered by human/upstream plans or explicit project facts.
+
+## 1.8.0 (2026-08-31)
 
 - Replaced the governance-first entrypoint with a concise natural-language delivery contract.
 - Added one runtime connecting dynamic planning, human edits, affected-only replanning,
@@ -9,14 +26,6 @@
 - Aligned candidate identity across entrypoint metadata, release metadata and harness manifest.
 
 本文件记录企业AI项目交付 Skill 自身版本的变更。遵循 `18`/`08` 的 semver 与 staging/adopt 规则。
-
-## 1.8.1 Candidate (2026-08-31)
-
-- Real partial replanning replaces affected AI work with complete planner-generated fragments
-  and reclassifies Evidence; missing planner output cannot fake PASS.
-- Human-owned affected work remains unchanged and is marked for review/revalidation.
-- Capability identity no longer creates or promotes Work Units; capabilities only support
-  project work discovered by human/upstream plans or explicit project facts.
 
 ## 1.5.0 (2026-08-31)
 

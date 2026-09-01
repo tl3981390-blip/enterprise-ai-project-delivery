@@ -1,6 +1,6 @@
 # DELIVERY_PLANNING_SPEC（通用动态交付规格）
 
-生效：v1.6.0 ｜ 机械核心：`共享/scripts/delivery_planning_core.py` ｜ 回归：`tests/reliability/test_dynamic_delivery.py`
+生效：v1.6.0 ｜ 机械核心：`共享/scripts/delivery_planning_core.py` ｜ 回归：`tests/reliability/test_dynamic_delivery_v2.py`、`tests/reliability/test_replan_and_capability_decoupling.py`、`tests/reliability/test_delivery_runtime.py`
 
 ## 定位重申
 

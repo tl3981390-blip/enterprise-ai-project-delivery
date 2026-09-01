@@ -419,25 +419,69 @@ def resolve_capability_need(need: str, registry: dict, upstream_available: dict,
     A local registry entry does NOT automatically beat a mature upstream. Unknown-but-
     required triggers real discovery; only CAPABILITY_NOT_AVAILABLE when nothing exists."""
     candidates = []
+
+    def candidate(source: str, entry, default_maturity: int) -> dict:
+        meta = entry if isinstance(entry, dict) else {}
+        item = {"source": source, "maturity": meta.get("maturity", default_maturity),
+                "validation_status": meta.get("validation_status", "UNSPECIFIED"),
+                "source_identity_verified": meta.get("source_identity_verified"),
+                "compatible": meta.get("compatible"),
+                "license_compatible": meta.get("license_compatible"),
+                "permission_granted": meta.get("permission_granted")}
+        rejected = []
+        if meta.get("compatible") is False:
+            rejected.append("INCOMPATIBLE")
+        if meta.get("source_identity_verified") is False:
+            rejected.append("SOURCE_IDENTITY_UNVERIFIED")
+        if meta.get("license_compatible") is False:
+            rejected.append("LICENSE_INCOMPATIBLE")
+        if meta.get("permission_granted") is False:
+            rejected.append("PERMISSION_REQUIRED")
+        if item["validation_status"] in {"NOT_AVAILABLE", "BLOCKED_RUNTIME_AUTH"}:
+            rejected.append(item["validation_status"])
+        item["eligible"] = not rejected
+        item["rejection_reasons"] = rejected
+        return item
+
     if need in registry:
         entry = registry[need]
-        candidates.append({"source": "LOCAL_CORE",
-                           "maturity": entry.get("maturity", 0) if isinstance(entry, dict) else 0})
+        candidates.append(candidate("LOCAL_CORE", entry, 0))
     for src, caps in (upstream_available or {}).items():
         caps_list = caps.get("capabilities", caps) if isinstance(caps, dict) else caps
-        maturity = caps.get("maturity", 5) if isinstance(caps, dict) else 5
         if need in caps_list:
-            candidates.append({"source": src, "maturity": maturity})
+            candidates.append(candidate(src, caps, 5))
     for src, caps in (harness_native or {}).items():
         caps_list = caps.get("capabilities", caps) if isinstance(caps, dict) else caps
-        maturity = caps.get("maturity", 5) if isinstance(caps, dict) else 5
         if need in caps_list:
-            candidates.append({"source": src, "maturity": maturity})
+            candidates.append(candidate(src, caps, 5))
     if not candidates:
         return {"capability": need, "resolution": "CAPABILITY_NOT_AVAILABLE", "action": "report_to_user"}
-    best = max(candidates, key=lambda c: c["maturity"])
+    eligible = [c for c in candidates if c["eligible"]]
+    if not eligible:
+        action = ("request_authorization" if any(
+            "PERMISSION_REQUIRED" in c["rejection_reasons"] for c in candidates)
+                  else "report_to_user")
+        return {"capability": need, "resolution": "CAPABILITY_NOT_AVAILABLE",
+                "action": action, "candidates": candidates}
+    validation_rank = {"VALIDATED": 3, "VERIFIED": 3, "PARTIALLY_VALIDATED": 2,
+                       "UNSPECIFIED": 1, "PENDING_EXTERNAL_VALIDATION": 0}
+    best = max(eligible, key=lambda c: (validation_rank.get(c["validation_status"], 1),
+                                        c["maturity"]))
+    validation_required = []
+    if best["validation_status"] not in {"VALIDATED", "VERIFIED"}:
+        validation_required.append("RUNTIME_BASELINE_NOT_VALIDATED")
+    if best["source"] != "LOCAL_CORE" and best["source_identity_verified"] is not True:
+        validation_required.append("SOURCE_IDENTITY_NOT_PROVEN")
+    if best["compatible"] is not True:
+        validation_required.append("COMPATIBILITY_NOT_PROVEN")
+    if best["permission_granted"] is not True:
+        validation_required.append("PERMISSION_NOT_PROVEN")
     return {"capability": need, "resolution": best["source"],
-            "candidates": candidates, "selected_by": "highest maturity (not registry-first)"}
+            "candidates": candidates,
+            "selected_by": "eligible validation status, then maturity (not registry-first)",
+            "readiness": "READY" if not validation_required else "REQUIRES_VALIDATION",
+            "validation_required": validation_required,
+            "action": "use_capability" if not validation_required else "validate_before_reliance"}
 
 
 def upstream_update_reabsorb(record: dict, new_upstream: dict) -> dict:

@@ -28,6 +28,9 @@ BASE_FACT_FIELDS = (
     "tool_execution_requirement", "existing_database", "interface_types",
     "distribution_requirement", "enterprise_policy_present", "approval_requirement",
     "license_requirement", "rollback_requirement", "external_tool_permission_requirement",
+    # Arbitrary project support needs (for example legal_review or quote_generation).
+    # They select resources only and never create work units/stages.
+    "required_capabilities",
 )
 FACT_STATES = ("DECLARED", "OBSERVED", "INFERRED", "UNKNOWN", "NOT_APPLICABLE")
 # extra fields are allowed (extensible) but must be explicitly marked; they are kept,
@@ -235,6 +238,16 @@ def reason_capability_needs(fact_model: dict, declared: list | None = None) -> d
                     "reason": (f"事实模型满足 {cap} 激活条件" if needed else f"无事实支持 {cap}"),
                     "evidence_source": "fact_model", "required_facts": required_facts,
                     "blocking_unknowns": []}
+    # A planner or human may name a domain capability that is not part of the generic
+    # core table. Preserve it as a resource need without teaching Core a department,
+    # project type or stage template.
+    for cap in declared:
+        if not isinstance(cap, str) or not cap.strip():
+            raise ValueError("declared_capability_must_be_nonempty_string")
+        name = cap.strip()
+        out[name] = {"required": True, "reason": "用户或项目规划显式声明",
+                     "evidence_source": "required_capabilities",
+                     "required_facts": ["required_capabilities"], "blocking_unknowns": []}
     return {"capabilities": out}
 
 

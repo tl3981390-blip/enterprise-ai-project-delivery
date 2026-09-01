@@ -4,7 +4,7 @@ description: 通过自然语言接手并可靠交付复杂项目：理解真实�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 1.8.1
+  version: 1.9.0
   language: zh-CN
 ---
 
@@ -39,6 +39,8 @@ Capability 只能作为已发现 Work Unit 的施工或验证资源，绝不能�
 `COMPOSE FIRST, EXTEND SECOND, REIMPLEMENT LAST.`
 
 先查看当前 Harness 原生能力和已安装 Skills，再按需查看 `共享/references/上游吸收索引.md`。Specification、Clarification、Planning、Tasks、TDD、Testing、Review、Browser、Git、Deployment、Documentation、Handoff 等由成熟能力完成；本 Skill 只增加证据、权限、范围、恢复、连续性和防假完成控制。若必须本地实现，记录已搜索来源、兼容性理由和回归比较。集成后的真实能力不得低于上游基线。
+
+当前 Harness 或企业目录可见的部门 Skill 可以作为项目资源，但不可凭名称直接信任。把项目/Planner 识别出的任意能力需求传给统一 Runtime，只从身份、兼容性、验证状态和权限允许的候选中选择；需要跨部门授权时先请求人类授权。看不见的 Skill 不能凭空发现，未提供企业 Skill Registry 时不得宣称已扫描全公司能力。Capability 只支持已有 Work Unit，不能产生项目结构。
 
 只加载与当前项目事实有关的模块。例如有 Web 用户旅程才读取浏览器验收模块；有部署目标才读取部署模块；发生失败才读取恢复模块。目录编号是能力库历史标识，不是项目阶段。
 

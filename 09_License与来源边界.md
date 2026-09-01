@@ -13,17 +13,22 @@
 | anthropic-knowledge-work-plugins | 企业岗位组织 + `~~category` 工具抽象（思想迁移） | **Apache-2.0** | ✅ 迁移思想/目录结构；直接抄 SKILL 内容按 Apache | 若含其文本须保留声明 |
 | microsoft-skill-recorder | Evidence/事件流数据结构（思想采纳，非代码） | **MIT** | ✅ 可参考其 types 设计；复制代码须 MIT 声明 | 复制须保留 MIT |
 | microsoft-skillopt | Gate/Staging/evidence 机制（思想采纳） | **MIT** | ✅ 可参考机制；复制代码须 MIT 声明 | 复制须保留 MIT |
+| github/spec-kit @ `51e52be6…` | Specification/Clarification/Planning 思想与上游能力组合 | **MIT** | ✅ 可调用或依法适配；复制代码须保留声明 | 保留 MIT 版权与许可 |
+| mariano-aguero/spec-driven-development-skill @ `939b1e74…` | SDD、EARS、Traceability 思想 | **MIT** | ✅ 可调用或依法适配；复制代码须保留声明 | 保留 MIT 版权与许可 |
+| unboundinnov/specdd @ `a75bd6aa…` | 最少提问、变更回写、生产检查思想 | **MIT** | ✅ 可调用或依法适配；复制代码须保留声明 | 保留 MIT 版权与许可 |
 | openai-skills-reference | **只读架构参考，禁止复制** | 根无许可；.system 无许可；.curated=Apache-2.0 | ❌ OpenAI 自有 `.system` **禁止**借用进商业产品；`.curated` 第三方若引用须逐个核 Apache 作者 | `.curated` 引用须保留各自 Apache 声明 |
 
 ---
 
 ## 2. 本项目（企业AI项目交付 Skill）自身的 License 策略
 
-- 本 Skill 目标是为企业内部/品牌产品服务，建议**施工期**为本 Skill 自选一个 License（如 MIT 或企业私有）并正式签发 `LICENSE` + `NOTICE`。
-- 当前为 `0.2.0-dev` 开发制品，已包含 MIT LICENSE；稳定版只在 Release Gate 后签发。
+- 本公开 Skill Core 已正式采用 **MIT License**，仓库根目录 `LICENSE` 与 `NOTICE` 已签发并随 Stable Release 分发。
+- MIT 允许商业使用、修改和再分发，但必须保留许可证与版权声明，并且软件按“无担保”条件提供。
+- 已公开的 MIT 版本不能通过后续改许可证收回既有接收者已经获得的权利。
+- 收费产品应把私有企业策略、连接器、集中 Evidence、认证发行、实施和 SLA 放在独立私有扩展或服务层；不得把私有 Workspace/Bootstrap 混入公开 Release。
+- 正式销售前仍需由知识产权律师复核实际复制边界、商标、合同和责任条款；本文件不是法律意见。
 
-新增锁定来源：github/spec-kit@`51e52be6...`、mariano-aguero/spec-driven-development-skill@`939b1e74...`、unboundinnov/specdd@`a75bd6aa...`，均为 MIT。任何适配资产需文件头声明完整 commit 与许可；不引入其运行时。
-- 无论选哪种，都必须在上游引用发生时，为各个被借鉴的仓库保留其各自的版权与许可声明（来源映射 + NOTICE）。
+无论选择公开 Core 还是私有商业扩展，只要实际复制或改写上游内容，都必须按对应许可保留版权和许可声明。
 
 ---
 
@@ -37,7 +42,7 @@
 └── 03_我的项目能力提炼表.md #（已在 `03` 记录能力来源）
 ```
 
-施工期在每个实际复制/改写自上游的脚本/文档头部加来源注释 + 许可声明。
+每个实际复制/改写自上游的脚本或文档都要增加来源和许可声明；仅有思想借鉴时在来源映射与 NOTICE 中说明，不伪称代码复制。
 
 ---
 
@@ -61,10 +66,12 @@
 ---
 
 ## 6. 合规状态自检
-- [x] 六个来源边界已界定（MIT×4 / Apache×2 / OpenAI 红）
+- [x] 已列明当前上游来源、版本/commit 与许可边界
 - [x] 「思想迁移 vs 代码复制」区分
 - [x] NOTICE/来源清单结构设计
 - [x] 依赖/模型/数据许可检查纳入模块 17
 - [x] OpenAI `.system` 全程禁止
-- [ ] 本 Skill 自身 LICENSE/NOTICE 签发 → Release 阶段
-- [ ] 实际复制文件头部声明 → 施工期逐一执行
+- [x] 本 Skill 自身 MIT LICENSE 与 NOTICE 已签发
+- [x] Stable Release 分发包含 LICENSE 与 NOTICE
+- [ ] 商业签约前律师复核、商标与合同责任边界 → `PENDING_EXTERNAL_VALIDATION`
+- [ ] 未来新增实际复制内容时逐文件复核来源声明（持续义务）

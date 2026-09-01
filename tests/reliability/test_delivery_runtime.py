@@ -68,6 +68,48 @@ def test_mature_upstream_selected_over_weaker_local():
     assert s["capability_resolutions"]["browser_acceptance"]["resolution"] == "browser-tool"
 
 
+def test_harness_visible_department_skill_can_support_declared_project_work():
+    s = start_delivery(
+        facts={"goal": "生成并审查客户报价", "work_units": [
+            {"name": "报价审查", "goal": "审查报价条款", "work": ["核对合同和价格"],
+             "capabilities": ["legal_review"]}],
+            "required_capabilities": ["legal_review"], "deployment_requirement": False},
+        harness_capabilities={"legal-department-skill": {
+            "capabilities": ["legal_review"], "maturity": 8,
+            "validation_status": "VALIDATED", "permission_granted": True,
+            "source_identity_verified": True, "compatible": True}})
+    assert s["capability_resolutions"]["legal_review"]["resolution"] == "legal-department-skill"
+    assert s["capability_resolutions"]["legal_review"]["readiness"] == "READY"
+    # The capability supports real work but cannot manufacture a stage of its own.
+    assert "legal_review" not in [x["name"] for x in s["plan"]["stages"]]
+
+
+def test_unapproved_department_skill_is_not_selected_and_requests_authorization():
+    s = start_delivery(
+        facts={"goal": "审查报价", "required_capabilities": ["legal_review"],
+               "deployment_requirement": False},
+        harness_capabilities={"legal-department-skill": {
+            "capabilities": ["legal_review"], "maturity": 10,
+            "validation_status": "VALIDATED", "permission_granted": False}})
+    result = s["capability_resolutions"]["legal_review"]
+    assert result["resolution"] == "CAPABILITY_NOT_AVAILABLE"
+    assert result["action"] == "request_authorization"
+
+
+def test_condition_change_recomputes_capability_resolution_from_visible_catalog():
+    s = start_delivery(
+        facts={"goal": "准备客户材料", "required_capabilities": [],
+               "deployment_requirement": False},
+        harness_capabilities={"legal-department-skill": {
+            "capabilities": ["legal_review"], "maturity": 8,
+            "validation_status": "VALIDATED", "permission_granted": True}})
+    changed = change_conditions(
+        s, changed_facts={"required_capabilities": ["legal_review"]},
+        replanned_work_units={})
+    assert changed["capability_resolutions"]["legal_review"]["resolution"] == "legal-department-skill"
+    assert changed["capability_resolutions"]["legal_review"]["readiness"] == "REQUIRES_VALIDATION"
+
+
 def test_failure_requires_revalidation_and_pending_external_blocks_completion():
     s = start_delivery(facts={"goal": "复杂应用", "user_journeys": ["下单"],
         "deployment_requirement": False})

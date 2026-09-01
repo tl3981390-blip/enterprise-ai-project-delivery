@@ -23,7 +23,10 @@ def start_delivery(*, facts: dict, human_plan: dict | None = None,
     """Create a project-derived session. Human plans are authoritative when supplied."""
     model = make_fact_model(**facts)
     complexity = complexity_from_facts(model)
-    needs = reason_capability_needs(model)
+    declared_capabilities = model.get("required_capabilities", {}).get("value") or []
+    if not isinstance(declared_capabilities, list):
+        raise ValueError("required_capabilities_must_be_list")
+    needs = reason_capability_needs(model, declared=declared_capabilities)
     if human_plan:
         plan = apply_human_plan(human_plan, model)
     else:
@@ -40,6 +43,9 @@ def start_delivery(*, facts: dict, human_plan: dict | None = None,
             "revision": 1, "created_at": now, "updated_at": now,
             "facts": model, "complexity": complexity, "capability_needs": needs,
             "capability_resolutions": resolutions, "plan": plan,
+            "capability_sources": {"registry": deepcopy(capability_registry or {}),
+                                   "upstream": deepcopy(upstream_capabilities or {}),
+                                   "harness": deepcopy(harness_capabilities or {})},
             "acceptance": derive_final_acceptance(model, complexity),
             "verified_state": {}, "failures": [], "events": [],
             "status": "PLANNED", "current_work": None}
@@ -57,7 +63,10 @@ def edit_plan(session: dict, edit: dict) -> dict:
 
 
 def change_conditions(session: dict, *, changed_facts: dict,
-                      replanned_work_units: dict | None = None) -> dict:
+                      replanned_work_units: dict | None = None,
+                      capability_registry: dict | None = None,
+                      upstream_capabilities: dict | None = None,
+                      harness_capabilities: dict | None = None) -> dict:
     """Replace affected AI work with a planner-produced fragment and reclassify evidence.
 
     The host model/mature planning Skill supplies `replanned_work_units` keyed by the old
@@ -72,7 +81,26 @@ def change_conditions(session: dict, *, changed_facts: dict,
     out["plan"] = replan_respecting_locks(out["plan"], sorted(changed),
         new_facts=changed_facts, regenerated_stages=replanned_work_units)
     out["complexity"] = complexity_from_facts(out["facts"])
-    out["capability_needs"] = reason_capability_needs(out["facts"])
+    declared_capabilities = out["facts"].get("required_capabilities", {}).get("value") or []
+    if not isinstance(declared_capabilities, list):
+        raise ValueError("required_capabilities_must_be_list")
+    out["capability_needs"] = reason_capability_needs(
+        out["facts"], declared=declared_capabilities)
+    previous_sources = out.get("capability_sources", {})
+    sources = {
+        "registry": deepcopy(capability_registry if capability_registry is not None
+                             else previous_sources.get("registry", {})),
+        "upstream": deepcopy(upstream_capabilities if upstream_capabilities is not None
+                             else previous_sources.get("upstream", {})),
+        "harness": deepcopy(harness_capabilities if harness_capabilities is not None
+                            else previous_sources.get("harness", {})),
+    }
+    out["capability_sources"] = sources
+    out["capability_resolutions"] = {}
+    for name, need in out["capability_needs"]["capabilities"].items():
+        if need["required"] is True:
+            out["capability_resolutions"][name] = resolve_capability_need(
+                name, sources["registry"], sources["upstream"], sources["harness"])
     out["acceptance"] = derive_final_acceptance(out["facts"], out["complexity"])
     evidence_change_keys = changed | {str(k) for k in changed_facts}
     classification = classify_verified_state(out.get("verified_state", {}), evidence_change_keys)

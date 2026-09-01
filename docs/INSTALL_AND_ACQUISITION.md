@@ -1,56 +1,42 @@
 # Installation & Acquisition Guide
 
-Four ways to get `enterprise-ai-project-delivery` from GitHub — they are **not** interchangeable.
+正式使用、维护公开源码和迁移作者完整实验室是三条不同路径。
 
-## A. GitHub Release ZIP — for USE / INSTALL ✅ recommended
+## 使用正式 Skill（推荐）
 
-Path: **Repository → Releases → v1.5.0 → Assets → `enterprise-ai-project-delivery-v1.5.0.zip`**
+把仓库 URL 交给支持 Agent/Skill 安装的 Harness：
 
-- This is the **formal release artifact**, built from the `v1.5.0` tag.
-- Formal identity: `SHA-256 = 020a759ab78ba3678ff68dd10cd74a5ef54a51036162c6ef40c7f2e0521e4e8d`
-- Verify after download (PowerShell: `Get-FileHash <zip> -Algorithm SHA256`, or `sha256sum <zip>`).
-- Use it for: installation, harness import, version archiving, formal release verification.
+```text
+请从 https://github.com/tl3981390-blip/enterprise-ai-project-delivery 安装
+enterprise-ai-project-delivery 的最新 Stable Release，并遵循 docs/AGENT_INSTALL.md。
+下载正式 Release 资产，不使用 Code → Download ZIP 或 main 快照；验证资产身份，
+安装自包含副本并运行自检。若当前 Harness 不支持 Skill、没有网络/文件权限或需要授权，
+请报告真实限制，不得假装安装成功。
+```
 
-## B. Code → Download ZIP — branch snapshot, NOT the release artifact
+安装器在运行时解析 GitHub Latest Stable 和 `共享/schema/RELEASE_METADATA.json`，不在本文写死版本。仓库当前为公开仓库；GitHub 或 Harness 的限流、网络或组织策略仍可能要求合法认证。不要把密码、PAT、2FA、OAuth secret 或私钥发送给模型。
 
-The green **Code → Download ZIP** button gives you a **snapshot of the current branch source**.
+正式 Release ZIP 与绿色 **Code → Download ZIP** 不同：前者具有发布身份与 GitHub 资产 SHA-256，后者只是分支快照，不能用于正式身份验收。
 
-- It carries **no Git history** and is **not** the formal v1.5.0 release asset.
-- `main` may already be newer than the `v1.5.0` tag (post-release documentation commits are normal).
-- Its SHA-256 is **not expected** to equal the release SHA-256.
-- Do not use it for long-term development — clone instead.
-
-## C. HTTPS clone — for DEVELOPMENT / MAINTENANCE / MACHINE MIGRATION
-
-GitHub page **Code → HTTPS** shows the **repository URL** (there is no "clone button" on the page itself). You copy the URL, then clone in a terminal:
+## 维护公开 Skill 源码
 
 ```bash
 git clone https://github.com/tl3981390-blip/enterprise-ai-project-delivery.git
 cd enterprise-ai-project-delivery
 git fetch --tags
-git rev-parse v1.5.0^{commit}   # must print 491f6c9f76c6c384fd18a21303aba56812eeadb1
+git remote get-url origin
+git tag --sort=-version:refname
+git switch -c <your-development-branch>
 ```
 
-## D. SSH / GitHub CLI — for environments already set up
+开发者应从分支施工；历史正式 tag 永不移动。不要用 Release ZIP 代替带历史的开发 clone。
 
-- **SSH**: for accounts with a registered SSH key (`git@github.com:tl3981390-blip/enterprise-ai-project-delivery.git`). Not required for normal users.
-- **GitHub CLI**: `gh repo clone tl3981390-blip/enterprise-ai-project-delivery` — requires `gh auth status` to be authenticated.
+## 迁移完整企业 Skill 实验室
 
-## Private repository authentication (applies to A–D for non-members)
+本公开仓库不包含作者的上游研究仓、未提交工作、私有 Bootstrap、内部证据和整个 Workspace。要在另一台电脑继续开发完整实验室，使用私有 `enterprise-skill-lab-bootstrap` 的 `OLD_COMPUTER_MIGRATION_INSTRUCTION.md` 和 `NEW_MACHINE_RESTORE_INSTRUCTION.md`，由两端 Honey 生成、验证并恢复 Workspace Bundle。
 
-This repository is **PRIVATE**. Any new machine, harness, agent or AI coding environment needs legitimate GitHub credentials: Git Credential Manager, GitHub CLI login, an SSH key, or a harness-native GitHub connection. **Never send your GitHub password, PAT, 2FA code, OAuth secret or private key to an AI model** — credentials are stored only by GitHub / the credential manager / the OS.
+完整 Workspace Bundle 绝不能上传到本公开仓库或公开 Release。
 
-ChatGPT / GitHub-App style connectors: repository existence ≠ connector permission. If a connector cannot read this repo, authorize it in the GitHub App / Connector **Repository Access** settings for `tl3981390-blip/enterprise-ai-project-delivery`. This is `CONNECTOR_ACCESS_CONFIGURATION`, not a repository failure — do not switch the repo to public or create duplicates.
+## Harness 边界
 
-## Harness installation flow
-
-```text
-GitHub → enterprise-ai-project-delivery → Harness Adapter → Core → Project
-```
-
-Switching harnesses means **changing the adapter, never the core**. Per-harness installation/validation/limits: [HARNESS_GUIDE.md](HARNESS_GUIDE.md) and `adapters/<platform>/INSTALLATION.md`. After install, self-check: `python 共享/scripts/validate-skill.py --root .`
-
-## Using the skill
-
-- **New project**: load the skill in your harness, then instruct e.g. *"Use enterprise-ai-project-delivery to govern this project."* The skill enters understanding → contract → gated execution → telemetry → recovery → acceptance.
-- **Existing half-done project**: invoke the same way — the skill runs **mid-project attachment**: read-only discovery → state reconstruction → adoption boundary → historical claims classified (`VERIFIED / UNVERIFIED / FAILED / UNKNOWN_PRE_ATTACHMENT`, never auto-laundered) → dependency verification → continue the *same* project. See README "Mid-project attachment".
+URL-only 是统一用户入口，不是对所有 Harness 的兼容承诺。Harness 必须能够加载 Skill、访问 GitHub 并写入其 Skill 目录。真实支持状态见 [HARNESS_GUIDE.md](HARNESS_GUIDE.md)；未知 Harness 第一次安装后必须执行自检和真实小项目验证。
