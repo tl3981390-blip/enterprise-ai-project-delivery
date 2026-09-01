@@ -14,7 +14,7 @@ def experience(**overrides):
     base = {
         "experience_id": "EXP-X", "observed_event": "event", "expected_behavior": "expected",
         "actual_behavior": "actual", "evidence_refs": ["evidence/x.md"],
-        "root_cause_candidate": "cause", "classification": "CORE_SKILL_DEFECT", "generalizable": True,
+        "root_cause_candidate": "cause", "classification": "CORE_RELIABILITY_DEFECT", "generalizable": True,
     }
     base.update(overrides)
     return base
@@ -55,14 +55,14 @@ class EvolutionEngineTests(unittest.TestCase):
         self.assertIn("classification_invalid:EVERYTHING_IS_CORE", validate_experience(experience(classification="EVERYTHING_IS_CORE")))
 
     def test_ledger_legal_transition(self):
-        self.assertEqual(validate_transition("OBSERVED", "CANDIDATE"), [])
-        self.assertEqual(validate_transition("CANDIDATE", "VALIDATED"), [])
-        self.assertEqual(validate_transition("VALIDATED", "ADOPTED"), [])
+        self.assertEqual(validate_transition("OBSERVED", "REPRODUCED"), [])
+        self.assertEqual(validate_transition("REPRODUCED", "CLASSIFIED"), [])
+        self.assertEqual(validate_transition("FINAL_GOAL_PASS", "HUMAN_APPROVED"), [])
 
     def test_ledger_illegal_transitions_rejected(self):
-        self.assertEqual(validate_transition("OBSERVED", "ADOPTED"), ["transition_illegal:OBSERVED->ADOPTED"])
-        self.assertEqual(validate_transition("ADOPTED", "CANDIDATE"), ["transition_illegal:ADOPTED->CANDIDATE"])
-        self.assertEqual(validate_transition("REJECTED", "CANDIDATE"), ["transition_illegal:REJECTED->CANDIDATE"])
+        self.assertEqual(validate_transition("OBSERVED", "RELEASED"), ["transition_illegal:OBSERVED->RELEASED"])
+        self.assertEqual(validate_transition("RELEASED", "CANDIDATE_CREATED"), ["transition_illegal:RELEASED->CANDIDATE_CREATED"])
+        self.assertEqual(validate_transition("REJECTED", "CANDIDATE_CREATED"), ["transition_illegal:REJECTED->CANDIDATE_CREATED"])
 
     def test_validated_requires_all_four_proofs(self):
         partial = {"optimization_improved": True, "heldout_no_regression": True, "rescue_regression_pass": True}

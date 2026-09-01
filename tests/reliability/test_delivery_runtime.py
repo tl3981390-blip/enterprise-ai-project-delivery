@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "共享" / "scripts"))
 
-from delivery_runtime import (_acceptance_items, _start_delivery_from_facts,
+from delivery_runtime import (_acceptance_items, _start_delivery_from_facts, approve_plan,
                               change_conditions, claim_completion, edit_plan,
                               record_evidence, record_failure, record_recovery,
                               resume, start_delivery, suspend)
@@ -12,7 +12,7 @@ from delivery_runtime import (_acceptance_items, _start_delivery_from_facts,
 
 def start_unit_delivery(**kwargs):
     """Component tests may bypass the public understanding gate explicitly."""
-    return _start_delivery_from_facts(**kwargs)
+    return approve_plan(_start_delivery_from_facts(**kwargs), approval_source="component test")
 
 
 def add_evidence(session, evidence_id, *, work_id, status="PASS", acceptance_items=None):

@@ -10,9 +10,8 @@ Removes the v1.7.0 residual fakes:
   - remove re-homed obligations to stages[-1] ("last stage takes the blame") -> semantic owner
   - provenance single enum -> full history (origin/last_modified_by/history/locked_by/authority)
 
-Authority order (highest to lowest):
-  CORE_RELIABILITY_INVARIANTS > EXPLICIT_HUMAN_DECISIONS > ENTERPRISE_REQUIRED_WORKFLOW >
-  PROJECT_SPECIFIC_CONSTRAINTS > AI_GENERATED_DELIVERY_PLAN
+Authority and truth are independent planes.  Authorized human decisions own business scope and
+the plan; integrity rules only govern what may truthfully be claimed as observed or PASS.
 PLAN_LOCK blocks AI_AUTOMATIC modification only; an authorized HUMAN_EXPLICIT edit can
 modify/unlock/replace. Enterprise mandatory constraints need ENTERPRISE_AUTHORIZED scope.
 """
@@ -20,12 +19,12 @@ from __future__ import annotations
 
 # ==================== PART A: PLAN AUTHORITY ====================
 AUTHORITY_ORDER = (
-    "CORE_RELIABILITY_INVARIANTS",
-    "EXPLICIT_HUMAN_DECISIONS",
+    "AUTHORIZED_HUMAN_DECISIONS",
     "ENTERPRISE_REQUIRED_WORKFLOW",
     "PROJECT_SPECIFIC_CONSTRAINTS",
     "AI_GENERATED_DELIVERY_PLAN",
 )
+INTEGRITY_PLANE = ("NO_FAKE_PASS", "EVIDENCE_INTEGRITY", "TRUTHFUL_WAIVER_STATUS")
 ACTORS = ("AI_AUTOMATIC", "HUMAN_EXPLICIT", "ENTERPRISE_AUTHORIZED", "SYSTEM_RELIABILITY")
 HUMAN_PROTECTED = ("HUMAN_PROVIDED", "HUMAN_MODIFIED", "ENTERPRISE_REQUIRED")  # + locked
 PLAN_OPS = ("add", "remove", "merge", "split", "reorder", "modify", "replace_all")
@@ -41,8 +40,9 @@ class PlanAuthorityError(Exception):
     pass
 
 
-def plan_authority_order() -> tuple:
-    return AUTHORITY_ORDER
+def plan_authority_order() -> dict:
+    """Return two planes; never imply that reliability owns the user's business decision."""
+    return {"authority_plane": AUTHORITY_ORDER, "integrity_plane": INTEGRITY_PLANE}
 
 
 def _prov(entry: dict) -> str:

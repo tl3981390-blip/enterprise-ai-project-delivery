@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import importlib.util
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -37,6 +38,23 @@ def run_installer(*args, cwd=None):
 
 
 class CanonicalMetadataTests(unittest.TestCase):
+    def test_candidate_copy_excludes_all_development_state(self):
+        spec = importlib.util.spec_from_file_location("candidate_installer", INSTALLER)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as tmp:
+            src, dst = Path(tmp) / "src", Path(tmp) / "dst"
+            src.mkdir()
+            (src / "keep.txt").write_text("product", encoding="utf-8")
+            for excluded in (".git", ".pytest_cache", "__pycache__", ".mimosa"):
+                folder = src / excluded
+                folder.mkdir()
+                (folder / "state.bin").write_text("development state", encoding="utf-8")
+            module.copy_tree(src, dst)
+            self.assertTrue((dst / "keep.txt").exists())
+            for excluded in (".git", ".pytest_cache", "__pycache__", ".mimosa"):
+                self.assertFalse((dst / excluded).exists())
+
     def test_inst005_installer_reads_metadata_not_hardcoded(self):
         text = INSTALLER.read_text(encoding="utf-8")
         self.assertIn("RELEASE_METADATA.json", text)

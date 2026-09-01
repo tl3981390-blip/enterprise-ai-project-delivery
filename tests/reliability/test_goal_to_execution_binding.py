@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "共享" / "scripts"))
 
-from delivery_runtime import (record_capability_result, record_evidence,
+from delivery_runtime import (approve_plan, record_capability_result, record_evidence,
                               record_recovery, request_capability_invocation,
                               start_from_understanding)
 from understanding_core import apply_answer, begin_understanding, propose_inference
@@ -72,7 +72,8 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
                 "acceptance": "审查工具结果可追溯",
             }], "source": "USER_CONFIRMED", "evidence": "answer",
             "history": [{"event_id": "work", "state": "ACTIVE"}]}
-        return start_from_understanding(understanding=understanding, capability_registry=registry)
+        return approve_plan(start_from_understanding(understanding=understanding,
+                            capability_registry=registry), approval_source="test approval")
 
     def _evidence(self, delivery, evidence_id, *, status="PASS"):
         return record_evidence(delivery, evidence={
@@ -104,8 +105,8 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
         registry = {"legal_review": {"validation_status": "VALIDATED",
                     "source_identity_verified": True, "compatible": True,
                     "license_compatible": True, "permission_granted": False}}
-        delivery = start_from_understanding(understanding=understanding,
-                                            capability_registry=registry)
+        delivery = approve_plan(start_from_understanding(understanding=understanding,
+                                capability_registry=registry), approval_source="test approval")
         work_id = next(item["name"] for bucket in ("stages", "tasks", "checks")
                        for item in delivery["plan"].get(bucket, []) if item.get("name"))
         with self.assertRaises(PermissionError):

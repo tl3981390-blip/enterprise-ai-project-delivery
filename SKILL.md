@@ -4,7 +4,7 @@ description: 通过自然语言接手并可靠交付复杂项目：理解真实�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 2.0.1
+  version: 3.0.0-rc1
   language: zh-CN
 ---
 
@@ -34,16 +34,24 @@ Deliverable、Permission 与 Acceptance；只问仍会改变决策的缺口。�
 稀疏目标不得自行补充平台、登录、图片、随机功能、历史、并发或企业能力；这些只能作为待确认建议，
 不能进入 Fact、Work Unit 或施工范围。
 
+自然语言意图由 Host Model 基于当前对话语义解释，并通过 `intent_core.record_intent` 写入可审计记录；
+不得从问号或其他标点推断 Approval。若 Approval、Question、Change、Cancel 等之间存在会改变执行的歧义，
+只问一个最小澄清问题。
+
 不要把关键词当作流程选择器。复杂度只决定检查深度（内部记为 `DELIVERY_INTENSITY`），不是项目分类器，也不是三套固定流程模板；所需工作来自这个项目的真实问题、依赖、风险和交付物。
 
 ## 计划由人类拥有
 
 `AI GENERATES, HUMAN OWNS.`
 
+Human Authority 与 Truth Integrity 是两个独立平面：授权用户拥有业务目标、范围、计划和验收选择；
+Evidence Core 只保证系统不会把 `USER_WAIVED / UNVERIFIED` 伪造成 `PASS`，不能借可靠性规则夺取业务决定权。
+
 - 有用户或企业计划：保持其结构、顺序和命名，以它为计划主体；只把可靠性义务映射为适当的 Task、Check 或 Gate，并把风险作为建议说明。
 - 无计划：从已发现的真实工作单元生成计划。阶段数没有预设；简单项目可以很短，复杂项目按自然边界拆分。
 - 用户可用自然语言增删、移动、合并、拆分、替换或锁定任何部分。把该表达转成内部语义编辑后执行，不要求用户提供 ID、JSON 或状态码，也不得偷偷恢复 AI 原计划。
 - 条件变化时，找出依赖该条件的工作和证据，调用成熟 Planner 重新生成受影响 Work Unit 的完整内容；没有新规划片段时保持规划中而不是只加“已重规划”标签。保留未受影响内容与仍有效 Evidence；人类拥有的受影响内容保持原文并请求人类复核。
+- 所有 Delivery 在执行前都有自适应深度的用户计划审阅；明确的“不用再问，直接开始”可作为当前计划范围内的展示豁免与执行批准，但必须记录来源和范围。批准后自动连续执行，内部 checkpoint 不向用户索要“继续”。
 
 必须使用 `共享/scripts/delivery_runtime.py` 维护确定性会话状态；公开 Planning 入口只接受已通过的
 Understanding Session，不能直接注入 facts。Harness 操作与真实 handler 的映射以
@@ -62,10 +70,18 @@ Capability 只能作为已发现 Work Unit 的施工或验证资源，绝不能�
 `record_capability_result` 回写输出和真实 Evidence。未授权、未兼容或仍需验证的候选不能生成可执行调用；
 失败结果自动进入同一 Delivery Session 的 Failure/Recovery，不能以“已选中 Skill”冒充跨 Skill 协作完成。
 
+每次调用必须完整经历 `DISCOVER → RESOLVE → BIND → ACTIVATE → INVOKE → RESULT → EVIDENCE → DEACTIVATE`，
+并绑定 Session、Plan Revision、Work Unit、Capability identity/version、input scope 和 permission scope。
+Work Unit 结束后撤销外部 instruction context、临时授权和 invocation scope，禁止污染后续工作。
+
 所有执行、失败、恢复和验收 Evidence 必须先通过 `record_evidence` 写入候选绑定的 Evidence Ledger。
 模型文字、任意字符串、错误 candidate、未知 Work Unit、过期或失效 Evidence 都必须拒绝；后续接口只接收
 ledger 中的 evidence_id。需求变化后按依赖分类 STILL_VALID / INVALIDATED /
 REQUIRES_REVALIDATION，未完成重验不得 COMPLETE。
+
+自我进化仅产生隔离 Candidate：观察必须先分类并复现，个人偏好、单项目特例、外部 Capability 缺陷和
+Harness 限制不得冒充 Core 缺陷；频率不等于正确性。候选可自动分析、修补、测试和攻击，但正式替换必须
+经过 Human Release Authority，禁止运行中自改和 `AUTO_RELEASE`。
 
 只加载与当前项目事实有关的模块。例如有 Web 用户旅程才读取浏览器验收模块；有部署目标才读取部署模块；发生失败才读取恢复模块。目录编号是能力库历史标识，不是项目阶段。
 

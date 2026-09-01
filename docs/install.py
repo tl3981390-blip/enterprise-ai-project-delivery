@@ -37,7 +37,8 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
 
 SKILL_ID = "enterprise-ai-project-delivery"
-EXCLUDE_DIRS = {".git", "__pycache__", ".mimosa", "node_modules", ".venv", "test-results", ".tools-work"}
+EXCLUDE_DIRS = {".git", ".pytest_cache", "__pycache__", ".mimosa", "node_modules",
+                ".venv", "test-results", ".tools-work"}
 METADATA_REL = Path("共享") / "schema" / "RELEASE_METADATA.json"
 
 

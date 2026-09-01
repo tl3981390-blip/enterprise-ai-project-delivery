@@ -1,14 +1,15 @@
 # SKILL_EVOLUTION_ENGINE_SPEC（Skill 进化引擎规格）
 
 定位：**仅提案侧**（AUTO_PROPOSE / AUTO_TEST / AUTO_EVALUATE）；正式版本永远走 Release Gate，禁止 AUTO_RELEASE，禁止运行中的正式 Skill 在线自改（总指令 §25–§34）。
-机械核心：`共享/scripts/skill_evolution_core.py`；经验与台账实体在 `D:/ComplexProjectLab/Round_001/07_SkillEvolution/`（跨项目持久，随轮次累积）。
+机械核心：`共享/scripts/skill_evolution_core.py`。状态保存在当前 Harness/Workspace 允许的项目隔离持久层；
+Core 不绑定外部实验室、数据库或全公司经验平台。
 
 ## 流水线
 
 ```text
 Experience Harvest（真实事件+Evidence 才能入箱）
 ↓ Failure Pattern Mining（分类 + 可泛化判定）
-↓ Candidate Improvement（Learning Ledger → OBSERVED→CANDIDATE）
+↓ Candidate Improvement（Learning Ledger → REPRODUCED → CLASSIFIED → CANDIDATE_CREATED）
 ↓ Bounded Patch（ADD/REPLACE/DELETE/REFINE + 九字段声明，见下）
 ↓ Negative Test（优化用例必须先 FAIL 后 PASS）
 ↓ Held-out Evaluation（独立新上下文出题，候选不可知答案；上游 SkillOpt 防污染模式）
@@ -20,8 +21,12 @@ Experience Harvest（真实事件+Evidence 才能入箱）
 ## 三层学习模型
 
 Layer1 Experience：一切真实事件可入箱（`SKILL_EXPERIENCE_INBOX.md`，机械校验 `validate_experience`）。
-Layer2 Learning：抽象为失败模式入台账（`SKILL_LEARNING_LEDGER.md`，状态机 `validate_transition`：OBSERVED→CANDIDATE→VALIDATED→ADOPTED/REJECTED/NEEDS_MORE_DATA；REJECTED 不可复活，只能进拒绝档案后另立新案）。
-Layer3 Skill Mutation：仅 `validate_candidate` 四硬证齐全（optimization_improved + heldout_no_regression + rescue_regression_pass + round1_regression_pass）才允许 VALIDATED。
+Layer2 Learning：每个观察先分类为 USER_PREFERENCE / PROJECT_SPECIFIC / CAPABILITY_SPECIFIC /
+HARNESS_LIMITATION / ENTERPRISE_POLICY / EXTERNAL_DEPENDENCY / CORE_RELIABILITY_DEFECT /
+GENERALIZABLE_IMPROVEMENT / UNKNOWN；频率不等于正确性。只有最后两类且已复现、证据完整才进入 Core Candidate。
+Layer3 Candidate Mutation：仅在隔离副本修改，生命周期为 OBSERVED → REPRODUCED → CLASSIFIED →
+CANDIDATE_CREATED → PATCHED_IN_ISOLATION → TARGETED_VALIDATION_PASS → ADVERSARIAL_PASS →
+FINAL_GOAL_PASS → HUMAN_APPROVED → RELEASED。`validate_candidate` 四硬证齐全仍只是验证条件，禁止 AUTO_RELEASE。
 
 ## Bounded Patch 声明（九字段，`validate_patch_declaration`）
 

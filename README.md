@@ -5,6 +5,11 @@
 >
 > 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
+Current product truth: [`docs/current/FINAL_PRODUCT_TARGET.md`](docs/current/FINAL_PRODUCT_TARGET.md).
+The working tree is a `v3.0.0-rc1` candidate because the new plan-review and capability-lifecycle
+contracts intentionally change the v2 runtime interface. It is not a formal release until Human
+Release Authority approves publication; immutable v2 tags remain historical baselines.
+
 **Stable Release identity is verified at install time from GitHub and `共享/schema/RELEASE_METADATA.json`.** Personal users may resolve the latest Stable Release; enterprise-controlled environments install an approved exact tag and do not auto-upgrade. Natural language is the user interface; human plans are
 authoritative; project facts determine the work; one runtime connects multi-turn understanding,
 planning, capability invocation, partial replanning, bounded recovery and evidence-based
@@ -160,9 +165,12 @@ In the controlled engineering replay used during development, v1.5 consumed fewe
 
 One canonical recorder (schema validation, hash chain, anchor) is the single source of truth for delivery telemetry; local substitutes are rejected at acceptance. Completion claims require mechanical evidence; failures are frozen, never rewritten. Internal validation evidence beyond this repository (project labs, benchmark workspaces) is retained privately.
 
-## Core feature freeze
+## Core evolution boundary
 
-`CORE_FEATURE_FREEZE = ACTIVE`. v1.5.0 established the **First Generation Product Core**; later immutable releases contain admitted, evidence-backed corrections and generalizations. Ordinary new needs go to harness adapters, enterprise/project profiles, or documentation—not the core. The core reopens only if **all** hold: real project failure + current core cannot handle + generalizable + reproducible + evidence-backed.
+Formal installed Core never self-modifies. Ordinary new needs go to Harness adapters,
+enterprise/project profiles or documentation. A Core candidate is admitted only for a reproducible,
+evidence-backed `CORE_RELIABILITY_DEFECT` or `GENERALIZABLE_IMPROVEMENT`, is changed in isolation,
+passes targeted/adversarial/final-goal regression, and receives Human Release Authority.
 
 ## Known limitations
 

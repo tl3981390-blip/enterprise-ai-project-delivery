@@ -4,6 +4,8 @@ from __future__ import annotations
 from copy import deepcopy
 from datetime import datetime, timezone
 from uuid import uuid4
+import hashlib
+import json
 
 from delivery_planning_core import (complexity_from_facts, compose_stages,
                                     derive_final_acceptance, make_fact_model,
@@ -15,7 +17,7 @@ from plan_governance_core import (apply_human_plan, apply_plan_edit, classify_ve
                                   resolve_capability_need)
 from understanding_core import planning_facts
 
-RUNTIME_SCHEMA_VERSION = "2.0"
+RUNTIME_SCHEMA_VERSION = "2.1"
 TERMINAL_EVIDENCE_STATES = {"PASS", "FAIL", "PENDING_EXTERNAL_VALIDATION"}
 
 
@@ -70,10 +72,15 @@ def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
                                    "harness": deepcopy(harness_capabilities or {})},
             "acceptance": derive_final_acceptance(model, complexity),
             "verified_state": {}, "failures": [], "events": [],
-            "status": "PLANNED", "current_work": None,
+            "status": "PLAN_REVIEW_REQUIRED", "current_work": None,
+            "execution_context": {"task": None, "workspace": None, "project": None},
+            "plan_review": {"status": "REVIEW_REQUIRED", "approved_revision": None,
+                            "approval_source": None, "waiver_scope": None},
             "recovery_policy": {"max_attempts_per_failure": 3,
                                 "require_regression_evidence": True},
-            "capability_invocations": [], "evidence_ledger": [], "suspensions": []}
+            "capability_invocations": [], "evidence_ledger": [], "suspensions": [],
+            "confirmed_requirement_baseline": _confirmed_requirement_baseline(model),
+            "correction_ledger": []}
 
 
 def record_evidence(session: dict, *, evidence: dict) -> dict:
@@ -85,10 +92,94 @@ def record_evidence(session: dict, *, evidence: dict) -> dict:
     return _bump(out, carry_evidence=True)
 
 
+def bind_execution_context(session: dict, *, task: str, workspace: str, project: str) -> dict:
+    """Bind state to the isolation already supplied by the Harness."""
+    if not all(isinstance(x, str) and x.strip() for x in (task, workspace, project)):
+        raise ValueError("execution_context_task_workspace_project_required")
+    out = deepcopy(session)
+    out["execution_context"] = {"task": task, "workspace": workspace, "project": project}
+    _event(out, "EXECUTION_CONTEXT_BOUND", deepcopy(out["execution_context"]))
+    return _bump(out)
+
+
+def approve_plan(session: dict, *, approval_source: str, waive_display: bool = False,
+                 waiver_scope: str | None = None) -> dict:
+    """Record human review/approval or an explicit, scoped review-display waiver."""
+    if session.get("status") not in {"PLAN_REVIEW_REQUIRED", "PLANNING"}:
+        raise ValueError("plan_not_awaiting_review")
+    if not isinstance(approval_source, str) or not approval_source.strip():
+        raise ValueError("approval_source_required")
+    if waive_display and not (isinstance(waiver_scope, str) and waiver_scope.strip()):
+        raise ValueError("review_waiver_scope_required")
+    out = deepcopy(session)
+    out["plan_review"] = {
+        "status": "DISPLAY_WAIVED_EXECUTION_APPROVED" if waive_display else "REVIEWED_APPROVED",
+        "approved_revision": out["revision"] + 1, "approval_source": approval_source.strip(),
+        "waiver_scope": waiver_scope.strip() if waive_display else None,
+    }
+    out["approved_plan_baseline"] = deepcopy(out["plan"])
+    out["status"] = "EXECUTING"
+    _event(out, "PLAN_REVIEW_WAIVED" if waive_display else "PLAN_APPROVED",
+           deepcopy(out["plan_review"]))
+    return _bump(out)
+
+
+def record_user_correction(session: dict, *, description: str, violated_requirements: list[str],
+                           root_cause_class: str, related_checks: list[str]) -> dict:
+    """Make a confirmed delivery error durable and detect recurrence of the same root cause."""
+    if not description.strip() or not violated_requirements or not root_cause_class.strip():
+        raise ValueError("correction_description_requirements_root_cause_required")
+    out = deepcopy(session)
+    fingerprint = hashlib.sha256(json.dumps({
+        "requirements": sorted(violated_requirements), "root_cause": root_cause_class.strip()},
+        ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+    previous = [c for c in out.get("correction_ledger", [])
+                if c["fingerprint"] == fingerprint]
+    correction = {"correction_id": str(uuid4()), "description": description.strip(),
+                  "violated_requirements": list(violated_requirements),
+                  "root_cause_class": root_cause_class.strip(),
+                  "related_checks": list(related_checks), "fingerprint": fingerprint,
+                  "status": "OPEN", "recorded_at": _now(),
+                  "recurrence_of": previous[-1]["correction_id"] if previous else None}
+    out.setdefault("correction_ledger", []).append(correction)
+    if previous:
+        out["status"] = "RECOVERING"
+        _event(out, "REPEATED_CONFIRMED_ERROR", {"correction_id": correction["correction_id"],
+                                                   "recurrence_of": correction["recurrence_of"]})
+    else:
+        _event(out, "USER_CORRECTION_RECORDED", {"correction_id": correction["correction_id"]})
+    return _bump(out)
+
+
+def resolve_user_correction(session: dict, *, correction_id: str, root_cause_fix: str,
+                            evidence_ids: list[str]) -> dict:
+    """Close a correction only with evidence for the systemic fix and related checks."""
+    out = deepcopy(session)
+    correction = next((c for c in out.get("correction_ledger", [])
+                       if c["correction_id"] == correction_id), None)
+    if correction is None:
+        raise KeyError("correction_not_found")
+    if correction["status"] != "OPEN":
+        raise ValueError("correction_already_terminal")
+    records = require_current_evidence(out, evidence_ids)
+    if not records or any(r["status"] != "PASS" for r in records):
+        raise ValueError("correction_resolution_requires_pass_evidence")
+    correction.update({"status": "RESOLVED_REVALIDATED", "root_cause_fix": root_cause_fix,
+                       "evidence_ids": list(evidence_ids), "resolved_at": _now()})
+    if out["status"] == "RECOVERING" and not any(
+            c["status"] == "OPEN" for c in out["correction_ledger"]):
+        out["status"] = "EXECUTING"
+    _event(out, "USER_CORRECTION_REVALIDATED", {"correction_id": correction_id})
+    return _bump(out, carry_evidence=True)
+
+
 def request_capability_invocation(session: dict, *, work_id: str, capability: str,
-                                  input_payload: dict) -> dict:
+                                  input_payload: dict, permission_scope: list[str] | None = None) -> dict:
     """Create an authorized Harness invocation envelope bound to one Work Unit."""
     out = deepcopy(session)
+    if out.get("plan_review", {}).get("status") not in {
+            "REVIEWED_APPROVED", "DISPLAY_WAIVED_EXECUTION_APPROVED"}:
+        raise PermissionError("plan_approval_required_before_execution")
     if work_id not in _known_work_ids(out["plan"]):
         raise ValueError(f"work_unit_not_in_active_plan:{work_id}")
     resolution = out.get("capability_resolutions", {}).get(capability)
@@ -96,9 +187,15 @@ def request_capability_invocation(session: dict, *, work_id: str, capability: st
         raise ValueError("capability_not_resolved")
     if resolution.get("readiness") != "READY" or resolution.get("action") != "use_capability":
         raise PermissionError(f"capability_not_ready:{resolution.get('action')}")
-    invocation = {"invocation_id": str(uuid4()), "work_id": work_id,
+    provider_record = _provider_record(out, resolution["resolution"], capability)
+    invocation = {"invocation_id": str(uuid4()), "session_id": out["session_id"],
+                  "plan_revision": out["revision"], "work_id": work_id,
                   "capability": capability, "provider": resolution["resolution"],
-                  "input": deepcopy(input_payload), "status": "REQUESTED", "requested_at": _now()}
+                  "capability_version": provider_record.get("version", "NOT_AVAILABLE"),
+                  "input": deepcopy(input_payload), "input_scope": sorted(input_payload),
+                  "permission_scope": list(permission_scope or []),
+                  "lifecycle": ["DISCOVERED", "RESOLVED", "BOUND", "ACTIVATED"],
+                  "status": "REQUESTED", "requested_at": _now()}
     out["capability_invocations"].append(invocation)
     out["current_work"] = work_id
     _event(out, "CAPABILITY_INVOCATION_REQUESTED", {"invocation_id": invocation["invocation_id"],
@@ -120,8 +217,16 @@ def record_capability_result(session: dict, *, invocation_id: str, status: str,
     if invocation["status"] != "REQUESTED":
         raise ValueError("capability_invocation_already_terminal")
     require_current_evidence(out, evidence_ids, work_id=invocation["work_id"], status=status)
+    input_hash = hashlib.sha256(json.dumps(invocation.get("input"), ensure_ascii=False,
+                                           sort_keys=True).encode("utf-8")).hexdigest()
     invocation.update({"status": status, "output": deepcopy(output),
-                       "evidence_ids": list(evidence_ids), "completed_at": _now()})
+                       "evidence_ids": list(evidence_ids), "completed_at": _now(),
+                       "lifecycle": invocation["lifecycle"] + ["INVOKED", "RESULT_RECORDED",
+                                                                "EVIDENCE_BOUND", "DEACTIVATED"],
+                       "active_instruction_context": False,
+                       "temporary_authorization_active": False,
+                       "input_hash": input_hash, "input_scope": [], "permission_scope": []})
+    invocation.pop("input", None)
     if status == "FAIL":
         failure = {"failure_id": str(uuid4()), "work_id": invocation["work_id"],
                    "evidence_ids": list(evidence_ids), "root_cause": None, "status": "OPEN",
@@ -148,6 +253,16 @@ def edit_plan(session: dict, edit: dict) -> dict:
     semantic_edit = dict(edit)
     semantic_edit.setdefault("actor", "HUMAN_EXPLICIT")
     out["plan"] = apply_plan_edit(out["plan"], semantic_edit)
+    if semantic_edit["actor"] in {"HUMAN_EXPLICIT", "ENTERPRISE_AUTHORIZED"}:
+        out["approved_plan_baseline"] = deepcopy(out["plan"])
+        out["plan_review"] = {"status": "REVIEWED_APPROVED",
+                              "approved_revision": out["revision"] + 1,
+                              "approval_source": "authorized plan edit",
+                              "waiver_scope": None}
+    else:
+        out["status"] = "PLAN_REVIEW_REQUIRED"
+        out["plan_review"] = {"status": "REVIEW_REQUIRED", "approved_revision": None,
+                              "approval_source": None, "waiver_scope": None}
     _event(out, "PLAN_EDITED", {"op": semantic_edit.get("op"),
                                  "affected": out["plan"].get("affected_assumptions", [])})
     return _bump(out)
@@ -168,6 +283,12 @@ def change_conditions(session: dict, *, changed_facts: dict,
     raw = {k: deepcopy(v) for k, v in out["facts"].items() if not k.startswith("_")}
     raw.update(changed_facts)
     out["facts"] = make_fact_model(**raw)
+    out.setdefault("requirement_history", []).append({
+        "event_id": str(uuid4()), "source": "USER_OR_PROJECT_CHANGE",
+        "changed_facts": deepcopy(changed_facts), "at": _now()})
+    out["confirmed_requirement_baseline"].update({
+        key: deepcopy(value.get("value") if isinstance(value, dict) and "value" in value else value)
+        for key, value in changed_facts.items()})
     changed = set(changed_facts)
     out["plan"] = replan_respecting_locks(out["plan"], sorted(changed),
         new_facts=changed_facts, regenerated_stages=replanned_work_units)
@@ -298,11 +419,15 @@ def claim_completion(session: dict, evidence_bindings: dict[str, list[str]]) -> 
     planning_open = out["status"] in {"PLANNING", "UNDERSTANDING", "SUSPENDED", "BLOCKED"}
     invalidated = [item["evidence_id"] for item in out.get("evidence_ledger", [])
                    if item.get("validation_status") in {"INVALIDATED", "REQUIRES_REVALIDATION"}]
-    complete = not (missing or failed or pending or open_failures or planning_open or invalidated)
+    open_corrections = [c["correction_id"] for c in out.get("correction_ledger", [])
+                        if c["status"] != "RESOLVED_REVALIDATED"]
+    complete = not (missing or failed or pending or open_failures or planning_open or invalidated
+                    or open_corrections)
     out["status"] = "COMPLETED" if complete else "NOT_COMPLETE"
     out["completion_gate"] = {"pass": complete, "missing": missing, "failed": failed,
         "pending_external_validation": pending, "open_failures": open_failures,
-        "planning_open": planning_open, "invalidated_evidence": invalidated}
+        "open_corrections": open_corrections, "planning_open": planning_open,
+        "invalidated_evidence": invalidated}
     _event(out, "COMPLETION_VERIFIED" if complete else "FAKE_PASS_BLOCKED", out["completion_gate"])
     return _bump(out, carry_evidence=True)
 
@@ -348,7 +473,8 @@ def resume(session: dict, *, package: dict, current_identity: dict,
 
 def advance(session: dict) -> dict:
     out = deepcopy(session)
-    if out["status"] in {"RECOVERING", "SUSPENDED", "BLOCKED", "COMPLETED"}:
+    if out["status"] in {"RECOVERING", "SUSPENDED", "BLOCKED", "COMPLETED",
+                         "PLAN_REVIEW_REQUIRED", "PLANNING"}:
         raise ValueError(f"advance_illegal_status:{out['status']}")
     next_work = _next_legal_work(out)
     if next_work is None:
@@ -376,6 +502,27 @@ def _acceptance_items(matrix: dict) -> list[str]:
 def _known_work_ids(plan: dict) -> set[str]:
     return {item["name"] for bucket in ("stages", "tasks", "checks")
             for item in plan.get(bucket, []) if item.get("name")}
+
+
+def _provider_record(session: dict, provider: str, capability: str) -> dict:
+    if provider == "LOCAL_CORE":
+        record = session.get("capability_sources", {}).get("registry", {}).get(capability)
+        return record if isinstance(record, dict) else {}
+    for source in ("registry", "upstream", "harness"):
+        catalog = session.get("capability_sources", {}).get(source, {})
+        if provider in catalog and isinstance(catalog[provider], dict):
+            return catalog[provider]
+    return {}
+
+
+def _confirmed_requirement_baseline(model: dict) -> dict:
+    """Compact durable view of user/project-confirmed facts; AI proposals never enter it."""
+    allowed_sources = {"USER_EXPLICIT", "USER_CONFIRMED", "PROJECT_EVIDENCE",
+                       "SYSTEM_OBSERVED"}
+    allowed_states = {"DECLARED", "OBSERVED"}
+    return {key: deepcopy(value.get("value")) for key, value in model.items()
+            if isinstance(value, dict) and value.get("value") is not None and (
+                value.get("provenance") in allowed_sources or value.get("state") in allowed_states)}
 
 
 def _next_legal_work(session: dict) -> str | None:

@@ -135,12 +135,9 @@ def validate_skill(root: Path):
             handlers = manifest.get("operation_handlers") or {}
             if set(handlers) != set(manifest.get("operations", [])):
                 errors.append("manifest operations 与 operation_handlers 不一致")
-            runtime_module = __import__(Path(manifest["runtime"]).stem)
-            understanding_module = __import__(Path(manifest["understanding_runtime"]).stem)
             for operation, handler in handlers.items():
                 module_name, _, function_name = handler.partition(":")
-                module = runtime_module if module_name == "delivery_runtime" else (
-                    understanding_module if module_name == "understanding_core" else None)
+                module = __import__(module_name) if module_name else None
                 if module is None or not callable(getattr(module, function_name, None)):
                     errors.append(f"manifest operation handler 不可调用: {operation}={handler}")
         except (json.JSONDecodeError, OSError) as ex:

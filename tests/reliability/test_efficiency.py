@@ -121,7 +121,7 @@ class HotColdHandoffTests(unittest.TestCase):
 
 class BatchEvolutionTests(unittest.TestCase):
     def _exp(self, pattern, project="P1", evidence="E1"):
-        return {"failure_pattern": pattern, "classification": "CORE_SKILL_DEFECT", "root_cause_class": "X", "affected_capability": "cap", "evidence_ref": evidence, "project_ref": project}
+        return {"failure_pattern": pattern, "classification": "CORE_RELIABILITY_DEFECT", "root_cause_class": "X", "affected_capability": "cap", "evidence_ref": evidence, "project_ref": project}
 
     def test_eff008_repeated_pattern_dedups_with_repeat_count(self):
         inbox = {}

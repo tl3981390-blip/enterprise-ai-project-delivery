@@ -32,8 +32,10 @@ def ai_plan():
 
 class HumanPlanAuthorityTests(unittest.TestCase):
     def test_authority_order(self):
-        self.assertEqual(plan_authority_order()[0], "CORE_RELIABILITY_INVARIANTS")
-        self.assertEqual(plan_authority_order()[-1], "AI_GENERATED_DELIVERY_PLAN")
+        planes = plan_authority_order()
+        self.assertEqual(planes["authority_plane"][0], "AUTHORIZED_HUMAN_DECISIONS")
+        self.assertEqual(planes["authority_plane"][-1], "AI_GENERATED_DELIVERY_PLAN")
+        self.assertIn("NO_FAKE_PASS", planes["integrity_plane"])
 
     def test_plan001_user_can_remove_stage(self):
         out = apply_plan_edit(ai_plan(), {"op": "remove", "stage_name": "前端", **HE})
