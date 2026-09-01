@@ -13,6 +13,7 @@ from delivery_runtime import (_start_delivery_from_facts, approve_plan, bind_exe
 from intent_core import INTENT_TYPES, record_intent
 from plan_governance_core import plan_authority_order
 from skill_evolution_core import validate_core_candidate, validate_transition
+from receipt_support import record_test_receipt
 
 USER_REF = {"origin": "USER", "harness": "pytest", "conversation_id": "final", "message_id": "correction"}
 
@@ -87,13 +88,10 @@ def test_capability_full_work_scoped_lifecycle_deactivates_context():
     assert invocation["session_id"] == session["session_id"]
     assert invocation["capability_version"] == "3.2.1"
     assert invocation["permission_scope"] == ["read:quote"]
-    session = record_evidence(session, evidence={
-        "evidence_id": "result", "type": "TEST_RESULT", "producer": "TEST_RUNNER",
-        "source_ref": "pytest://result", "candidate_id": session["candidate_id"],
-        "work_id": "review", "observed_at": "2026-09-01T00:00:00+00:00",
-        "content_hash": "a" * 64, "status": "PASS", "session_revision": session["revision"],
-        "dependencies": [], "acceptance_items": [],
-    })
+    receipt_id, metadata = record_test_receipt(
+        session, receipt_id="result", work_id="review", invocation_id=invocation["invocation_id"],
+        tool_or_capability="legal_review")
+    session = record_evidence(session, receipt_id=receipt_id, evidence_metadata=metadata)
     session = record_capability_result(session, invocation_id=invocation["invocation_id"],
                                        status="PASS", output={"ok": True},
                                        evidence_ids=["result"])
@@ -146,13 +144,8 @@ def test_repeated_confirmed_error_enters_recovery_and_resolution_needs_evidence(
                   related_checks=["price regression"], user_origin_ref=USER_REF)
     session = record_user_correction(session, **kwargs)
     work_id = "review"
-    session = record_evidence(session, evidence={
-        "evidence_id": "correction-proof", "type": "TEST_RESULT", "producer": "TEST_RUNNER",
-        "source_ref": "pytest://correction", "candidate_id": session["candidate_id"],
-        "work_id": work_id, "observed_at": "2026-09-01T00:00:00+00:00",
-        "content_hash": "b" * 64, "status": "PASS", "session_revision": session["revision"],
-        "dependencies": [], "acceptance_items": [],
-    })
+    receipt_id, metadata = record_test_receipt(session, receipt_id="correction-proof", work_id=work_id)
+    session = record_evidence(session, receipt_id=receipt_id, evidence_metadata=metadata)
     session = resolve_user_correction(session,
         correction_id=session["correction_ledger"][0]["correction_id"],
         root_cause_fix="bind price checklist to review work", evidence_ids=["correction-proof"])

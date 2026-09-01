@@ -11,6 +11,7 @@ from delivery_runtime import (approve_plan, record_capability_result, record_evi
                               record_recovery, request_capability_invocation,
                               start_from_understanding)
 from understanding_core import apply_answer, begin_understanding, propose_inference
+from receipt_support import record_test_receipt
 
 
 def approve(session):
@@ -88,15 +89,11 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
         return approve(start_from_understanding(understanding=understanding,
                        capability_registry=registry))
 
-    def _evidence(self, delivery, evidence_id, *, status="PASS"):
-        return record_evidence(delivery, evidence={
-            "evidence_id": evidence_id, "type": "TEST_RESULT", "producer": "TEST_RUNNER",
-            "source_ref": f"pytest://{evidence_id}", "candidate_id": delivery["candidate_id"],
-            "work_id": "quote-review", "observed_at": "2026-09-01T00:00:00+00:00",
-            "content_hash": (evidence_id.encode().hex() + "0" * 64)[:64],
-            "status": status, "session_revision": delivery["revision"],
-            "dependencies": [], "acceptance_items": [],
-        })
+    def _evidence(self, delivery, evidence_id, *, status="PASS", invocation_id=None):
+        receipt_id, metadata = record_test_receipt(
+            delivery, receipt_id=evidence_id, work_id="quote-review", status=status,
+            invocation_id=invocation_id, tool_or_capability="legal_review" if invocation_id else "pytest")
+        return record_evidence(delivery, receipt_id=receipt_id, evidence_metadata=metadata)
 
     def test_resolution_is_bound_to_invocation_work_and_evidence(self):
         delivery = self._delivery()
@@ -104,7 +101,7 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
                                                  capability="legal_review",
                                                  input_payload={"document": "quote-1"})
         iid = delivery["capability_invocations"][0]["invocation_id"]
-        delivery = self._evidence(delivery, "tool-result")
+        delivery = self._evidence(delivery, "tool-result", invocation_id=iid)
         delivery = record_capability_result(delivery, invocation_id=iid, status="PASS",
                                             output={"approved": True},
                                             evidence_ids=["tool-result"])
@@ -131,7 +128,7 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
         delivery = request_capability_invocation(delivery, work_id="quote-review",
                                                  capability="legal_review", input_payload={})
         iid = delivery["capability_invocations"][0]["invocation_id"]
-        delivery = self._evidence(delivery, "timeout", status="FAIL")
+        delivery = self._evidence(delivery, "timeout", status="FAIL", invocation_id=iid)
         delivery = record_capability_result(delivery, invocation_id=iid, status="FAIL",
                                             output=None, evidence_ids=["timeout"])
         fid = delivery["failures"][0]["failure_id"]

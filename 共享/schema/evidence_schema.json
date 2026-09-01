@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "enterprise-ai-project-delivery/evidence",
   "title": "EvidenceSchema",
-  "description": "统一 Evidence 证据（对齐 04 证据类型白名单：模型文字禁止）。",
+  "description": "统一 Evidence 证据（对齐 04 证据类型白名单：模型文字禁止）。Canonical Runtime Evidence 必须由 Harness Execution Receipt 构建，Host Model 不可直接声明 PASS、producer、source_ref 或 hash。",
   "type": "object",
   "required": ["evidence_id", "stage", "type", "ts"],
   "properties": {
@@ -16,6 +16,9 @@
     "ts": { "type": "integer" },
     "seq": { "type": "integer" },
     "checksum": { "type": "string" },
-    "source": { "type": "string" }
+    "source": { "type": "string" },
+    "receipt_id": { "type": "string" },
+    "execution_id": { "type": "string" },
+    "artifact_refs": { "type": "array" }
   }
 }

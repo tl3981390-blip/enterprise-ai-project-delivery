@@ -1,11 +1,18 @@
 # CHANGELOG
 
+## 3.0.2 (unreleased candidate)
+
+- Made all six Adaptive Strategy catalog fields change the corresponding decision before it is made: consequential-question selection, real-work plan ordering, eligible capability ordering, recovery sequence, dependency-legal work selection and structured Host interaction guidance.
+- Replaced public caller-made Evidence ingress with one-time Harness Execution Receipts. Canonical Evidence now derives producer, source, status, candidate/work/execution identity and verified artifact hash from the receipt; metadata cannot override them.
+- Added behavioral-differential and Evidence-ingress attack regressions, including real receipt → ledger → Strategy → completion flow.
+
 ## 3.0.1 (2026-09-01)
 
 - Wired the six-field Adaptive Strategy catalog into Delivery Session, phase guidance and runtime update operations.
 - Restricted Strategy learning to current PASS records resolved from the canonical Evidence Ledger.
 - Unified trusted provenance for human plans, requirement changes, corrections, user pause/resume and cancellation.
 - Added fail-closed formal-asset identity validation and end-to-end Release-like source-to-install tests.
+- **FAILED POST-RELEASE VALIDATION — DO NOT USE.** Strategy fields did not yet change underlying decisions and raw caller Evidence remained accepted. Tag and Asset are immutable historical evidence; repair proceeds only in v3.0.2.
 
 ## 3.0.0 (2026-09-01)
 

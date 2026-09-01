@@ -15,6 +15,7 @@ from adaptive_strategy_core import STRATEGY_CATALOG, apply_verified_strategy_pat
 from delivery_runtime import (_start_delivery_from_facts, cancel_delivery, change_conditions,
                               get_strategy_guidance, record_evidence, record_user_correction,
                               resume, suspend, update_adaptive_strategy)
+from receipt_support import record_test_receipt
 
 USER = {"origin": "USER", "harness": "pytest", "conversation_id": "c", "message_id": "m"}
 ENTERPRISE = {**USER, "origin": "ENTERPRISE"}
@@ -27,13 +28,8 @@ def delivery(**kwargs):
 
 def add_pass(s, eid="e1"):
     work = s["plan"]["stages"][0]["name"]
-    return record_evidence(s, evidence={
-        "evidence_id": eid, "type": "TEST_RESULT", "producer": "TEST_RUNNER",
-        "source_ref": f"pytest://{eid}", "candidate_id": s["candidate_id"],
-        "work_id": work, "observed_at": "2026-09-01T00:00:00+00:00",
-        "content_hash": "a" * 64, "status": "PASS", "session_revision": s["revision"],
-        "dependencies": [], "acceptance_items": [],
-    })
+    receipt_id, metadata = record_test_receipt(s, receipt_id=eid, work_id=work)
+    return record_evidence(s, receipt_id=receipt_id, evidence_metadata=metadata)
 
 
 def test_strategy_runtime_001_002_003_default_persisted_and_all_phases_consumed():
@@ -59,21 +55,21 @@ def test_strategy_evidence_001_to_005_only_current_canonical_pass_ledger():
     changed = update_adaptive_strategy(current,
         patch={"question_strategy": "ask_one_highest_impact_first"}, evidence_ids=["e1"])
     assert changed["adaptive_strategy"]["question_strategy"] == "ask_one_highest_impact_first"
-    wrong = add_pass(s)
+    wrong = add_pass(s, "wrong")
     wrong["evidence_ledger"][0]["candidate_id"] = "another-session"
     with pytest.raises(ValueError, match="candidate_mismatch"):
         update_adaptive_strategy(wrong, patch={"question_strategy": "ask_one_highest_impact_first"},
-                                 evidence_ids=["e1"])
-    stale = add_pass(s)
+                                 evidence_ids=["wrong"])
+    stale = add_pass(s, "stale")
     stale["evidence_ledger"][0]["valid_for_revision"] -= 1
     with pytest.raises(ValueError, match="stale"):
         update_adaptive_strategy(stale, patch={"question_strategy": "ask_one_highest_impact_first"},
-                                 evidence_ids=["e1"])
-    invalid = add_pass(s)
+                                 evidence_ids=["stale"])
+    invalid = add_pass(s, "invalid")
     invalid["evidence_ledger"][0]["validation_status"] = "INVALIDATED"
     with pytest.raises(ValueError, match="invalidated"):
         update_adaptive_strategy(invalid, patch={"question_strategy": "ask_one_highest_impact_first"},
-                                 evidence_ids=["e1"])
+                                 evidence_ids=["invalid"])
 
 
 def test_strategy_safety_001_to_004_catalog_only_and_no_repository_effect():
@@ -147,7 +143,7 @@ def _release_like_source(base: Path, identity: str | None) -> Path:
     info = src / "INSTALL_INFO.json"
     if identity is not None:
         info.write_text(json.dumps({"skill_id": "enterprise-ai-project-delivery",
-            "version": "3.0.1", "mode": "SELF_CONTAINED_FULL_CORE",
+            "version": "3.0.2", "mode": "SELF_CONTAINED_FULL_CORE",
             "canonical_identity": identity}), encoding="utf-8")
     elif info.exists():
         info.unlink()  # make INSTALL-ID-002 genuinely absent, even if dev root has ignored state
@@ -164,7 +160,7 @@ def _run_release_install(src: Path, target: Path):
 def test_install_id_001_005_006_007_008_exact_identity_behavior():
     with tempfile.TemporaryDirectory() as tmp:
         base = Path(tmp)
-        identity = "tag v3.0.1 -> commit " + "a" * 40
+        identity = "tag v3.0.2 -> commit " + "a" * 40
         src = _release_like_source(base, identity)
         target = base / "totally-different" / "skills" / "enterprise-ai-project-delivery"
         result = _run_release_install(src, target)
@@ -179,7 +175,7 @@ def test_install_id_001_005_006_007_008_exact_identity_behavior():
 
 @pytest.mark.parametrize("identity,error", [
     (None, "missing_INSTALL_INFO"),
-    ("tag v3.0.1 -> commit not-a-sha", "canonical_identity"),
+    ("tag v3.0.2 -> commit not-a-sha", "canonical_identity"),
     ("tag v9.9.9 -> commit " + "a" * 40, "tag_or_version_mismatch"),
 ])
 def test_install_id_002_003_004_formal_asset_identity_fails_closed(identity, error):

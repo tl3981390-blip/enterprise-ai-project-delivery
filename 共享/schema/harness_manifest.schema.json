@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["skill_id", "entrypoint", "version", "runtime", "understanding_runtime", "intent_runtime", "adaptive_strategy_runtime", "interface", "plan_authority", "user_origin_ref_contract", "permissions", "operations", "operation_handlers"],
+  "required": ["skill_id", "entrypoint", "version", "runtime", "understanding_runtime", "intent_runtime", "adaptive_strategy_runtime", "interface", "plan_authority", "user_origin_ref_contract", "evidence_receipt_contract", "permissions", "operations", "operation_handlers"],
   "properties": {
     "skill_id": {"const": "enterprise-ai-project-delivery"},
     "entrypoint": {"const": "SKILL.md"},
@@ -15,6 +15,11 @@
     "user_origin_ref_contract": {
       "type": "object",
       "required": ["required_for", "required_fields", "plan_binding", "trust_boundary"],
+      "additionalProperties": false
+    },
+    "evidence_receipt_contract": {
+      "type": "object",
+      "required": ["trust_boundary", "adapter_only_registration", "record_evidence_input", "required_fields", "metadata_may_add", "metadata_may_not_override", "single_use"],
       "additionalProperties": false
     },
     "permissions": {

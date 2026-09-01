@@ -394,10 +394,13 @@ def capability_regression_guard(upstream_baseline: dict, integrated: dict) -> di
 
 
 def resolve_capability_need(need: str, registry: dict, upstream_available: dict,
-                            harness_native: dict | None = None) -> dict:
+                            harness_native: dict | None = None,
+                            strategy: str = "mature_compatible_authorized_first") -> dict:
     """Candidates -> provenance -> compatibility -> maturity -> best compatible source.
     A local registry entry does NOT automatically beat a mature upstream. Unknown-but-
     required triggers real discovery; only CAPABILITY_NOT_AVAILABLE when nothing exists."""
+    if strategy not in {"mature_compatible_authorized_first", "local_authorized_first"}:
+        raise ValueError("capability_strategy_invalid")
     candidates = []
 
     def candidate(source: str, entry, default_maturity: int) -> dict:
@@ -445,8 +448,14 @@ def resolve_capability_need(need: str, registry: dict, upstream_available: dict,
                 "action": action, "candidates": candidates}
     validation_rank = {"VALIDATED": 3, "VERIFIED": 3, "PARTIALLY_VALIDATED": 2,
                        "UNSPECIFIED": 1, "PENDING_EXTERNAL_VALIDATION": 0}
-    best = max(eligible, key=lambda c: (validation_rank.get(c["validation_status"], 1),
-                                        c["maturity"]))
+    if strategy == "local_authorized_first":
+        # Only after all compatibility, identity, license and permission gates passed.
+        best = max(eligible, key=lambda c: (1 if c["source"] == "LOCAL_CORE" else 0,
+                                            validation_rank.get(c["validation_status"], 1),
+                                            c["maturity"]))
+    else:
+        best = max(eligible, key=lambda c: (validation_rank.get(c["validation_status"], 1),
+                                            c["maturity"]))
     validation_required = []
     if best["validation_status"] not in {"VALIDATED", "VERIFIED"}:
         validation_required.append("RUNTIME_BASELINE_NOT_VALIDATED")
@@ -458,7 +467,10 @@ def resolve_capability_need(need: str, registry: dict, upstream_available: dict,
         validation_required.append("PERMISSION_NOT_PROVEN")
     return {"capability": need, "resolution": best["source"],
             "candidates": candidates,
-            "selected_by": "eligible validation status, then maturity (not registry-first)",
+            "selected_by": ("eligible local authorized source, then validation and maturity"
+                            if strategy == "local_authorized_first" else
+                            "eligible validation status, then maturity (not registry-first)"),
+            "strategy_applied": strategy,
             "readiness": "READY" if not validation_required else "REQUIRES_VALIDATION",
             "validation_required": validation_required,
             "action": "use_capability" if not validation_required else "validate_before_reliance"}

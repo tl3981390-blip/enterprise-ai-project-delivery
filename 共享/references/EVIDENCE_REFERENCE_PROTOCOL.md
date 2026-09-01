@@ -2,6 +2,10 @@
 
 机械核心：`efficiency_core.py::EvidenceRegistry`；回归：EFF-006。
 
+## v3.0.2 Trusted Evidence Receipt boundary
+
+Runtime Canonical Evidence 只能由 Harness/Tool Adapter 产生的 `HARNESS_EXECUTION` receipt 写入。Harness 先捕获真实文件、命令输出、API/Browser/DB result artifact 并校验 hash，注册一次性 `receipt_id`；`delivery_runtime.record_evidence(receipt_id=..., evidence_metadata=...)` 再从该 receipt 构建 candidate/work/execution-bound Canonical Evidence。Host Model 不能传入裸 Evidence dict，也不能覆盖 producer、source_ref、status、content_hash、candidate、work 或 execution identity。每张 receipt 只能消费一次；`PENDING_EXTERNAL_VALIDATION` 保持 pending，绝不转成 PASS。
+
 1. 一份 Evidence 只存一次正文；此后一律以 `evidence_id + hash + source + result`（REF: EV-xxxx）引用。
 2. 禁止同一 Event Log/Stage Report/Handoff/Final Report/Evolution Pack 相互复制全文；需要详情时按需读取（cold read）。
 3. 重复注册同 id → 返回 deduplicated=True + 原 hash，不存第二份。

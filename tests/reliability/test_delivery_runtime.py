@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "共享" / "scripts"))
 
@@ -8,6 +10,7 @@ from delivery_runtime import (_acceptance_items, _start_delivery_from_facts, app
                               change_conditions, claim_completion, edit_plan,
                               record_evidence, record_failure, record_recovery,
                               resume, start_delivery, suspend)
+from receipt_support import record_test_receipt
 
 USER_REF = {"origin": "USER", "harness": "pytest", "conversation_id": "delivery", "message_id": "change"}
 ENTERPRISE_REF = {**USER_REF, "origin": "ENTERPRISE"}
@@ -25,20 +28,9 @@ def start_unit_delivery(**kwargs):
 
 
 def add_evidence(session, evidence_id, *, work_id, status="PASS", acceptance_items=None):
-    return record_evidence(session, evidence={
-        "evidence_id": evidence_id,
-        "type": "TEST_RESULT",
-        "producer": "TEST_RUNNER",
-        "source_ref": f"pytest://{evidence_id}",
-        "candidate_id": session["candidate_id"],
-        "work_id": work_id,
-        "observed_at": "2026-09-01T00:00:00+00:00",
-        "content_hash": (evidence_id.encode().hex() + "0" * 64)[:64],
-        "status": status,
-        "session_revision": session["revision"],
-        "dependencies": [],
-        "acceptance_items": acceptance_items or [],
-    })
+    receipt_id, metadata = record_test_receipt(session, receipt_id=evidence_id, work_id=work_id,
+                                               status=status, acceptance_items=acceptance_items)
+    return record_evidence(session, receipt_id=receipt_id, evidence_metadata=metadata)
 
 
 def test_public_entry_rejects_raw_facts_bypass():
@@ -61,22 +53,11 @@ def test_evidence_ledger_rejects_wrong_candidate_and_duplicate_identity():
         "content_hash": "a" * 64, "status": "PASS", "session_revision": s["revision"],
         "dependencies": [], "acceptance_items": [],
     }
-    try:
+    with pytest.raises(TypeError, match="unexpected keyword argument 'evidence'"):
         record_evidence(s, evidence=bad)
-    except ValueError as exc:
-        assert "evidence_candidate_mismatch" in str(exc)
-    else:
-        raise AssertionError("wrong candidate evidence accepted")
     s = add_evidence(s, "unique", work_id=work_id)
-    duplicate = dict(s["evidence_ledger"][0], session_revision=s["revision"])
-    duplicate.pop("valid_for_revision")
-    duplicate.pop("validation_status")
-    try:
-        record_evidence(s, evidence=duplicate)
-    except ValueError as exc:
-        assert str(exc) == "duplicate_evidence_id"
-    else:
-        raise AssertionError("duplicate evidence identity accepted")
+    with pytest.raises(ValueError, match="duplicate_harness_receipt_id"):
+        record_test_receipt(s, receipt_id="unique", work_id=work_id)
 
 
 def test_suspend_resume_requires_same_runtime_identity_and_revalidation():

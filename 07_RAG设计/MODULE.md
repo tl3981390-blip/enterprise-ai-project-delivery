@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.07-rag
 description: 模块07·RAG设计。知识源/索引/权限/引用/拒答四防（幻觉/越权/旧版/假引用）。Use when 交付涉及检索增强生成。
-version: 3.0.1
+version: 3.0.2
 license: MIT
 compatibility: open
 metadata:

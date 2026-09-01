@@ -13,7 +13,8 @@ from adaptive_strategy_core import (STRATEGY_FIELDS, apply_verified_strategy_pat
 from delivery_planning_core import (complexity_from_facts, compose_stages,
                                     derive_final_acceptance, make_fact_model,
                                     reason_capability_needs)
-from evidence_core import (append_evidence, evidence_by_id, reclassify_evidence,
+from evidence_core import (append_evidence, canonical_evidence_from_receipt,
+                           consume_harness_receipt, evidence_by_id, reclassify_evidence,
                            require_current_evidence)
 from plan_governance_core import (apply_human_plan, apply_plan_edit, classify_verified_state,
                                   replan_respecting_locks,
@@ -29,6 +30,7 @@ CHANGE_SOURCES = {"USER_REQUIREMENT_CHANGE", "ENTERPRISE_REQUIREMENT_CHANGE",
 
 def start_from_understanding(*, understanding: dict, **kwargs) -> dict:
     """The only legal multi-turn boundary from natural-language understanding to planning."""
+    kwargs.setdefault("adaptive_strategy_state", understanding.get("adaptive_strategy"))
     session = _start_delivery_from_facts(facts=planning_facts(understanding), **kwargs)
     session["understanding"] = deepcopy(understanding)
     session["events"].append({"type": "UNDERSTANDING_BOUND_TO_FACT_MODEL", "at": _now(),
@@ -51,6 +53,7 @@ def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
                    harness_capabilities: dict | None = None,
                    adaptive_strategy_state: dict | None = None) -> dict:
     """Create a project-derived session. Human plans are authoritative when supplied."""
+    strategy = load_strategy(adaptive_strategy_state)
     model = make_fact_model(**facts)
     complexity = complexity_from_facts(model)
     declared_capabilities = model.get("required_capabilities", {}).get("value") or []
@@ -62,17 +65,17 @@ def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
         _require_authority(human_plan_authority_ref, expected)
         plan = apply_human_plan(human_plan, model)
     else:
-        plan = compose_stages(model, complexity, needs, upstream_plan=upstream_plan)
+        plan = compose_stages(model, complexity, needs, upstream_plan=upstream_plan,
+                              strategy=strategy["planning_strategy"])
         plan["authority"] = "AI_GENERATED_HUMAN_OWNED"
     resolutions = {}
     for name, need in needs["capabilities"].items():
         if need["required"] is True:
             resolutions[name] = resolve_capability_need(
                 name, capability_registry or {}, upstream_capabilities or {},
-                harness_capabilities or {})
+                harness_capabilities or {}, strategy=strategy["capability_preference"])
     now = _now()
     session_id = str(uuid4())
-    strategy = load_strategy(adaptive_strategy_state)
     plan["strategy_guidance"] = strategy["planning_strategy"]
     return {"schema_version": RUNTIME_SCHEMA_VERSION, "session_id": session_id,
             "candidate_id": session_id,
@@ -105,12 +108,17 @@ def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
             "correction_ledger": []}
 
 
-def record_evidence(session: dict, *, evidence: dict) -> dict:
-    """Append one canonical, candidate-bound Evidence record to the session ledger."""
+def record_evidence(session: dict, *, receipt_id: str,
+                    evidence_metadata: dict | None = None) -> dict:
+    """Append canonical Evidence from one trusted Harness Execution Receipt only."""
     out = deepcopy(session)
-    append_evidence(out, evidence, work_id=evidence.get("work_id"))
+    evidence = canonical_evidence_from_receipt(out, receipt_id=receipt_id,
+                                                evidence_metadata=evidence_metadata)
+    append_evidence(out, evidence, work_id=evidence["work_id"])
+    consume_harness_receipt(out, receipt_id, evidence["evidence_id"])
     _event(out, "EVIDENCE_RECORDED", {"evidence_id": evidence["evidence_id"],
-                                       "work_id": evidence["work_id"]})
+                                       "work_id": evidence["work_id"],
+                                       "receipt_id": receipt_id})
     return _bump(out, carry_evidence=True)
 
 
@@ -122,8 +130,30 @@ def get_strategy_guidance(session: dict, *, phase: str) -> dict:
     guidance = session.get("strategy_consumption", {})
     if phase not in guidance:
         raise ValueError("strategy_phase_invalid")
-    return {"phase": phase, "catalog_id": guidance[phase],
-            "core_invariants_unchanged": True}
+    catalog_id = guidance[phase]
+    result = {"phase": phase, "catalog_id": catalog_id,
+              "core_invariants_unchanged": True}
+    if phase == "INTERACTION":
+        latest = session.get("events", [])[-1] if session.get("events") else None
+        evidence_ids = list((latest or {}).get("details", {}).get("evidence_ids", []))
+        if not evidence_ids and latest and latest.get("type") == "EVIDENCE_RECORDED":
+            evidence_ids = [latest["details"]["evidence_id"]]
+        milestone = bool(evidence_ids and latest and latest.get("type") in {
+            "EVIDENCE_RECORDED", "CAPABILITY_INVOCATION_VERIFIED", "RECOVERY_REVALIDATED"})
+        if catalog_id == "milestone_evidence_updates":
+            result.update({"should_update": milestone, "update_reason": "MILESTONE_EVIDENCE"
+                           if milestone else "NO_VERIFIED_MILESTONE",
+                           "required_evidence_ids": evidence_ids if milestone else [],
+                           "detail_level": "MILESTONE"})
+        else:
+            material = latest is not None and latest.get("type") in {
+                "CAPABILITY_INVOCATION_FAILED", "RECOVERY_REVALIDATED", "SUSPENDED",
+                "RESUMED_VERIFIED", "COMPLETION_VERIFIED", "FAKE_PASS_BLOCKED"}
+            result.update({"should_update": material, "update_reason": "MATERIAL_STATE_CHANGE"
+                           if material else "NO_MATERIAL_STATE_CHANGE",
+                           "required_evidence_ids": evidence_ids if material else [],
+                           "detail_level": "CONCISE"})
+    return result
 
 
 def update_adaptive_strategy(session: dict, *, patch: dict,
@@ -283,7 +313,9 @@ def record_capability_result(session: dict, *, invocation_id: str, status: str,
         raise KeyError("capability_invocation_not_found")
     if invocation["status"] != "REQUESTED":
         raise ValueError("capability_invocation_already_terminal")
-    require_current_evidence(out, evidence_ids, work_id=invocation["work_id"], status=status)
+    evidence_records = require_current_evidence(out, evidence_ids, work_id=invocation["work_id"], status=status)
+    if any(record.get("invocation_id") != invocation_id for record in evidence_records):
+        raise PermissionError("capability_result_requires_matching_execution_receipt")
     input_hash = hashlib.sha256(json.dumps(invocation.get("input"), ensure_ascii=False,
                                            sort_keys=True).encode("utf-8")).hexdigest()
     invocation.update({"status": status, "output": deepcopy(output),
@@ -405,7 +437,8 @@ def change_conditions(session: dict, *, changed_facts: dict,
     for name, need in out["capability_needs"]["capabilities"].items():
         if need["required"] is True:
             out["capability_resolutions"][name] = resolve_capability_need(
-                name, sources["registry"], sources["upstream"], sources["harness"])
+                name, sources["registry"], sources["upstream"], sources["harness"],
+                strategy=out["adaptive_strategy"]["capability_preference"])
     out["acceptance"] = derive_final_acceptance(out["facts"], out["complexity"])
     evidence_change_keys = changed | {str(k) for k in changed_facts}
     classification = classify_verified_state(out.get("verified_state", {}), evidence_change_keys)
@@ -467,10 +500,15 @@ def record_recovery(session: dict, *, failure_id: str, action: str,
                                                work_id=failure["work_id"])
     regression_records = (require_current_evidence(out, regression_evidence_ids)
                           if regression_evidence_ids else [])
+    recovery_strategy = out["adaptive_strategy"]["recovery_strategy"]
+    recovery_sequence = (["ISOLATE_IMPACT", "ROOT_CAUSE", "BOUNDED_FIX", "ORIGINAL_BLOCKER",
+                          "REGRESSION"] if recovery_strategy == "isolate_then_root_cause_revalidate"
+                         else ["ROOT_CAUSE", "BOUNDED_FIX", "ORIGINAL_BLOCKER", "REGRESSION"])
     failure["recovery_attempts"].append({"action": action,
         "recovery_evidence_ids": list(recovery_evidence_ids),
         "blocker_evidence_ids": list(blocker_evidence_ids),
-        "regression_evidence_ids": list(regression_evidence_ids), "recorded_at": _now()})
+        "regression_evidence_ids": list(regression_evidence_ids), "recorded_at": _now(),
+        "strategy": recovery_strategy, "execution_sequence": recovery_sequence})
     require_regression = out.get("recovery_policy", {}).get("require_regression_evidence", True)
     passed = (all(item["status"] == "PASS" for item in blocker_records) and
               (bool(regression_records) or not require_regression) and
@@ -478,7 +516,8 @@ def record_recovery(session: dict, *, failure_id: str, action: str,
     failure["status"] = "RECOVERED_REVALIDATED" if passed else "RECOVERY_UNVERIFIED"
     out["status"] = "EXECUTING" if passed else "RECOVERING"
     _event(out, "RECOVERY_REVALIDATED" if passed else "RECOVERY_REVALIDATION_FAILED",
-           {"failure_id": failure_id})
+           {"failure_id": failure_id, "strategy": recovery_strategy,
+            "execution_sequence": recovery_sequence})
     return _bump(out, carry_evidence=True)
 
 
@@ -577,13 +616,13 @@ def advance(session: dict) -> dict:
     if out["status"] in {"RECOVERING", "SUSPENDED", "BLOCKED", "COMPLETED",
                          "PLAN_REVIEW_REQUIRED", "PLANNING"}:
         raise ValueError(f"advance_illegal_status:{out['status']}")
-    _ = out["adaptive_strategy"]["execution_order_preference"]
-    next_work = _next_legal_work(out)
+    next_work = select_next_legal_work(out, out["adaptive_strategy"]["execution_order_preference"])
     if next_work is None:
         raise ValueError("no_legal_next_work")
     out["current_work"] = next_work
     out["status"] = "EXECUTING"
-    _event(out, "WORK_ADVANCED", {"work_id": next_work})
+    _event(out, "WORK_ADVANCED", {"work_id": next_work,
+                                    "strategy": out["adaptive_strategy"]["execution_order_preference"]})
     return _bump(out)
 
 
@@ -655,6 +694,45 @@ def _confirmed_requirement_baseline(model: dict) -> dict:
 
 
 def _next_legal_work(session: dict) -> str | None:
+    return select_next_legal_work(session, "dependency_order")
+
+
+def select_next_legal_work(session: dict, strategy: str) -> str | None:
+    """Choose only dependency-legal real work; strategy orders the legal candidate set."""
+    if strategy not in {"dependency_order", "dependency_and_risk_aware"}:
+        raise ValueError("execution_order_strategy_invalid")
+    completed = {key for key, value in session.get("verified_state", {}).items()
+                 if value.get("status") == "PASS"}
+    all_items = [item for bucket in ("stages", "tasks", "checks")
+                 for item in session["plan"].get(bucket, [])]
+    by_name = {item.get("name"): item for item in all_items}
+    legal = []
+    for item in all_items:
+        name = item.get("name")
+        if name in completed:
+            continue
+        dependencies = {dep for dep in item.get("dependencies", []) if dep in by_name}
+        if dependencies <= completed:
+            legal.append(item)
+    if not legal:
+        return None
+    if strategy == "dependency_and_risk_aware":
+        chosen = max(legal, key=_work_risk_priority)
+        return chosen.get("name")
+    return legal[0].get("name")
+
+
+def _work_risk_priority(item: dict) -> tuple[int, int]:
+    raw = item.get("risk_score", item.get("risk", 0))
+    if isinstance(raw, str):
+        raw = {"HIGH": 3, "MEDIUM": 2, "LOW": 1}.get(raw.upper(), 0)
+    score = int(raw) if isinstance(raw, (int, float)) else 0
+    critical = 1 if item.get("critical_dependency") or item.get("failure_cost") == "HIGH" else 0
+    return score, critical
+
+
+def _legacy_next_legal_work(session: dict) -> str | None:
+    """Retained only for historical callers; all runtime decisions use select_next_legal_work."""
     completed = {key for key, value in session.get("verified_state", {}).items()
                  if value.get("status") == "PASS"}
     for bucket in ("stages", "tasks", "checks"):

@@ -13,10 +13,10 @@ Current product truth: [`docs/current/FINAL_PRODUCT_TARGET.md`](docs/current/FIN
 - Runtime Self Optimization means optional, Evidence-backed execution-strategy preferences. It never edits Core, source, version, commit, tag or Release.
 - Publisher Core Maintenance is a separate repository workflow governed by tests, review and a formal Release.
 - Normal users install the GitHub Release Asset. They never need the author's development workspace or adaptive-state files.
-The current Stable is [`v3.0.1`](https://github.com/tl3981390-blip/enterprise-ai-project-delivery/releases/tag/v3.0.1),
-frozen at commit `1d4eb860f175505e2e12f4f56ed54ad64e3f1236`. Its formal Asset SHA-256 is
-`11b253026efd5dac7b7e40ed6bb49d340c153c4ef8113cb6d8dd4a8e9267aa46`.
-`v3.0.0` remains an immutable failed post-release-validation history and must not be selected.
+`v3.0.1` is **FAILED POST-RELEASE VALIDATION — DO NOT USE**: its tag and Asset remain immutable
+historical evidence, but its Strategy behavior and Evidence ingress did not meet the final target.
+The `v3.0.2` source tree is an unpublished local candidate until its independent Release validation
+passes. Do not install it from `main`; use only a formally published Stable Release.
 
 **Stable Release identity is verified at install time from GitHub and `共享/schema/RELEASE_METADATA.json`.** Personal users may resolve the latest Stable Release; enterprise-controlled environments install an approved exact tag and do not auto-upgrade. Natural language is the user interface; human plans are
 authoritative; project facts determine the work; one runtime connects multi-turn understanding,

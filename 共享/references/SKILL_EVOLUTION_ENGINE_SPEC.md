@@ -2,7 +2,7 @@
 
 定位：这是发布者维护工具，不是 Runtime Self Optimization。**仅提案侧**（AUTO_PROPOSE / AUTO_TEST / AUTO_EVALUATE）；正式版本永远走 Release Gate，禁止 AUTO_RELEASE，禁止运行中的正式 Skill 在线自改。运行时自适应仅由 `adaptive_strategy_core.py` 的六项执行偏好承担，不要求代码、提交、Tag、Release 或更新。
 
-Runtime Strategy 只接受安全 Catalog ID，并只能由 `delivery_runtime:update_adaptive_strategy` 使用当前 Session Canonical Evidence Ledger 中的 PASS Evidence ID 驱动；本 Publisher 工具不得被 Runtime 调用。
+Runtime Strategy 只接受安全 Catalog ID，并只能由 `delivery_runtime:update_adaptive_strategy` 使用当前 Session 中、由 Harness Execution Receipt 构建的 Canonical PASS Evidence ID 驱动。六项 Strategy 必须在提问、计划、能力排序、恢复序列、合法 Work Unit 选择和 Host interaction guidance 的决策前产生可测行为差异；本 Publisher 工具不得被 Runtime 调用。
 机械核心：`共享/scripts/skill_evolution_core.py`。状态保存在当前 Harness/Workspace 允许的项目隔离持久层；
 Core 不绑定外部实验室、数据库或全公司经验平台。
 

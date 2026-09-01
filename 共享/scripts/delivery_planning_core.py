@@ -271,17 +271,25 @@ def classify_work_item(item: dict, complexity: dict) -> str:
 
 
 def compose_stages(fact_model: dict, complexity: dict, capability_needs: dict,
-                   human_plan: dict | None = None, upstream_plan: dict | None = None) -> dict:
+                   human_plan: dict | None = None, upstream_plan: dict | None = None,
+                   strategy: str = "minimal_real_work_units") -> dict:
     """Compose stages from the project's REAL work units. A capability never creates a
     stage by itself; stages come from problems to solve (user goals, existing state,
     human/enterprise plan, upstream planner, dependencies, risks, acceptance)."""
-    work_units = _discover_work_units(fact_model, capability_needs, human_plan, upstream_plan)
+    if strategy not in {"minimal_real_work_units", "risk_first_real_work_units"}:
+        raise ValueError("planning_strategy_invalid")
+    work_units = _order_real_work_units(
+        _discover_work_units(fact_model, capability_needs, human_plan, upstream_plan), strategy)
     stages, tasks, checks, na = [], [], [], []
     for unit in work_units:
         cls = classify_work_item(unit, complexity)
         entry = {"name": unit["name"], "class": cls, "goal": unit["goal"],
                  "work": unit.get("work", []), "output": unit.get("output", []),
                  "dependencies": unit.get("dependencies", []),
+                 "risk": unit.get("risk", unit.get("risk_score", 0)),
+                 "risk_score": unit.get("risk_score", unit.get("risk", 0)),
+                 "critical_dependency": bool(unit.get("critical_dependency", False)),
+                 "failure_cost": unit.get("failure_cost"),
                  "assumptions": unit.get("assumptions", []),
                  "capabilities": unit.get("capabilities", []),
                  "entry_condition": unit.get("entry_condition", "上一工作项完成"),
@@ -301,7 +309,44 @@ def compose_stages(fact_model: dict, complexity: dict, capability_needs: dict,
             checks = []
         tasks = []
     return {"stages": stages, "tasks": tasks, "checks": checks, "not_applicable": na,
-            "stage_count": len(stages), "schema": STAGE_SCHEMA}
+            "stage_count": len(stages), "schema": STAGE_SCHEMA,
+            "planning_strategy_applied": strategy}
+
+
+def _order_real_work_units(units: list[dict], strategy: str) -> list[dict]:
+    """Order only already-real work. Strategy may not create governance work or bypass deps."""
+    if strategy == "minimal_real_work_units":
+        # Collapse only exact duplicate real work identities; no scope is invented or dropped.
+        seen, compact = set(), []
+        for unit in units:
+            identity = (unit.get("name"), unit.get("goal"), tuple(unit.get("work", [])))
+            if identity not in seen:
+                compact.append(unit)
+                seen.add(identity)
+        return compact
+    remaining = list(units)
+    ordered, completed = [], set()
+    names = {str(unit.get("name")) for unit in units}
+    while remaining:
+        legal = [unit for unit in remaining
+                 if set(unit.get("dependencies", [])) & names <= completed]
+        # Unknown/external dependency is not silently bypassed: retain declared order.
+        if not legal:
+            legal = [remaining[0]]
+        chosen = max(legal, key=_risk_priority)
+        ordered.append(chosen)
+        completed.add(str(chosen.get("name")))
+        remaining.remove(chosen)
+    return ordered
+
+
+def _risk_priority(unit: dict) -> tuple[int, int]:
+    raw = unit.get("risk_score", unit.get("risk", 0))
+    if isinstance(raw, str):
+        raw = {"HIGH": 3, "MEDIUM": 2, "LOW": 1}.get(raw.upper(), 0)
+    score = raw if isinstance(raw, (int, float)) else 0
+    critical = 1 if unit.get("critical_dependency") or unit.get("failure_cost") == "HIGH" else 0
+    return int(score), critical
 
 
 def _discover_work_units(fact_model: dict, capability_needs: dict,

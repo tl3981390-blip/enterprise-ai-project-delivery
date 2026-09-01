@@ -10,6 +10,8 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from adaptive_strategy_core import load_strategy
+
 FACT_SOURCES = {"USER_EXPLICIT", "USER_CONFIRMED", "PROJECT_EVIDENCE",
                 "SYSTEM_OBSERVED", "AI_INFERRED"}
 FACT_STATES = {"UNKNOWN", "PROPOSED", "ACTIVE", "CONFLICTED", "SUPERSEDED",
@@ -27,7 +29,9 @@ DECISION_DIMENSIONS = {
 
 def begin_understanding(*, raw_goal: str, mode: str = "NEW_PROJECT",
                         observed_facts: dict | None = None,
-                        required_dimensions: list[str] | None = None) -> dict:
+                        required_dimensions: list[str] | None = None,
+                        adaptive_strategy_state: dict | None = None,
+                        question_strategy: str | None = None) -> dict:
     if not isinstance(raw_goal, str) or not raw_goal.strip():
         raise ValueError("natural_language_goal_required")
     if mode not in {"NEW_PROJECT", "EXISTING_PROJECT"}:
@@ -38,9 +42,13 @@ def begin_understanding(*, raw_goal: str, mode: str = "NEW_PROJECT",
     unknown_dimensions = sorted(set(required_dimensions) - set(DECISION_DIMENSIONS))
     if unknown_dimensions:
         raise ValueError(f"decision_dimension_invalid:{unknown_dimensions}")
+    strategy = load_strategy(adaptive_strategy_state)
+    if question_strategy is not None:
+        strategy = load_strategy({**strategy, "question_strategy": question_strategy})
     session = {"understanding_id": str(uuid4()), "raw_goal": raw_goal.strip(),
                "mode": mode, "facts": {}, "fact_events": [], "asked_questions": [],
                "required_dimensions": list(dict.fromkeys(required_dimensions)),
+               "adaptive_strategy": strategy,
                "status": "UNDERSTANDING", "created_at": _now(), "updated_at": _now()}
     _put(session, "user_real_goal", raw_goal.strip(), "USER_EXPLICIT", "initial_goal")
     for name, entry in (observed_facts or {}).items():
@@ -106,7 +114,16 @@ def evaluate_understanding(session: dict) -> dict:
                           "decision_impacts": list(DECISION_DIMENSIONS.get(name, ("Plan",))),
                           "prompt": f"关于“{name}”目前有冲突信息，请确认哪一个为准。"})
     blockers += conflicts
-    out["questions"] = questions[:4]  # one high-value round, not a one-round limit
+    question_strategy = out.get("adaptive_strategy", {}).get(
+        "question_strategy", "ask_only_consequential_unknowns")
+    if question_strategy == "ask_one_highest_impact_first":
+        questions = sorted(questions, key=_question_impact, reverse=True)[:1]
+    elif question_strategy == "ask_only_consequential_unknowns":
+        questions = questions[:4]  # one high-value round, not a one-round limit
+    else:
+        raise ValueError("question_strategy_invalid")
+    out["questions"] = questions
+    out["question_strategy_applied"] = question_strategy
     out["discovery_actions"] = discovery_actions
     out["blocking_unknowns"] = sorted(set(blockers))
     out["sufficiency"] = {
@@ -192,6 +209,14 @@ def _prompt(name: str, mode: str) -> str:
         "existing_evidence": "已有结果中哪些有可复核证据，哪些只是历史声明？",
     }
     return prompts.get(name, f"请确认会影响后续决策的事实：{name}。")
+
+
+def _question_impact(question: dict) -> tuple[int, str]:
+    """Pick one real consequential ambiguity; every candidate already passed the gate."""
+    weights = {"Scope": 5, "Acceptance": 5, "Permission": 4, "Work Unit": 4,
+               "Architecture": 3, "Plan": 2, "Capability": 2}
+    return max((weights.get(impact, 1) for impact in question.get("decision_impacts", [])),
+               default=1), question.get("fact", "")
 
 
 def _now() -> str:
