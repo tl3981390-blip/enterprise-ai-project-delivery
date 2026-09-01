@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 3.0.2 (unreleased candidate)
+## 3.0.2 (2026-09-01)
 
 - Made all six Adaptive Strategy catalog fields change the corresponding decision before it is made: consequential-question selection, real-work plan ordering, eligible capability ordering, recovery sequence, dependency-legal work selection and structured Host interaction guidance.
 - Replaced public caller-made Evidence ingress with one-time Harness Execution Receipts. Canonical Evidence now derives producer, source, status, candidate/work/execution identity and verified artifact hash from the receipt; metadata cannot override them.
