@@ -32,6 +32,9 @@ class ReleaseIdentityModelTests(unittest.TestCase):
         self.assertIn('"git", "archive"', source)
         self.assertIn('--prefix=enterprise-ai-project-delivery/', source)
         self.assertIn("release_build_requires_clean_worktree", source)
+        self.assertIn("INSTALL_INFO.json", source)
+        self.assertIn("SELF_CONTAINED_FULL_CORE", source)
+        self.assertIn("date_time=(1980, 1, 1, 0, 0, 0)", source)
 
     def _is_git_checkout(self):
         return (ROOT / ".git").exists()
