@@ -95,13 +95,11 @@ the model with materially less supervision because confirmed intent, plan, corre
 scope, recovery and completion are enforced by durable state and current Evidence rather than model
 memory alone.
 
-## Release status — PENDING_EXTERNAL_VALIDATION
+## Release status — PASS
 
-The candidate has not been published as a formal GitHub Release. `v3.0.0-rc3` has no immutable tag,
-release asset digest, GitHub asset re-download, or fresh external Harness session. The canonical
-metadata therefore states `release_channel: candidate` and declares the exact intended prerelease
-identity `github_release: v3.0.0-rc3`. Historical tags are not moved.
-
-Formal Release closure requires an approved exact final version/tag, clean committed candidate,
-release asset and SHA, publication, re-download, tag/asset identity verification, and a fresh Harness
-black-box run. Until then the formal release status is `PENDING_EXTERNAL_VALIDATION`, not PASS.
+The exact `v3.0.0-rc3` candidate was subsequently committed, annotated-tagged, published as a GitHub
+prerelease, downloaded again, installed from the downloaded ZIP, fully regressed, and exercised in a
+fresh real Codex Harness journey. See
+[`V3_RC_RELEASE_VALIDATION_REPORT.md`](V3_RC_RELEASE_VALIDATION_REPORT.md) for the immutable identity,
+SHA chain, failed rc1/rc2 attempts, historical attacks and Stable recommendation. Historical tags
+were not moved. Non-Codex Harness compatibility items remain `PENDING_EXTERNAL_VALIDATION`.
