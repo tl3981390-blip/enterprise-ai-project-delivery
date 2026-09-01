@@ -86,6 +86,6 @@ python <技能目录>/共享/scripts/validate-skill.py --root <技能目录>
 ## 已知边界（如实告诉用户）
 
 - **仓库可见性运行时检测**：不写死 Public/Private。无读权限时只要求合法授权，不伪造。
-- **正式安装/更新绝不搜索作者本地开发区**（`D:\企业Skill实验室` 等）。旧式薄适配器指向作者 D 盘的安装（2026-08-31 之前手工装的）在非作者机器上会 `CORE_RELEASE_IDENTITY_BLOCKED`——用本安装器自包含模式覆盖即修复。
+- **正式安装/更新绝不搜索作者本地开发区**（例如任意维护者工作区）。旧式薄适配器指向作者机器的安装在其他电脑上会 `CORE_RELEASE_IDENTITY_BLOCKED`——用本安装器自包含模式覆盖即修复。
 - **正式更新**只能走：Installed Version → Canonical Remote Release Metadata → 远端正式 Release → Download → Verify → Update。不得从任何本地二次开发目录复制。
 - **版本选择与更新**：个人/探索安装可在用户明确要求时解析 Latest Formal Release；企业试用、测试、预生产和生产必须固定人类批准的精确 tag，验证 asset SHA-256，且不得自动更新。企业升级流程是“候选环境验证 → 人类批准 → 生产变更窗口 → 重新自检与记录”，不是“发现新版本就覆盖”。完整规则见 [企业版本治理](ENTERPRISE_VERSION_GOVERNANCE.md)。
