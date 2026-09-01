@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.1 (2026-09-01)
+
+- Fixed installer rollback placement: upgrade backups now live outside the Harness `skills/`
+  discovery root, so historical module files cannot reappear in Codex `/` menus.
+- Added a two-install regression proving the scan root still contains only the active Skill.
+
 ## 2.0.0 Candidate (2026-09-01)
 
 - Breaking discovery fix: the package now exposes exactly one public `SKILL.md`; the 20

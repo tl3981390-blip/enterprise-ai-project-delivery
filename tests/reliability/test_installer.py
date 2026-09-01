@@ -162,6 +162,18 @@ class DryRunSelfCheckTests(unittest.TestCase):
                  "--root", str(target)], capture_output=True, text=True, encoding="utf-8")
             self.assertEqual(check.returncode, 0, check.stdout)
 
+    def test_upgrade_backup_is_outside_recursive_skill_discovery_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skills_root = Path(tmp) / "skills"
+            target = skills_root / "enterprise-ai-project-delivery"
+            first = run_installer("--target", str(target))
+            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+            second = run_installer("--target", str(target))
+            self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
+            backups = list((Path(tmp) / "skill-backups").glob("enterprise-ai-project-delivery.backup-*"))
+            self.assertEqual(len(backups), 1)
+            self.assertEqual(list(skills_root.rglob("SKILL.md")), [target / "SKILL.md"])
+
     def test_pre_release_source_verification_fails_until_tagged(self):
         # the NEXT version's tag (v1.6.0) is not published; a --zip from a different
         # release must still fail, and a wrong-commit metadata must fail. v1.6.0 itself

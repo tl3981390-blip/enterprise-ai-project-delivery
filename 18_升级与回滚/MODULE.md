@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.18-upgrade-rollback
 description: 模块18·升级与回滚。semver/迁移/兼容/回滚演练。Use when 需版本演进或回退。
-version: 2.0.0
+version: 2.0.1
 license: MIT
 compatibility: open
 metadata:

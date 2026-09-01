@@ -241,7 +241,15 @@ def main() -> int:
             installs.append({"target": str(target), "dry_run": True})
             continue
         if target.exists():
-            backup = target.with_name(target.name + f".backup-{int(time.time())}")
+            # Never retain a prior Skill beneath the Harness scan root (normally
+            # `<codex-home>/skills`): recursive discovery would expose all of its
+            # historical MODULE/SKILL files in `/`. Keep rollback copies beside that
+            # root instead, under `<codex-home>/skill-backups`.
+            backup_root = target.parent.parent / "skill-backups"
+            backup_root.mkdir(parents=True, exist_ok=True)
+            backup = backup_root / (target.name + f".backup-{int(time.time())}")
+            while backup.exists():
+                backup = backup_root / (target.name + f".backup-{time.time_ns()}")
             target.rename(backup)
             installs.append({"target": str(target), "backup": str(backup)})
         copied = copy_tree(root, target)
