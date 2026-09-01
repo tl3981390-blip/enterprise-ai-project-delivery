@@ -115,6 +115,6 @@ def test_portable_003_strategy_default_has_no_storage_or_author_path():
 def test_portable_004_release_metadata_declares_self_contained_asset():
     import json
     meta = json.loads((ROOT / "共享" / "schema" / "RELEASE_METADATA.json").read_text(encoding="utf-8"))
-    assert meta["version"] == "3.0.3"
+    assert meta["version"] == "3.0.4"
     assert meta["release_channel"] == "stable"
-    assert meta["release_asset"] == "enterprise-ai-project-delivery-v3.0.3.zip"
+    assert meta["release_asset"] == "enterprise-ai-project-delivery-v3.0.4.zip"

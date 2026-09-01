@@ -1,9 +1,15 @@
 # CHANGELOG
 
+## 3.0.4 (2026-09-02)
+
+- Keeps the v3.0.3 Codex discovery repair and adds a release-builder gate that rejects a tagged Asset whose operational documentation names another version as Current Stable.
+- Removes the circular practice of hardcoding a not-yet-created tag commit and Asset digest into pre-release source documentation; formal identity remains exact through the immutable tag, GitHub digest and `INSTALL_INFO.json`.
+
 ## 3.0.3 (2026-09-01)
 
 - Repaired the public `SKILL.md` YAML frontmatter so Codex can discover the single root Skill through `/`.
 - Made the validator reject body text inside public frontmatter and added a regression for that discovery failure.
+- **FAILED POST-RELEASE VALIDATION — DO NOT USE.** The frozen Asset still named v3.0.2 as Current Stable in operational documentation.
 
 ## 3.0.2 (2026-09-01)
 

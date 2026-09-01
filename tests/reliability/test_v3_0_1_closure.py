@@ -182,7 +182,7 @@ def test_install_id_001_005_006_007_008_exact_identity_behavior():
 
 @pytest.mark.parametrize("identity,error", [
     (None, "missing_INSTALL_INFO"),
-    ("tag v3.0.3 -> commit not-a-sha", "canonical_identity"),
+    ("tag v3.0.4 -> commit not-a-sha", "canonical_identity"),
     ("tag v9.9.9 -> commit " + "a" * 40, "tag_or_version_mismatch"),
 ])
 def test_install_id_002_003_004_formal_asset_identity_fails_closed(identity, error):

@@ -33,8 +33,27 @@ class ReleaseIdentityModelTests(unittest.TestCase):
         self.assertIn('--prefix=enterprise-ai-project-delivery/', source)
         self.assertIn("release_build_requires_clean_worktree", source)
         self.assertIn("INSTALL_INFO.json", source)
+        self.assertIn("_validate_tagged_release_source", source)
+        self.assertIn("tagged_operational_document_version_mismatch", source)
         self.assertIn("SELF_CONTAINED_FULL_CORE", source)
         self.assertIn("date_time=(1980, 1, 1, 0, 0, 0)", source)
+
+    def test_release_builder_rejects_stale_current_operational_docs(self):
+        spec = importlib.util.spec_from_file_location(
+            "build_release_asset", ROOT / "docs" / "build_release_asset.py")
+        module = importlib.util.module_from_spec(spec)
+        self.assertIsNotNone(spec.loader)
+        spec.loader.exec_module(module)
+        meta = dict(META)
+
+        def stale_tagged_text(_tag, relative_path):
+            if relative_path.endswith("RELEASE_METADATA.json"):
+                return json.dumps(meta)
+            return "当前 Stable 是 `v3.0.3`。"
+
+        module._tagged_text = stale_tagged_text
+        with self.assertRaisesRegex(SystemExit, "tagged_operational_document_version_mismatch"):
+            module._validate_tagged_release_source(meta["tag"], meta)
 
     def _is_git_checkout(self):
         return (ROOT / ".git").exists()
