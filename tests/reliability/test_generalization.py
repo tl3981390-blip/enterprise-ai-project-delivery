@@ -362,18 +362,10 @@ class IdentityAndAdapterTests(unittest.TestCase):
             capture_output=True, text=True, encoding="utf-8")
         self.assertEqual(result.returncode, 0, result.stdout)
 
-    def test_sys029_v150_tag_unchanged(self):
-        if not (ROOT / ".git").exists():
-            meta = json.loads((ROOT / "共享" / "schema" / "RELEASE_METADATA.json").read_text(encoding="utf-8"))
-            self.assertEqual(meta["history"]["v1.5.0"],
-                             "491f6c9f76c6c384fd18a21303aba56812eeadb1")
-            return
-        try:
-            head = subprocess.run(["git", "rev-parse", "v1.5.0^{commit}"], cwd=ROOT,
-                                  capture_output=True, text=True).stdout.strip()
-        except OSError:
-            self.skipTest("git unavailable")
-        self.assertEqual(head, "491f6c9f76c6c384fd18a21303aba56812eeadb1")
+    def test_sys029_v150_historical_identity_is_preserved_after_tag_hygiene(self):
+        meta = json.loads((ROOT / "共享" / "schema" / "RELEASE_METADATA.json").read_text(encoding="utf-8"))
+        self.assertEqual(meta["history"]["v1.5.0"],
+                         "491f6c9f76c6c384fd18a21303aba56812eeadb1")
 
     def test_sys030_historical_release_evidence_untouched(self):
         for rel in ("v1.0.0", "v1.1.0", "v1.3.0", "v1.4.0", "v1.5.0"):

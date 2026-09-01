@@ -4,8 +4,9 @@ description: 通过自然语言接手并可靠交付复杂项目：理解真实�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 3.0.2
+  version: 3.0.3
   language: zh-CN
+---
 
 # v3 Stable execution boundary
 
@@ -14,7 +15,6 @@ Only caller-selected consequential unknowns may trigger questions. A clear bound
 Adaptive Strategy values are closed catalog IDs, are loaded before the corresponding decision, and must measurably change only safe behavior: consequential-question selection, real-work plan ordering, eligible capability ordering, recovery sequence, dependency-legal Work Unit selection or structured Host interaction guidance. Updates call `delivery_runtime:update_adaptive_strategy` with current PASS Evidence IDs in the same session ledger; they never edit Core, permissions, authority, Evidence rules or releases.
 
 Canonical Evidence enters only through a Harness/Tool Adapter-created `HARNESS_EXECUTION` receipt. The public `record_evidence` operation accepts a previously registered one-time `receipt_id` plus limited acceptance/dependency/business metadata; it never accepts a caller-made Evidence dict. Producer, source reference, status, candidate/work/execution identity and artifact hash are constructed from the receipt and cannot be overridden. Human plans, requirement changes, user corrections, user pause/resume and cancellation all require the matching trusted Harness origin; AI inference can only remain proposed.
----
 
 # Reliable project delivery
 

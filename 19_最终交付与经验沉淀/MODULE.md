@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.19-handover
 description: 模块19·最终交付与经验沉淀。最终报告+经验入库。Use when 交付完成需收尾。
-version: 3.0.2
+version: 3.0.3
 license: MIT
 compatibility: open
 metadata:

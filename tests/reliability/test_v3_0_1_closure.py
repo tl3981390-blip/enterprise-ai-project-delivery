@@ -22,6 +22,11 @@ ENTERPRISE = {**USER, "origin": "ENTERPRISE"}
 PROJECT = {**USER, "origin": "PROJECT"}
 
 
+def current_release_identity() -> tuple[str, str]:
+    metadata = json.loads((ROOT / "共享" / "schema" / "RELEASE_METADATA.json").read_text(encoding="utf-8"))
+    return metadata["version"], metadata["tag"]
+
+
 def delivery(**kwargs):
     return _start_delivery_from_facts(facts={"goal": "改按钮"}, **kwargs)
 
@@ -142,8 +147,9 @@ def _release_like_source(base: Path, identity: str | None) -> Path:
         ".git", ".mimosa", ".pytest_cache", "__pycache__", "*.pyc"))
     info = src / "INSTALL_INFO.json"
     if identity is not None:
+        version, _tag = current_release_identity()
         info.write_text(json.dumps({"skill_id": "enterprise-ai-project-delivery",
-            "version": "3.0.2", "mode": "SELF_CONTAINED_FULL_CORE",
+            "version": version, "mode": "SELF_CONTAINED_FULL_CORE",
             "canonical_identity": identity}), encoding="utf-8")
     elif info.exists():
         info.unlink()  # make INSTALL-ID-002 genuinely absent, even if dev root has ignored state
@@ -160,7 +166,8 @@ def _run_release_install(src: Path, target: Path):
 def test_install_id_001_005_006_007_008_exact_identity_behavior():
     with tempfile.TemporaryDirectory() as tmp:
         base = Path(tmp)
-        identity = "tag v3.0.2 -> commit " + "a" * 40
+        _version, tag = current_release_identity()
+        identity = f"tag {tag} -> commit " + "a" * 40
         src = _release_like_source(base, identity)
         target = base / "totally-different" / "skills" / "enterprise-ai-project-delivery"
         result = _run_release_install(src, target)
@@ -175,7 +182,7 @@ def test_install_id_001_005_006_007_008_exact_identity_behavior():
 
 @pytest.mark.parametrize("identity,error", [
     (None, "missing_INSTALL_INFO"),
-    ("tag v3.0.2 -> commit not-a-sha", "canonical_identity"),
+    ("tag v3.0.3 -> commit not-a-sha", "canonical_identity"),
     ("tag v9.9.9 -> commit " + "a" * 40, "tag_or_version_mismatch"),
 ])
 def test_install_id_002_003_004_formal_asset_identity_fails_closed(identity, error):

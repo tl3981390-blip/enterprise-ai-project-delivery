@@ -30,7 +30,7 @@ MODULES = [
 ]
 
 
-def parse_frontmatter(text: str):
+def parse_frontmatter(text: str, *, strict_yaml_metadata: bool = False):
     if not text.startswith("---"):
         return None, "缺少 frontmatter（需以 --- 开头）"
     if text.count("---") < 2:
@@ -38,6 +38,11 @@ def parse_frontmatter(text: str):
     _, fm, _remain = text.split("---", 2)
     data = {}
     for line in fm.strip().splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or line.startswith((" ", "\t")):
+            continue
+        if strict_yaml_metadata and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]*\s*:.*", line):
+            return None, f"frontmatter 不是有效 YAML metadata 行: {line!r}"
         if ":" in line and not line.startswith(" "):
             k, _, v = line.partition(":")
             data[k.strip()] = v.strip()
@@ -56,7 +61,7 @@ def validate_skill(root: Path):
     if not main_skill.exists():
         errors.append("缺少根 SKILL.md")
     else:
-        data, err = parse_frontmatter(main_skill.read_text(encoding="utf-8"))
+        data, err = parse_frontmatter(main_skill.read_text(encoding="utf-8"), strict_yaml_metadata=True)
         if err:
             errors.append(f"{main_skill.name}: {err}")
         else:
