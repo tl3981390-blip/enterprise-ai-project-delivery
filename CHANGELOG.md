@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 1.9.1 Candidate (2026-09-01)
+
+- Corrected the released installation contract: personal exploration may select Latest Stable,
+  while enterprise trial/test/pre-production/production must pin a human-approved exact tag,
+  verify the Release asset SHA-256 and never auto-upgrade.
+- Added an auditable enterprise version-governance guide and synchronized public install,
+  adapter, development-migration, CEO and Workspace recovery documentation.
+- No delivery-runtime or planning behavior changed; all historical tags remain immutable.
+
 ## 1.9.0 Candidate (2026-09-01)
 
 - Added arbitrary project-declared capability needs without allowing capabilities to create Stages.

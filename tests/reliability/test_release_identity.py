@@ -50,11 +50,19 @@ class ReleaseIdentityModelTests(unittest.TestCase):
         self.assertIn("releases/latest", agent_doc)
         self.assertIn("tagName", agent_doc)
 
+    def test_rel004b_enterprise_pin_does_not_fall_back_to_latest(self):
+        agent_doc = AGENT.read_text(encoding="utf-8")
+        governance = (ROOT / "docs" / "ENTERPRISE_VERSION_GOVERNANCE.md").read_text(encoding="utf-8")
+        self.assertIn("<APPROVED_TAG>", agent_doc)
+        self.assertIn("不得解析 Latest Stable", agent_doc)
+        self.assertIn("asset SHA-256", governance)
+        self.assertIn("禁止", governance)
+
     def test_rel005_agent_install_never_hardcodes_version(self):
         agent_doc = AGENT.read_text(encoding="utf-8")
         self.assertNotIn("当前正式版本 = v1.6.0", agent_doc)
         self.assertNotIn("当前正式版本 = v1.5.1", agent_doc)
-        self.assertIn("不预写死", agent_doc)
+        self.assertIn("不把“当前版本”写死", agent_doc)
 
     def test_rel006_visibility_not_hardcoded(self):
         agent_doc = AGENT.read_text(encoding="utf-8")

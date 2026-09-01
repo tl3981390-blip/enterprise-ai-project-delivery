@@ -113,7 +113,10 @@ class FormalInstallFlowTests(unittest.TestCase):
 
     def test_inst004_stable_release_not_main(self):
         agent_doc = (ROOT / "docs" / "AGENT_INSTALL.md").read_text(encoding="utf-8")
-        self.assertIn("默认 Stable Release", agent_doc)
+        self.assertIn("个人/探索模式", agent_doc)
+        self.assertIn("企业受控模式", agent_doc)
+        self.assertIn("<APPROVED_TAG>", agent_doc)
+        self.assertIn("不得自动升级", agent_doc)
         self.assertIn("不用 main 快照", agent_doc)
 
     def test_inst009_formal_update_never_searches_local_workspace(self):

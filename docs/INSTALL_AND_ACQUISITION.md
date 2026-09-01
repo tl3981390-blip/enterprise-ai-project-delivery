@@ -14,7 +14,7 @@ enterprise-ai-project-delivery 的最新 Stable Release，并遵循 docs/AGENT_I
 请报告真实限制，不得假装安装成功。
 ```
 
-安装器在运行时解析 GitHub Latest Stable 和 `共享/schema/RELEASE_METADATA.json`，不在本文写死版本。仓库当前为公开仓库；GitHub 或 Harness 的限流、网络或组织策略仍可能要求合法认证。不要把密码、PAT、2FA、OAuth secret 或私钥发送给模型。
+上面的“最新 Stable Release”只适用于个人使用或探索。企业试用、测试、预生产和生产必须在指令中提供批准的精确 tag，验证该 tag 的 Release asset SHA-256，且禁止自动升级或回退到 Latest Stable。见 [企业版本治理](ENTERPRISE_VERSION_GOVERNANCE.md)。仓库当前为公开仓库；GitHub 或 Harness 的限流、网络或组织策略仍可能要求合法认证。不要把密码、PAT、2FA、OAuth secret 或私钥发送给模型。
 
 正式 Release ZIP 与绿色 **Code → Download ZIP** 不同：前者具有发布身份与 GitHub 资产 SHA-256，后者只是分支快照，不能用于正式身份验收。
 

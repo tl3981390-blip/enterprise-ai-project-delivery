@@ -13,7 +13,7 @@ git tag --sort=-version:refname
 git switch -c <work>-dev
 ```
 
-不要在文档中长期写死“当前版本”；以 GitHub Latest Stable 和 `共享/schema/RELEASE_METADATA.json` 为准。历史 tag 和 Release 资产不可移动、重建或覆盖。
+不要在文档中长期写死“当前版本”；个人探索可从 GitHub Latest Stable 和 `共享/schema/RELEASE_METADATA.json` 发现版本。企业受控环境不跟随 Latest Stable，而是固定人类批准的精确 tag，并通过候选验证和明确授权升级。历史 tag 和 Release 资产不可移动、重建或覆盖。开发 Workspace 的恢复不改变任何企业运行环境已批准的 Skill 版本；正式环境仍从批准 tag 的 Release asset 安装。详见 [企业版本治理](ENTERPRISE_VERSION_GOVERNANCE.md)。
 
 ## 继续开发整个企业 Skill 实验室
 

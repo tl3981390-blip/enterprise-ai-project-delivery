@@ -4,7 +4,7 @@ description: 通过自然语言接手并可靠交付复杂项目：理解真实�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 1.9.0
+  version: 1.9.1
   language: zh-CN
 ---
 
@@ -60,4 +60,4 @@ Capability 只能作为已发现 Work Unit 的施工或验证资源，绝不能�
 
 ## 安装与发布边界
 
-正式安装必须从仓库 URL 解析最新 Stable Release，验证 tag/资产身份，安装自包含副本并运行自检；不得依赖作者开发目录。开发 Workspace 的迁移与公开 Skill 分离，私有 bootstrap 不进入 Release。发布前完成 Candidate 验收，历史 tag 永不移动；无法验证的远端或 Harness 结果保持 `PENDING_EXTERNAL_VALIDATION`。安装细节见 `docs/AGENT_INSTALL.md`。
+正式安装必须从仓库 URL 获取 GitHub Release asset，验证 tag/资产身份，安装自包含副本并运行自检；不得依赖作者开发目录。个人使用可解析最新 Stable Release；企业受控环境必须使用人类批准的精确 tag，禁止静默回退或自动升级，并记录安装身份。开发 Workspace 的迁移与公开 Skill 分离，私有 bootstrap 不进入 Release。发布前完成 Candidate 验收，历史 tag 永不移动；无法验证的远端或 Harness 结果保持 `PENDING_EXTERNAL_VALIDATION`。安装细节见 `docs/AGENT_INSTALL.md` 与 `docs/ENTERPRISE_VERSION_GOVERNANCE.md`。

@@ -14,20 +14,30 @@ https://github.com/tl3981390-blip/enterprise-ai-project-delivery
 
 ## 你必须自动完成的步骤（按序，每步验证）
 
-### 1. 取得正式版源码（默认 Stable Release，不用 main 快照）
+### 1. 先确认安装模式，再取得正式版源码（不用 main 快照）
+
+先从用户指令判断模式：
+
+- **个人/探索模式**：用户没有指定版本时，才可解析 GitHub Latest Stable Release。
+- **企业受控模式**：用户、企业变更单或环境策略指定了 tag 时，必须只使用该精确 tag；不得解析 Latest Stable、不得回退到其他版本、不得自动升级。若 tag 缺失或不合法，停止并要求人类提供批准版本。
 
 ```bash
-# 首选：下载正式 Release ZIP（身份可验 SHA）
+# 个人/探索模式：先解析 Latest Stable 的 tag
+gh release view -R tl3981390-blip/enterprise-ai-project-delivery --json tagName
+
+# 企业受控模式：<APPROVED_TAG> 由人类/企业明确提供；不要替换为“最新”
+gh release view <APPROVED_TAG> -R tl3981390-blip/enterprise-ai-project-delivery --json tagName,assets
+
+# 两种模式均只下载已选定 tag 对应的正式 Release ZIP（身份可验 SHA）
 gh release download <TAG> -R tl3981390-blip/enterprise-ai-project-delivery \
     -p 'enterprise-ai-project-delivery-*.zip' -D /tmp/eapd-install
-# 或 API: GET /repos/<owner>/<repo>/releases/latest  → 取 tag_name 与 asset URL
 unzip /tmp/eapd-install/*.zip -d /tmp/eapd-install/src && cd /tmp/eapd-install/src
 
 # 备选：git clone（私有仓库需要本机已有合法认证：gh auth login / Credential Manager / SSH key）
 git clone https://github.com/tl3981390-blip/enterprise-ai-project-delivery.git
 ```
 
-**当前正式版本**：**不预写死**。安装时通过 `gh release view --json tagName -R tl3981390-blip/enterprise-ai-project-delivery` 或 `GET /repos/.../releases/latest` 自动发现；本文件只描述机制，不记录「当前版本」。
+个人/探索模式可通过 `gh release view --json tagName -R tl3981390-blip/enterprise-ai-project-delivery` 或 `GET /repos/.../releases/latest` 自动发现版本。企业受控模式只查询并下载 `<APPROVED_TAG>`。本文件不把“当前版本”写死，但企业安装记录必须写明实际 tag。
 
 ### 2. 验证身份（防伪）
 
@@ -61,7 +71,7 @@ python <技能目录>/共享/scripts/validate-skill.py --root <技能目录>
 ### 6. 报告（装完输出给用户）
 
 ```text
-安装结果：目标目录 / 文件数 / 版本（来自元数据）/ tag 验证 / 自检 0 错
+安装结果：目标目录 / 文件数 / skill id / 版本（来自元数据）/ 精确 tag / Release asset SHA-256 / 自检结果
 调用方式：对话中说 "使用 enterprise-ai-project-delivery 治理：<任务>"
 ```
 
@@ -76,4 +86,4 @@ python <技能目录>/共享/scripts/validate-skill.py --root <技能目录>
 - **仓库可见性运行时检测**：不写死 Public/Private。无读权限时只要求合法授权，不伪造。
 - **正式安装/更新绝不搜索作者本地开发区**（`D:\企业Skill实验室` 等）。旧式薄适配器指向作者 D 盘的安装（2026-08-31 之前手工装的）在非作者机器上会 `CORE_RELEASE_IDENTITY_BLOCKED`——用本安装器自包含模式覆盖即修复。
 - **正式更新**只能走：Installed Version → Canonical Remote Release Metadata → 远端正式 Release → Download → Verify → Update。不得从任何本地二次开发目录复制。
-- **版本自动发现**：永远安装 Latest Formal Release；发新版后本文件不需要手工改版本号。
+- **版本选择与更新**：个人/探索安装可在用户明确要求时解析 Latest Formal Release；企业试用、测试、预生产和生产必须固定人类批准的精确 tag，验证 asset SHA-256，且不得自动更新。企业升级流程是“候选环境验证 → 人类批准 → 生产变更窗口 → 重新自检与记录”，不是“发现新版本就覆盖”。完整规则见 [企业版本治理](ENTERPRISE_VERSION_GOVERNANCE.md)。

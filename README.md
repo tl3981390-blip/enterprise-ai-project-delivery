@@ -5,15 +5,17 @@
 >
 > 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
-**Stable Release identity is resolved at install time from GitHub and `共享/schema/RELEASE_METADATA.json`.** Natural language is the user interface; human plans are
+**Stable Release identity is verified at install time from GitHub and `共享/schema/RELEASE_METADATA.json`.** Personal users may resolve the latest Stable Release; enterprise-controlled environments install an approved exact tag and do not auto-upgrade. Natural language is the user interface; human plans are
 authoritative; project facts determine the work; one runtime connects planning, partial
 replanning, recovery and evidence-based completion. Historical tags remain immutable.
 
 ## Get the skill — pick one path
 
-**I just want to USE it** → resolve the repository's latest Stable GitHub Release,
+**I just want to USE it personally** → resolve the repository's latest Stable GitHub Release,
 download its versioned asset, verify its published digest, then install it. The green
 **Code → Download ZIP** button is a branch snapshot, not a formal Release asset.
+
+**Enterprise test or production** → give the Harness the approved exact tag, require asset-SHA verification, and prohibit automatic upgrades. See [Enterprise version governance](docs/ENTERPRISE_VERSION_GOVERNANCE.md).
 
 **Have your AI harness install it for you (agent mode)** → give it the repository URL and
 say: *"Install the latest Stable Release and follow `docs/AGENT_INSTALL.md`."* It resolves
@@ -54,7 +56,7 @@ Adapter (ZCode) Adapter (Claude) Adapter (TRAE/WorkBuddy …)
 
 Requires a harness that can load skills and execute local deterministic tests (Python 3.10+).
 
-Give an agent-capable Harness the repository URL and say: `Install the latest Stable Release and follow docs/AGENT_INSTALL.md.` The Harness must report a real limitation instead of claiming success when it cannot load Skills, access GitHub or write its Skill directory. See [Installation & Acquisition](docs/INSTALL_AND_ACQUISITION.md).
+For personal use, say: `Install the latest Stable Release and follow docs/AGENT_INSTALL.md.` For an enterprise-controlled environment, name the approved tag and follow [Enterprise version governance](docs/ENTERPRISE_VERSION_GOVERNANCE.md). The Harness must report a real limitation instead of claiming success when it cannot load Skills, access GitHub or write its Skill directory. See [Installation & Acquisition](docs/INSTALL_AND_ACQUISITION.md).
 
 ## Basic usage
 
@@ -158,7 +160,7 @@ No secrets, credentials or runtime artifacts are tracked (scanned across the ful
 
 ## Versioning
 
-Semver. Resolve the latest formal release from GitHub; every historical tag remains immutable. Release evidence and candidate acceptance records live under `evidence/` and `docs/`.
+Semver. Historical tags remain immutable. Personal use may resolve the latest formal release from GitHub; enterprise-controlled environments pin an approved exact tag and upgrade only with explicit authorization. Release evidence and candidate acceptance records live under `evidence/` and `docs/`.
 
 ## License
 
