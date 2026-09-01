@@ -1,6 +1,6 @@
 # v3.0.2 Stable Final Closure Report
 
-Status: `PASS`
+Status: `HISTORICAL` — this report preserves the result recorded at the time; `v3.0.2` is not a current install choice.
 
 ## Immutable release identity
 
