@@ -129,7 +129,7 @@ class DynamicComposerTests(unittest.TestCase):
         names = [s["name"] for s in plan["stages"]]
         for forced in ("04_SDD规格", "05_TDD与测试策略", "06_架构设计", "14_多角色验收"):
             self.assertNotIn(forced, names)
-        self.assertLessEqual(plan["stage_count"], 3)  # understanding + final acceptance (+ impl)
+        self.assertEqual(plan["stage_count"], 1)
 
     def test_dyn2_014_complex_project_can_promote_architecture(self):
         facts = make_fact_model(goal="跨系统 ERP 集成", external_systems=True,
@@ -138,7 +138,7 @@ class DynamicComposerTests(unittest.TestCase):
                                 deployment_requirement=True, interface_types=["web"])
         caps = reason_capability_needs(facts)
         plan = compose_stages(facts, assess_complexity({"external_systems": 2, "components": 3}), caps)
-        self.assertEqual(plan["stage_count"], 2)  # complexity/capabilities cannot invent a work boundary
+        self.assertEqual(plan["stage_count"], 1)  # complexity/capabilities cannot invent a work boundary
 
     def test_dyn2_015_recovery_event_driven_not_standing_stage(self):
         caps = reason_capability_needs(button_edit_facts())
@@ -181,12 +181,13 @@ class DynamicComposerTests(unittest.TestCase):
 
 class InvariantPreservationTests(unittest.TestCase):
     def test_dyn2_017_reliability_invariants_preserved(self):
-        # understanding gate and final acceptance are ALWAYS present, recovery is event-driven
+        # Internal gates stay internal; the visible plan contains only real project work.
         caps = reason_capability_needs(button_edit_facts())
         plan = compose_stages(button_edit_facts(), assess_complexity({}), caps)
         names = [s["name"] for s in plan["stages"]]
-        self.assertIn("项目理解与目标锁定", names[0])   # understand-before-execute
-        self.assertIn("最终验收", names[-1])            # final acceptance
+        self.assertNotIn("项目理解与目标锁定", names)
+        self.assertNotIn("最终验收", names)
+        self.assertTrue(names)
         self.assertTrue(all(s["failure_handling"] for s in plan["stages"]))  # recovery path exists
 
     def test_user_mode_boundary_still_holds(self):

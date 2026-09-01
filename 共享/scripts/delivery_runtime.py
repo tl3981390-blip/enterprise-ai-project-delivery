@@ -102,19 +102,33 @@ def bind_execution_context(session: dict, *, task: str, workspace: str, project:
     return _bump(out)
 
 
-def approve_plan(session: dict, *, approval_source: str, waive_display: bool = False,
-                 waiver_scope: str | None = None) -> dict:
+def approve_plan(session: dict, *, intent_record: dict, user_origin_ref: dict,
+                 waive_display: bool = False, waiver_scope: str | None = None) -> dict:
     """Record human review/approval or an explicit, scoped review-display waiver."""
     if session.get("status") not in {"PLAN_REVIEW_REQUIRED", "PLANNING"}:
         raise ValueError("plan_not_awaiting_review")
-    if not isinstance(approval_source, str) or not approval_source.strip():
-        raise ValueError("approval_source_required")
+    if not isinstance(intent_record, dict):
+        raise PermissionError("user_intent_record_required")
+    if intent_record.get("intent") not in {"APPROVAL", "DIRECTIVE"}:
+        raise PermissionError("approval_or_direct_execution_intent_required")
+    if intent_record.get("consequential_ambiguity") or intent_record.get("intent") == "AMBIGUOUS":
+        raise PermissionError("ambiguous_intent_cannot_authorize_execution")
+    if not isinstance(user_origin_ref, dict) or user_origin_ref.get("origin") != "USER":
+        raise PermissionError("trusted_user_origin_ref_required")
+    required_ref = {f"plan_revision:{session['revision']}", f"plan_scope:{session['session_id']}"}
+    if not required_ref.issubset(set(intent_record.get("context_refs") or [])):
+        raise PermissionError("approval_not_bound_to_current_plan_revision_and_scope")
+    if not all(isinstance(user_origin_ref.get(k), str) and user_origin_ref[k].strip()
+               for k in ("harness", "conversation_id", "message_id")):
+        raise PermissionError("user_origin_ref_incomplete")
     if waive_display and not (isinstance(waiver_scope, str) and waiver_scope.strip()):
         raise ValueError("review_waiver_scope_required")
     out = deepcopy(session)
     out["plan_review"] = {
         "status": "DISPLAY_WAIVED_EXECUTION_APPROVED" if waive_display else "REVIEWED_APPROVED",
-        "approved_revision": out["revision"] + 1, "approval_source": approval_source.strip(),
+        "approved_revision": out["revision"] + 1,
+        "approval_source": deepcopy(user_origin_ref),
+        "intent_record": deepcopy(intent_record),
         "waiver_scope": waiver_scope.strip() if waive_display else None,
     }
     out["approved_plan_baseline"] = deepcopy(out["plan"])
@@ -248,16 +262,28 @@ def record_capability_result(session: dict, *, invocation_id: str, status: str,
 
 
 def edit_plan(session: dict, edit: dict) -> dict:
-    """Apply a semantic edit translated from natural language; human is default actor."""
+    """Apply an explicitly attributed edit; missing or untrusted authority fails closed."""
     out = deepcopy(session)
     semantic_edit = dict(edit)
-    semantic_edit.setdefault("actor", "HUMAN_EXPLICIT")
+    if "actor" not in semantic_edit:
+        raise PermissionError("plan_edit_actor_required")
+    actor = semantic_edit["actor"]
+    if actor in {"HUMAN_EXPLICIT", "ENTERPRISE_AUTHORIZED"}:
+        authority_ref = semantic_edit.get("authority_ref")
+        expected = "USER" if actor == "HUMAN_EXPLICIT" else "ENTERPRISE"
+        if not isinstance(authority_ref, dict) or authority_ref.get("origin") != expected:
+            raise PermissionError("trusted_plan_edit_authority_ref_required")
+        if not all(isinstance(authority_ref.get(k), str) and authority_ref[k].strip()
+                   for k in ("harness", "conversation_id", "message_id")):
+            raise PermissionError("plan_edit_authority_ref_incomplete")
+    elif actor != "AI_AUTOMATIC":
+        raise PermissionError("plan_edit_actor_not_authorized")
     out["plan"] = apply_plan_edit(out["plan"], semantic_edit)
     if semantic_edit["actor"] in {"HUMAN_EXPLICIT", "ENTERPRISE_AUTHORIZED"}:
         out["approved_plan_baseline"] = deepcopy(out["plan"])
         out["plan_review"] = {"status": "REVIEWED_APPROVED",
                               "approved_revision": out["revision"] + 1,
-                              "approval_source": "authorized plan edit",
+                              "approval_source": deepcopy(semantic_edit["authority_ref"]),
                               "waiver_scope": None}
     else:
         out["status"] = "PLAN_REVIEW_REQUIRED"

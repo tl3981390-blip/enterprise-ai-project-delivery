@@ -12,7 +12,13 @@ from delivery_runtime import (_acceptance_items, _start_delivery_from_facts, app
 
 def start_unit_delivery(**kwargs):
     """Component tests may bypass the public understanding gate explicitly."""
-    return approve_plan(_start_delivery_from_facts(**kwargs), approval_source="component test")
+    session = _start_delivery_from_facts(**kwargs)
+    return approve_plan(session, intent_record={
+        "intent": "APPROVAL", "consequential_ambiguity": False,
+        "context_refs": [f"plan_revision:{session['revision']}",
+                         f"plan_scope:{session['session_id']}"],
+    }, user_origin_ref={"origin": "USER", "harness": "pytest",
+                        "conversation_id": "component", "message_id": "approval"})
 
 
 def add_evidence(session, evidence_id, *, work_id, status="PASS", acceptance_items=None):
@@ -123,7 +129,9 @@ def test_enterprise_plan_is_authority_and_human_can_merge():
     s = start_unit_delivery(facts={"goal": "按公司计划交付"}, human_plan=human)
     assert s["plan"]["authority"] == "HUMAN_PLAN_KEPT_AI_ADVISORY_ONLY"
     s = edit_plan(s, {"op": "merge", "stage_name": "开发", "merge_with": "测试",
-                      "target": "开发与测试"})
+                      "target": "开发与测试", "actor": "ENTERPRISE_AUTHORIZED",
+                      "authority_ref": {"origin": "ENTERPRISE", "harness": "pytest",
+                                        "conversation_id": "enterprise", "message_id": "edit"}})
     assert "开发与测试" in [x["name"] for x in s["plan"]["stages"]]
 
 

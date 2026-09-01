@@ -13,6 +13,15 @@ from delivery_runtime import (approve_plan, record_capability_result, record_evi
 from understanding_core import apply_answer, begin_understanding, propose_inference
 
 
+def approve(session):
+    return approve_plan(session, intent_record={
+        "intent": "APPROVAL", "consequential_ambiguity": False,
+        "context_refs": [f"plan_revision:{session['revision']}",
+                         f"plan_scope:{session['session_id']}"],
+    }, user_origin_ref={"origin": "USER", "harness": "pytest",
+                        "conversation_id": "goal-binding", "message_id": "approval"})
+
+
 def answer_all(session):
     values = {
         "users": ["我和家里人"],
@@ -32,7 +41,10 @@ def answer_all(session):
 
 class SparseGoalUnderstandingTests(unittest.TestCase):
     def test_sparse_goal_requires_consequential_questions_and_binds_answers(self):
-        session = begin_understanding(raw_goal="我想做一个家庭点菜单。")
+        session = begin_understanding(raw_goal="我想做一个家庭点菜单。",
+                                      required_dimensions=list({
+                                          "users", "user_journeys", "final_deliverable",
+                                          "acceptance_requirements", "explicit_constraints", "permissions"}))
         self.assertFalse(session["gate_pass"])
         self.assertLessEqual(len(session["questions"]), 4)
         self.assertTrue(all(q["decision_impacts"] and q["why"] for q in session["questions"]))
@@ -44,7 +56,8 @@ class SparseGoalUnderstandingTests(unittest.TestCase):
         self.assertIn("添加候选菜并投票后确定今天吃什么", planned_work)
 
     def test_ai_inference_cannot_silently_pass(self):
-        session = begin_understanding(raw_goal="我想做一个家庭点菜单。")
+        session = begin_understanding(raw_goal="我想做一个家庭点菜单。",
+                                      required_dimensions=["final_deliverable"])
         session = propose_inference(session, fact="final_deliverable", value="手机 App",
                                     rationale="model guess")
         self.assertFalse(session["gate_pass"])
@@ -72,8 +85,8 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
                 "acceptance": "审查工具结果可追溯",
             }], "source": "USER_CONFIRMED", "evidence": "answer",
             "history": [{"event_id": "work", "state": "ACTIVE"}]}
-        return approve_plan(start_from_understanding(understanding=understanding,
-                            capability_registry=registry), approval_source="test approval")
+        return approve(start_from_understanding(understanding=understanding,
+                       capability_registry=registry))
 
     def _evidence(self, delivery, evidence_id, *, status="PASS"):
         return record_evidence(delivery, evidence={
@@ -105,8 +118,8 @@ class CapabilityExecutionBindingTests(unittest.TestCase):
         registry = {"legal_review": {"validation_status": "VALIDATED",
                     "source_identity_verified": True, "compatible": True,
                     "license_compatible": True, "permission_granted": False}}
-        delivery = approve_plan(start_from_understanding(understanding=understanding,
-                                capability_registry=registry), approval_source="test approval")
+        delivery = approve(start_from_understanding(understanding=understanding,
+                           capability_registry=registry))
         work_id = next(item["name"] for bucket in ("stages", "tasks", "checks")
                        for item in delivery["plan"].get(bucket, []) if item.get("name"))
         with self.assertRaises(PermissionError):

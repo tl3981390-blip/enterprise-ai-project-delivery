@@ -1,5 +1,7 @@
 # Installation & Acquisition Guide
 
+> v3 Stable 路径分离：普通用户 = Stable Release Asset；可选策略 = Harness 自己同步（没有也能用）；发布者开发空间 = Workspace Bundle。三者不得互相冒充或成为彼此依赖。
+
 正式使用、维护公开源码和迁移作者完整实验室是三条不同路径。
 
 ## 使用正式 Skill（推荐）

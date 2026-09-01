@@ -1,15 +1,22 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["skill_id", "entrypoint", "version", "runtime", "understanding_runtime", "interface", "plan_authority", "permissions", "operations", "operation_handlers"],
+  "required": ["skill_id", "entrypoint", "version", "runtime", "understanding_runtime", "intent_runtime", "adaptive_strategy_runtime", "interface", "plan_authority", "user_origin_ref_contract", "permissions", "operations", "operation_handlers"],
   "properties": {
     "skill_id": {"const": "enterprise-ai-project-delivery"},
     "entrypoint": {"const": "SKILL.md"},
     "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z-]+)?$"},
     "runtime": {"const": "共享/scripts/delivery_runtime.py"},
     "understanding_runtime": {"const": "共享/scripts/understanding_core.py"},
+    "intent_runtime": {"const": "共享/scripts/intent_core.py"},
+    "adaptive_strategy_runtime": {"const": "共享/scripts/adaptive_strategy_core.py"},
     "interface": {"const": "natural_language"},
     "plan_authority": {"const": "human"},
+    "user_origin_ref_contract": {
+      "type": "object",
+      "required": ["required_for", "required_fields", "plan_binding", "trust_boundary"],
+      "additionalProperties": false
+    },
     "permissions": {
       "type": "object",
       "required": ["default", "understanding", "execute"],
@@ -18,11 +25,11 @@
     "operations": {
       "type": "array",
       "uniqueItems": true,
-      "items": {"enum": ["understand", "answer", "plan", "edit_plan", "change_conditions", "record_evidence", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "verify"]}
+      "items": {"enum": ["interpret_intent", "understand", "answer", "plan", "bind_execution_context", "approve_plan", "edit_plan", "change_conditions", "record_user_correction", "resolve_user_correction", "record_evidence", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "verify"]}
     },
     "operation_handlers": {
       "type": "object",
-      "required": ["understand", "answer", "plan", "edit_plan", "change_conditions", "record_evidence", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "verify"],
+      "required": ["interpret_intent", "understand", "answer", "plan", "bind_execution_context", "approve_plan", "edit_plan", "change_conditions", "record_user_correction", "resolve_user_correction", "record_evidence", "invoke_capability", "record_capability_result", "advance", "suspend", "resume", "verify"],
       "additionalProperties": {"type": "string", "pattern": "^[a-z_]+:[a-z_]+$"}
     }
   },

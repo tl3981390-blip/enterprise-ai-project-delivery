@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 3.0.0 (2026-09-01)
+
+- Closed the final product target: real-work-only plans, canonical goal binding and task-scaled understanding.
+- Added fail-closed user-origin authorization for plan approval and plan edits.
+- Separated optional Evidence-backed Runtime Adaptive Execution Strategy from Publisher Core Maintenance.
+- Hardened self-contained Release Asset installation and new-directory portability.
+
 ## 2.0.1 (2026-09-01)
 
 - Fixed installer rollback placement: upgrade backups now live outside the Harness `skills/`

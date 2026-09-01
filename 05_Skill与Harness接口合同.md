@@ -1,5 +1,7 @@
 # 05｜Skill 与 Harness 接口合同（草案）
 
+> v3 Stable 正式补充：Harness 调用 `approve_plan` 或提交 human/enterprise plan edit 时，必须提供可信 `user_origin_ref`（`origin`、`harness`、`conversation_id`、`message_id`）。批准 intent 必须明确为 APPROVAL/DIRECTIVE、无 consequential ambiguity，并绑定当前 `plan_revision` 与 `plan_scope`。Core 不自建用户/RBAC，也不接受任意字符串冒充批准。Harness 可选保存 adaptive strategy；无状态必须使用默认策略正常运行。
+
 > 目的：定义企业AI项目交付 Skill 与未来 Agent Harness 之间的接口契约。本阶段**仅定义合同，不修改 Harness 主工程**。Harness 侧落地在 `04_Harness接入适配`（后续阶段，本阶段禁止动 Harness）。
 
 ---

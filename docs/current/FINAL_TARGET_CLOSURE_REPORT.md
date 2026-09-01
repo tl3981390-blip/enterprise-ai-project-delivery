@@ -1,5 +1,7 @@
 # FINAL TARGET CLOSURE REPORT
 
+Status: `HISTORICAL` — superseded by the v3.0.0 Stable closure process.
+
 Date: 2026-09-01 (Asia/Shanghai)
 
 Candidate: `v3.0.0-rc3` (product Core unchanged from rc1; release-validation tooling corrected)

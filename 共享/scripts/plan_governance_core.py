@@ -231,25 +231,21 @@ def _uniq(items: list) -> list:
 
 
 def check_plan_invariants(plan: dict) -> dict:
-    """Reliability obligations that must survive ANY edit. Obligations bind to a stage's
-    STRUCTURED fields (entry_condition/acceptance/failure_handling), never to its name.
-    A plan with zero stages fails; understanding-entry and independent-acceptance are
-    required and may be carried by any stage, task, check or gate."""
+    """Validate a real executable plan without turning internal gates into stages.
+
+    Understanding is enforced before planning by ``understanding_core`` and final
+    truth is enforced by the Evidence/completion gates.  User-visible stage names
+    are therefore never evidence of either invariant.
+    """
     stages = plan.get("stages", [])
     gaps = []
     if not stages:
         return {"pass": False, "gaps": ["empty_plan"]}
-    has_understanding = any(
-        s.get("entry_condition") in ("项目理解完成",) or s.get("acceptance") == "PRE_EXECUTION_UNDERSTANDING_GATE=PASS"
-        or "理解" in s.get("goal", "") or "understanding" in str(s.get("goal", "")).lower()
-        or "施工前八问" in str(s.get("work", [])) for s in stages)
-    has_acceptance = any(
-        "验收" in s.get("name", "") or "acceptance" in str(s.get("acceptance", "")).lower()
-        or s.get("acceptance") in ("Final Acceptance Matrix 全过",) for s in stages)
-    if not has_understanding:
-        gaps.append("missing_understanding_entry (理解先于执行)")
-    if not has_acceptance:
-        gaps.append("missing_final_acceptance (独立验收)")
+    for index, stage in enumerate(stages):
+        if not isinstance(stage, dict) or not str(stage.get("name", "")).strip():
+            gaps.append(f"stage_identity_missing:{index}")
+        if not (stage.get("work") or stage.get("goal")):
+            gaps.append(f"stage_work_missing:{index}")
     return {"pass": not gaps, "gaps": gaps}
 
 
@@ -271,8 +267,10 @@ def classify_verified_state(verified_state: dict, affected_assumptions: set) -> 
 
 
 def apply_human_plan(human_plan: dict, fact_model: dict | None = None) -> dict:
-    """A human/enterprise-provided plan takes precedence: keep its主体, add only the
-    missing reliability controls as SYSTEM_RELIABILITY_REQUIRED. Never re-impose AI."""
+    """Keep the human/enterprise plan exactly as user-visible work.
+
+    Reliability gaps are reported as metadata; Core never injects governance stages.
+    """
     stages = [dict(s) for s in human_plan.get("stages", [])]
     for s in stages:
         s.setdefault("provenance", "ENTERPRISE_REQUIRED" if human_plan.get("source") == "enterprise"
@@ -282,24 +280,6 @@ def apply_human_plan(human_plan: dict, fact_model: dict | None = None) -> dict:
     check = check_plan_invariants({"stages": stages})
     result = {"stages": stages, "reliability_check": check,
               "authority": "HUMAN_PLAN_KEPT_AI_ADVISORY_ONLY", "advisory": check["gaps"]}
-    if not check["pass"]:
-        for gap in check["gaps"]:
-            if gap.startswith("missing_understanding"):
-                stages.insert(0, {"name": "项目理解与目标锁定", "goal": "证明已理解真实目标与边界",
-                                  "work": ["施工前八问", "任务理解合同"], "output": ["task_understanding_contract"],
-                                  "acceptance": "PRE_EXECUTION_UNDERSTANDING_GATE=PASS",
-                                  "failure_handling": "阻塞性未知 → 合法 Human Gate",
-                                  "evidence": ["task_understanding_contract"],
-                                  "provenance": "SYSTEM_RELIABILITY_REQUIRED"})
-            elif gap.startswith("missing_final_acceptance"):
-                stages.append({"name": "最终验收", "goal": "独立验收证明 Final Complete",
-                               "work": ["执行验收矩阵"], "output": ["acceptance_record"],
-                               "acceptance": "Final Acceptance Matrix 全过",
-                               "failure_handling": "缺项 → 回补，禁止假完成",
-                               "evidence": ["acceptance_signoff"],
-                               "provenance": "SYSTEM_RELIABILITY_REQUIRED"})
-        result["stages"] = stages
-        result["reliability_check"] = check_plan_invariants({"stages": stages})
     return result
 
 

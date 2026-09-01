@@ -24,8 +24,8 @@ def test_case_a_same_database_capability_different_real_boundary():
                          "work": ["兼容 schema", "双写", "切换", "回滚演练"],
                          "output": ["migration", "rollback"], "capabilities": ["database"],
                          "acceptance": "完整性、切换、回滚全部通过"}]})
-    assert "记录收支" in [x["name"] for x in simple["tasks"]]
-    assert "记录收支" not in [x["name"] for x in simple["stages"]]
+    assert "记录收支" in [x["name"] for x in simple["stages"] + simple["tasks"]]
+    assert len(simple["stages"]) == 1
     assert "生产数据迁移与回滚" in [x["name"] for x in migration["stages"]]
 
 
@@ -39,7 +39,7 @@ def test_case_b_same_deployment_capability_different_real_boundary():
         {"work_units": [{"name": "灰度发布与生产回退", "goal": "跨环境安全发布", "class": "STAGE",
                          "work": ["staging", "canary", "migration", "rollback", "production verify"],
                          "capabilities": ["deployment"], "acceptance": "灰度、迁移、回退和生产验证通过"}]})
-    assert "交付静态页" in [x["name"] for x in static["tasks"]]
+    assert "交付静态页" in [x["name"] for x in static["stages"] + static["tasks"]]
     assert "灰度发布与生产回退" in [x["name"] for x in production["stages"]]
 
 

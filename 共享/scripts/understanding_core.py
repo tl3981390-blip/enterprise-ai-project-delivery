@@ -32,7 +32,9 @@ def begin_understanding(*, raw_goal: str, mode: str = "NEW_PROJECT",
         raise ValueError("natural_language_goal_required")
     if mode not in {"NEW_PROJECT", "EXISTING_PROJECT"}:
         raise ValueError("understanding_mode_invalid")
-    required_dimensions = required_dimensions or list(DECISION_DIMENSIONS)
+    # The caller selects only consequential dimensions for this task.  A clear,
+    # bounded request is allowed to proceed without an artificial questionnaire.
+    required_dimensions = [] if required_dimensions is None else required_dimensions
     unknown_dimensions = sorted(set(required_dimensions) - set(DECISION_DIMENSIONS))
     if unknown_dimensions:
         raise ValueError(f"decision_dimension_invalid:{unknown_dimensions}")
@@ -74,7 +76,8 @@ def evaluate_understanding(session: dict) -> dict:
     out = deepcopy(session)
     facts = out["facts"]
     questions, blockers = [], []
-    required = list(out.get("required_dimensions") or DECISION_DIMENSIONS)
+    required = list(out["required_dimensions"] if "required_dimensions" in out
+                    else DECISION_DIMENSIONS)
     # Existing projects must be reconstructed before interviewing the user again.
     if out["mode"] == "EXISTING_PROJECT":
         required += ["existing_state", "existing_plan", "existing_evidence"]
@@ -132,9 +135,17 @@ def planning_facts(session: dict) -> dict:
         raise ValueError(f"understanding_insufficient:{checked['blocking_unknowns']}")
     source_to_state = {"USER_EXPLICIT": "DECLARED", "USER_CONFIRMED": "DECLARED",
                        "PROJECT_EVIDENCE": "OBSERVED", "SYSTEM_OBSERVED": "OBSERVED"}
-    return {name: {"state": source_to_state[item["source"]], "value": item["value"],
-                   "provenance": item["source"], "history": deepcopy(item["history"])}
-            for name, item in checked["facts"].items() if item["state"] == "ACTIVE"}
+    facts = {name: {"state": source_to_state[item["source"]], "value": item["value"],
+                    "provenance": item["source"], "history": deepcopy(item["history"]),
+                    "source_fact": name}
+             for name, item in checked["facts"].items() if item["state"] == "ACTIVE"}
+    # Planning Core consumes the canonical `goal` field.  Preserve the original
+    # fact identity and full user provenance instead of silently renaming it.
+    if "user_real_goal" in facts:
+        facts["goal"] = {**deepcopy(facts["user_real_goal"]),
+                         "source_fact": "user_real_goal",
+                         "canonical_mapping": "user_real_goal->goal"}
+    return facts
 
 
 def _put(session: dict, name: str, value, source: str, evidence: str,

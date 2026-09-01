@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.12-failure-recovery
 description: 模块12·失败处理与恢复。根因定位+证据保留+自动/人工修复边界+停止条件。Use when 施工/阶段发生失败。
-version: 3.0.0-rc3
+version: 3.0.0
 license: MIT
 compatibility: open
 metadata:

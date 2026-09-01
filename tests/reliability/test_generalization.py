@@ -117,8 +117,8 @@ class ApplicabilityTests(unittest.TestCase):
         profile = json.loads((EX / "desktop_knowledge_app_profile.example.json").read_text(encoding="utf-8"))
         self.assertEqual(validate_profile(profile, "project"), [])
         plan = derive_active_plan(profile)
-        self.assertIn("项目理解与目标锁定", plan["active_stages"])
-        self.assertIn("最终验收", plan["active_stages"])
+        self.assertNotIn("项目理解与目标锁定", plan["active_stages"])
+        self.assertNotIn("最终验收", plan["active_stages"])
         self.assertNotIn("企业治理与合规核验", plan["active_stages"])
         self.assertNotIn("数据持久化与一致性验证", plan["active_stages"])
         self.assertIn("migration_gate", plan["active_gates"])
@@ -133,8 +133,8 @@ class ApplicabilityTests(unittest.TestCase):
 
     def test_sys005_sys006_historical_flow_not_mandatory(self):
         plan = derive_active_plan(family_menu_profile())
-        self.assertIn("项目理解与目标锁定", plan["active_stages"])
-        self.assertIn("最终验收", plan["active_stages"])
+        self.assertNotIn("项目理解与目标锁定", plan["active_stages"])
+        self.assertNotIn("最终验收", plan["active_stages"])
         self.assertEqual(plan["final_acceptance"], "INDEPENDENT_VERIFICATION_NON_OPTIONAL")
         self.assertTrue(plan["explicit_invocation_accepted"])
 
@@ -293,8 +293,8 @@ class AssumptionChangeTests(unittest.TestCase):
                        "required_capabilities": ["database"]}
         new_plan = derive_active_plan(new_profile)
         self.assertIn("persistence_gate", new_plan["active_gates"])
-        self.assertIn("项目理解与目标锁定", new_plan["active_stages"])  # invariants continue
-        self.assertIn("最终验收", new_plan["active_stages"])
+        self.assertNotIn("项目理解与目标锁定", new_plan["active_stages"])
+        self.assertNotIn("最终验收", new_plan["active_stages"])
         self.assertIn("re_run_understanding_for_affected", result["next"])
 
 
@@ -335,8 +335,8 @@ class CrossDomainReplayTests(unittest.TestCase):
         profile = json.loads((EX / "desktop_knowledge_app_profile.example.json").read_text(encoding="utf-8"))
         self.assertEqual(validate_profile(profile, "project"), [])
         plan = derive_active_plan(profile)
-        self.assertIn("项目理解与目标锁定", plan["active_stages"])
-        self.assertIn("最终验收", plan["active_stages"])
+        self.assertNotIn("项目理解与目标锁定", plan["active_stages"])
+        self.assertNotIn("最终验收", plan["active_stages"])
         self.assertNotIn("企业治理与合规核验", plan["active_stages"])
         self.assertNotIn("数据持久化与一致性验证", plan["active_stages"])
         self.assertIn("migration_gate", plan["active_gates"])

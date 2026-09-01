@@ -54,6 +54,14 @@ def _session():
             "compatible": True, "license_compatible": True, "permission_granted": True}})
 
 
+def _approval(session, intent="APPROVAL"):
+    return {"intent_record": {"intent": intent, "consequential_ambiguity": False,
+            "context_refs": [f"plan_revision:{session['revision']}",
+                             f"plan_scope:{session['session_id']}"]},
+            "user_origin_ref": {"origin": "USER", "harness": "pytest",
+            "conversation_id": "final-target", "message_id": "approval"}}
+
+
 def test_unreviewed_plan_cannot_execute_and_scoped_waiver_can():
     session = _session()
     assert session["status"] == "PLAN_REVIEW_REQUIRED"
@@ -61,15 +69,15 @@ def test_unreviewed_plan_cannot_execute_and_scoped_waiver_can():
         request_capability_invocation(session, work_id="review", capability="legal_review",
                                       input_payload={})
     with pytest.raises(ValueError, match="review_waiver_scope_required"):
-        approve_plan(session, approval_source="user said direct", waive_display=True)
-    approved = approve_plan(session, approval_source="user: no more questions, start",
-                            waive_display=True, waiver_scope="current generated plan revision")
+        approve_plan(session, **_approval(session), waive_display=True)
+    approved = approve_plan(session, **_approval(session), waive_display=True,
+                            waiver_scope="current generated plan revision")
     assert approved["plan_review"]["status"] == "DISPLAY_WAIVED_EXECUTION_APPROVED"
 
 
 def test_capability_full_work_scoped_lifecycle_deactivates_context():
     session = bind_execution_context(_session(), task="task-1", workspace="ws-1", project="p-1")
-    session = approve_plan(session, approval_source="user approved plan")
+    session = approve_plan(session, **_approval(session))
     session = request_capability_invocation(session, work_id="review", capability="legal_review",
                                             input_payload={"document": "quote"},
                                             permission_scope=["read:quote"])
@@ -113,7 +121,8 @@ def test_evolution_candidate_requires_reproduction_isolation_and_human_release()
 
 
 def test_confirmed_requirements_and_corrections_survive_beyond_model_prose():
-    session = approve_plan(_session(), approval_source="user approved")
+    session = _session()
+    session = approve_plan(session, **_approval(session))
     assert "goal" in session["confirmed_requirement_baseline"]
     session = record_user_correction(session, description="review skipped required price check",
                                      violated_requirements=["price must be checked"],
@@ -127,7 +136,8 @@ def test_confirmed_requirements_and_corrections_survive_beyond_model_prose():
 
 
 def test_repeated_confirmed_error_enters_recovery_and_resolution_needs_evidence():
-    session = approve_plan(_session(), approval_source="user approved")
+    session = _session()
+    session = approve_plan(session, **_approval(session))
     kwargs = dict(description="same missed price check",
                   violated_requirements=["price must be checked"],
                   root_cause_class="CHECKLIST_NOT_BOUND_TO_WORK",

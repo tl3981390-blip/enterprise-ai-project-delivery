@@ -1,11 +1,15 @@
 ---
 name: enterprise-ai-project-delivery.19-handover
 description: 模块19·最终交付与经验沉淀。最终报告+经验入库。Use when 交付完成需收尾。
-version: 3.0.0-rc3
+version: 3.0.0
 license: MIT
 compatibility: open
 metadata:
   skill_id: enterprise-ai-project-delivery
+
+## v3 Stable 边界
+
+经验可形成 Evidence-backed Adaptive Strategy 偏好，但不得削弱 Core 不变量。运行时交付报告只陈述项目事实；发布者维护证据和历史报告单独归档，历史文档不得冒充当前产品真相。
   module: 19_最终交付与经验沉淀
   language: zh-CN
   gate: 需 COMPLETED 前置证据齐备

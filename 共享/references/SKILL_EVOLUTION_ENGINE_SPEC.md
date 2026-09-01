@@ -1,6 +1,6 @@
-# SKILL_EVOLUTION_ENGINE_SPEC（Skill 进化引擎规格）
+# SKILL_EVOLUTION_ENGINE_SPEC（Publisher Core Maintenance 候选验证规格）
 
-定位：**仅提案侧**（AUTO_PROPOSE / AUTO_TEST / AUTO_EVALUATE）；正式版本永远走 Release Gate，禁止 AUTO_RELEASE，禁止运行中的正式 Skill 在线自改（总指令 §25–§34）。
+定位：这是发布者维护工具，不是 Runtime Self Optimization。**仅提案侧**（AUTO_PROPOSE / AUTO_TEST / AUTO_EVALUATE）；正式版本永远走 Release Gate，禁止 AUTO_RELEASE，禁止运行中的正式 Skill 在线自改。运行时自适应仅由 `adaptive_strategy_core.py` 的六项执行偏好承担，不要求代码、提交、Tag、Release 或更新。
 机械核心：`共享/scripts/skill_evolution_core.py`。状态保存在当前 Harness/Workspace 允许的项目隔离持久层；
 Core 不绑定外部实验室、数据库或全公司经验平台。
 

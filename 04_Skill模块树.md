@@ -1,5 +1,7 @@
 # 04｜企业AI项目交付 Skill 模块树
 
+> v3 Stable 导航：运行时 Core 位于 `共享/scripts`；`adaptive_strategy_core.py` 是可选执行偏好合同；`skill_evolution_core.py` 与进化规格属于发布者维护候选验证，不是运行时自改。`docs/current` 是当前产品真相，旧收口报告均为历史证据。
+
 > Architecture C 正式模块树：独立 Skill + 选择性上游复用。内部保留主入口+阶段模块；上游只以带来源的 references 适配进入。
 
 共享 references 的正式上游吸收层包含：上游吸收索引、SDD流程与规格模板、Plan模板、Tasks与分级仪式、需求表达与最少提问、Signoff与生产检查清单、Traceability与收敛。禁止引入 Spec Kit Runtime 或第二状态机。

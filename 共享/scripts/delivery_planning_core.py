@@ -293,12 +293,12 @@ def compose_stages(fact_model: dict, complexity: dict, capability_needs: dict,
         (stages if cls == "STAGE" else tasks if cls == "TASK"
          else checks if cls == "CHECK" else na).append(entry)
     if not stages and (tasks or checks):
-        stages = [{"name": "实现并验收", "class": "STAGE", "goal": "完成项目目标",
-                   "work": [t["name"] for t in tasks] or ["实现"],
-                   "output": [o for t in tasks for o in t.get("output", [])] or ["可验收产物"],
-                   "entry_condition": "项目理解完成", "done_condition": "验收通过",
-                   "acceptance": "最终验收通过", "failure_handling": "冻结证据进入恢复",
-                   "evidence": ["test_result"], "provenance": "AI_GENERATED"}]
+        # The runtime executes stages. Promote real task identities instead of
+        # wrapping them in a generic governance stage that loses work bindings.
+        stages = [{**t, "class": "STAGE"} for t in tasks]
+        if not stages:  # a verification-only project still needs an executable unit
+            stages = [{**c, "class": "STAGE"} for c in checks]
+            checks = []
         tasks = []
     return {"stages": stages, "tasks": tasks, "checks": checks, "not_applicable": na,
             "stage_count": len(stages), "schema": STAGE_SCHEMA}
@@ -314,12 +314,6 @@ def _discover_work_units(fact_model: dict, capability_needs: dict,
     by the planner as resources; they never create or promote a work unit here.
     """
     units = []
-    # invariant entry: understanding (always a stage — the S0 gate)
-    units.append({"name": "项目理解与目标锁定", "goal": "证明已理解真实目标与边界",
-                  "work": ["施工前八问", "任务理解合同"], "output": ["task_understanding_contract"],
-                  "acceptance": "PRE_EXECUTION_UNDERSTANDING_GATE=PASS",
-                  "failure_handling": "阻塞性未知 → 合法 Human Gate", "markers": ["independent_user_value"],
-                  "evidence": ["task_understanding_contract"], "provenance": "SYSTEM_RELIABILITY_REQUIRED"})
     # Human and mature upstream plans are the primary sources of real work boundaries.
     for src in (human_plan, upstream_plan):
         source = src or {}
@@ -355,13 +349,18 @@ def _discover_work_units(fact_model: dict, capability_needs: dict,
             item.setdefault("output", [])
             item.setdefault("provenance", "PROJECT_FACT")
             units.append(item)
-    # invariant exit: final acceptance (always a stage)
-    units.append({"name": "最终验收", "goal": "独立验收证明 Final Complete",
-                  "work": ["执行验收矩阵"], "output": ["acceptance_record"],
-                  "acceptance": "Final Acceptance Matrix 全过",
-                  "failure_handling": "缺项 → 回补，禁止假完成", "markers": ["independently_acceptable_output"],
-                  "evidence": ["acceptance_signoff", "evidence_bundle"],
-                  "provenance": "SYSTEM_RELIABILITY_REQUIRED"})
+    # A clear goal must never collapse into an empty or governance-only plan.
+    # This is a bounded delivery unit derived only from confirmed user facts; it
+    # does not invent architecture, capabilities, roles or additional scope.
+    if not units:
+        goal = _fact(fact_model, "goal")["value"]
+        deliverable = _fact(fact_model, "final_deliverable")["value"]
+        if goal or deliverable:
+            description = str(deliverable or goal)
+            units.append({"name": description, "goal": str(goal or deliverable),
+                          "work": [description], "output": [str(deliverable)] if deliverable else [],
+                          "acceptance": "按已确认目标验证实际结果",
+                          "evidence": ["test_result"], "provenance": "PROJECT_FACT"})
     return units
 
 

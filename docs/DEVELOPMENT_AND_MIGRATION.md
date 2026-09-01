@@ -1,5 +1,21 @@
 # Development & Migration Guide
 
+## v3 Stable 三种迁移（必须分开）
+
+### A. 正式 Skill 迁移
+
+普通用户和新电脑 Harness 只从 GitHub Stable Release Asset 安装，核对发布 SHA 后运行 `docs/validate_installed_copy.py` 与全量测试。资产不得包含 `.git`、`.mimosa`、`.pytest_cache`、`__pycache__`、`.pyc`、临时文件或 bootstrap；原开发目录不可用时仍须独立通过。此路径不迁移整个实验室。
+
+### B. Adaptive Strategy 迁移（可选）
+
+仅含六项执行偏好：question、planning、capability、recovery、execution order、interaction。Harness 若支持项目隔离状态同步可自行迁移；Skill 不规定物理存储或绝对路径。无状态必须使用默认策略，永不阻塞正式 Skill。
+
+### C. Publisher 开发空间迁移（仅维护者）
+
+只有明确需要在新电脑续开发整个实验室时，旧电脑 Harness 才导出私有 Workspace Bundle，新电脑 Harness 校验并恢复 Git/dirty state、重建依赖与验收。Bundle 禁止上传公开 Release，也不是正式 Skill 的运行条件。完整交接见开发空间 `06_项目说明文档/整个开发空间迁移指南.md`。
+
+当前导航：产品目标在 `docs/current/FINAL_PRODUCT_TARGET.md`；运行时/Harness 在 `docs/HARNESS_GUIDE.md`；Adaptive Strategy 在 `共享/scripts/adaptive_strategy_core.py`；Publisher Maintenance 在 `共享/references/SKILL_EVOLUTION_ENGINE_SPEC.md`；旧 RC/Closure/SDD 是 HISTORICAL。
+
 ## 只维护本公开 Skill
 
 GitHub 是公开 Skill 版本与历史的中央真源。新电脑 clone 仓库、获取 tags、验证 origin 后从开发分支继续：

@@ -1,5 +1,7 @@
 # V3 RC RELEASE VALIDATION REPORT
 
+Status: `HISTORICAL` — RC evidence only; it does not describe the Stable product contract.
+
 Date: 2026-09-01 (Asia/Shanghai)
 
 Final status language in this report is limited to `PASS`, `FAIL`,
@@ -171,4 +173,3 @@ must not be silently promoted.
    Harness compatibilities remain `PENDING_EXTERNAL_VALIDATION`.
 3. Is there enough evidence to publish `v3.0.0 Stable`? `PASS` as a release recommendation. Stable
    itself is not yet published and must repeat the immutable release identity chain.
-

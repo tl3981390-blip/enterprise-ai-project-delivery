@@ -1,5 +1,9 @@
 # Harness Guide
 
+## v3 Stable mandatory boundary
+
+Harness must assert `user_origin_ref` from the actual conversation user for approval and human/enterprise edits, and bind approval intent to the current plan revision and session scope. It must not synthesize approval from arbitrary prose. Harness may persist the six-field adaptive strategy in its own project-isolated store, but must not serialize author paths or treat missing state as an error. Core remains self-contained and storage-neutral.
+
 One core, thin adapters, honest levels. Switching harness = changing the adapter, never the core.
 
 ## Support matrix (real validation status only)

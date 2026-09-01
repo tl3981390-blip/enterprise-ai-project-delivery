@@ -1,5 +1,7 @@
 # AGENT_INSTALL — 给任何 Harness AI 的 URL-only 安装契约
 
+> v3 Stable：只获取 GitHub Stable Release Asset，校验 SHA 后安装到 Harness 的 Skill 目录。不得要求作者开发空间、`.git`、缓存、bootstrap 或自适应状态。安装后必须在原开发目录不可用的独立目录运行 validator 与全量回归；adaptive strategy 缺失时使用默认值。
+
 > 你（Harness AI / Agent）收到本仓库 URL，说明用户要求安装 `enterprise-ai-project-delivery`。
 > 全程机械验证，不得让用户手工处理 Git/SSH/Release/路径/凭据；只在真正需要授权时请用户完成
 > **合法认证**（browser login / OAuth / 2FA / 仓库授权）——**禁止**让用户把 PAT/password/token/私钥贴给你。

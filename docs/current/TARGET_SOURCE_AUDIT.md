@@ -1,5 +1,7 @@
 # TARGET_SOURCE_AUDIT
 
+> v3 Stable addendum: the final Stable contract and `FINAL_PRODUCT_TARGET.md` are CURRENT. RC validation and earlier closure/architecture/SDD documents are HISTORICAL evidence only; they cannot override the Stable runtime, strategy, authorization or portability boundaries.
+
 Baseline inspected: formal `v2.0.0` (`d85872172db77d93e8253515f74d6e0c4e8b929a`). Current
 development start: `v2.0.1` (`bfa62f1f29dad189f7b586d4627e1b60cda2634a`).
 

@@ -6,6 +6,13 @@
 > 适用对象是**复杂项目**（企业/个人、AI/非 AI、Web/桌面/数据/自动化均可）：显式点名本 Skill 即默认接受，按项目实际生成 Active Delivery Plan。企业 AI 是主要价值域与经验来源，不是使用资格条件（Skill 名称沿用历史标识）。
 
 Current product truth: [`docs/current/FINAL_PRODUCT_TARGET.md`](docs/current/FINAL_PRODUCT_TARGET.md).
+
+## v3 Stable product boundary
+
+- User-visible plans contain only real project work. Understanding, evidence, recovery and completion gates are internal controls, not injected stages.
+- Runtime Self Optimization means optional, Evidence-backed execution-strategy preferences. It never edits Core, source, version, commit, tag or Release.
+- Publisher Core Maintenance is a separate repository workflow governed by tests, review and a formal Release.
+- Normal users install the GitHub Release Asset. They never need the author's development workspace or adaptive-state files.
 The working tree is a `v3.0.0-rc3` candidate because the new plan-review and capability-lifecycle
 contracts intentionally change the v2 runtime interface. It is not a formal release until Human
 Release Authority approves publication; immutable v2 tags remain historical baselines.
