@@ -13,7 +13,7 @@ Current product truth: [`docs/current/FINAL_PRODUCT_TARGET.md`](docs/current/FIN
 - Runtime Self Optimization means optional, Evidence-backed execution-strategy preferences. It never edits Core, source, version, commit, tag or Release.
 - Publisher Core Maintenance is a separate repository workflow governed by tests, review and a formal Release.
 - Normal users install the GitHub Release Asset. They never need the author's development workspace or adaptive-state files.
-The current Stable is [`v3.0.5`](https://github.com/tl3981390-blip/enterprise-ai-project-delivery/releases/tag/v3.0.5).
+The current Stable is [`v3.0.6`](https://github.com/tl3981390-blip/enterprise-ai-project-delivery/releases/tag/v3.0.6).
 Its exact tag-to-commit identity is carried by the immutable tag and the Asset's `INSTALL_INFO.json`;
 its SHA-256 is the GitHub Release Asset digest. These facts are verified at install time rather than
 hardcoded into pre-release source. `v3.0.0`–`v3.0.4` are failed history or rejected candidates and must not be installed.
@@ -21,7 +21,7 @@ hardcoded into pre-release source. `v3.0.0`–`v3.0.4` are failed history or rej
 **Stable Release identity is verified at install time from GitHub and `共享/schema/RELEASE_METADATA.json`.** Personal users may resolve the latest Stable Release; enterprise-controlled environments install an approved exact tag and do not auto-upgrade. Natural language is the user interface; human plans are
 authoritative; project facts determine the work; one runtime connects multi-turn understanding,
 planning, capability invocation, partial replanning, bounded recovery and evidence-based
-completion. Historical tags remain immutable.
+completion. Historical tags remain immutable. `v3.0.5` is superseded; `v3.0.0`–`v3.0.4` are failed history or rejected candidates and must not be installed.
 
 ## Get the skill — pick one path
 

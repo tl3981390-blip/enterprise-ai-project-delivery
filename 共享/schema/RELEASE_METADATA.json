@@ -5,10 +5,10 @@
   "schema_version": "1.1",
   "comment": "REL-001: Git-tracked metadata NEVER records its own commit hash or the final asset SHA (both unknowable before commit). Declaration = version/tag/asset_name/repository. Resolution = installer/validator run `git rev-parse <tag>^{commit}` at runtime; asset SHA comes from the Release manifest / GitHub Release, computed AFTER the asset exists.",
   "skill_id": "enterprise-ai-project-delivery",
-  "version": "3.0.5",
-  "tag": "v3.0.5",
+  "version": "3.0.6",
+  "tag": "v3.0.6",
   "release_channel": "stable",
-  "release_asset": "enterprise-ai-project-delivery-v3.0.5.zip",
+  "release_asset": "enterprise-ai-project-delivery-v3.0.6.zip",
   "repository": {
     "url": "https://github.com/tl3981390-blip/enterprise-ai-project-delivery",
     "owner": "tl3981390-blip",
@@ -37,5 +37,5 @@
     "v1.6.0": "55207d242aac741d82959de6fd778416c6d304d4",
     "v1.6.0_defect": "tag-internal metadata recorded a stale self-referential release_commit (8be9502) and PENDING_UNTIL_RELEASE asset_sha256; superseded by v1.6.1 Declaration/Resolution model"
   },
-  "github_release": "v3.0.5"
+  "github_release": "v3.0.6"
 }

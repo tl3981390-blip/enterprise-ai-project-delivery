@@ -133,10 +133,16 @@ class CanonicalMetadataTests(unittest.TestCase):
         result = module.verify_source(ROOT, META)
         tag = module._tag_commit(ROOT, META["tag"])
         head = module._git_head(ROOT)
-        if tag and head and tag != head:
+        if tag and len(tag) == 40 and head and tag != head:
             self.assertFalse(result["tag_verified"])
             self.assertEqual(result["source_identity_mode"], "DEVELOPMENT_CHECKOUT_AHEAD_OF_FORMAL_TAG")
             self.assertTrue(any("not_formal_asset" in warning for warning in result["warnings"]))
+        elif tag is None or len(tag) != 40:
+            if not (ROOT / ".git").exists() and (ROOT / "INSTALL_INFO.json").exists():
+                self.assertEqual(result["source_identity_mode"], "FORMAL_ASSET")
+                self.assertRegex(str(result["tag_verified"]), r"^[0-9a-f]{40}$")
+            else:
+                self.assertEqual(result["tag_verified"], "pre_release_candidate")
 
     def test_development_candidate_copy_is_not_masqueraded_as_formal_asset(self):
         spec = importlib.util.spec_from_file_location("candidate_installer", INSTALLER)

@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.05-tdd-strategy
 description: 模块05·TDD与测试策略。判断式测试策略，核心逻辑先测试。Use when 需设计测试策略并确保关键逻辑被测试覆盖。
-version: 3.0.5
+version: 3.0.6
 license: MIT
 compatibility: open
 metadata:

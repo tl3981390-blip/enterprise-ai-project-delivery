@@ -1,7 +1,7 @@
 ---
 name: enterprise-ai-project-delivery.04-sdd
 description: 模块04·SDD规格。先规格后编码，产出全维度规格（机械可检查）。Use when 需把需求转成可施工、可检查的规格。
-version: 3.0.5
+version: 3.0.6
 license: MIT
 compatibility: open
 metadata:
