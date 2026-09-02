@@ -133,3 +133,22 @@ def test_trusted_recovery_uses_runtime_and_preserves_failure(tmp_path):
         blocker_evidence_ids=[evidence_id], regression_evidence_ids=[evidence_id])
     assert recovered["runtime"]["failures"][0]["status"] == "RECOVERED_REVALIDATED"
     assert any(item["status"] == "FAIL" for item in recovered["runtime"]["evidence_ledger"])
+
+
+def test_registered_verifier_maps_one_artifact_to_multiple_ac(tmp_path):
+    state = started(tmp_path)
+    bridge = controller(tmp_path)
+    artifact = tmp_path / "artifact.txt"
+    artifact.write_text("valid", encoding="utf-8")
+    registry = {"nonempty": lambda payload: (bool(payload), {"bytes": len(payload)})}
+    with pytest.raises(PermissionError, match="event_type_not_allowed"):
+        bridge.verify_registered_artifact(event("ItemCompleted", "model-pass"), expected_contract_revision=1,
+            work_id=work_id(state), path=artifact, ac_ids=["A"], verifier_id="nonempty", verifier_registry=registry)
+    verified = bridge.verify_registered_artifact(event("ARTIFACT_VERIFICATION_REQUEST", "artifact-1"),
+        expected_contract_revision=1, work_id=work_id(state), path=artifact, ac_ids=["A", "B"],
+        verifier_id="nonempty", verifier_registry=registry)
+    assert set(verified["acceptance_bindings"]) == {verified["contract_runtime_items"]["A"], verified["contract_runtime_items"]["B"]}
+    with pytest.raises(PermissionError, match="registered_verifier"):
+        bridge.verify_registered_artifact(event("ARTIFACT_VERIFICATION_REQUEST", "artifact-2"),
+            expected_contract_revision=1, work_id=work_id(state), path=artifact, ac_ids=["A"],
+            verifier_id="unregistered", verifier_registry=registry)

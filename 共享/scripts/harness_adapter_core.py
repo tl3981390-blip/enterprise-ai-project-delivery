@@ -248,6 +248,25 @@ class HarnessAdapterController:
         state["events"].append({**self._event_record(event), "type": "INTEGRATION_RECOVERY_RECORDED"})
         return self.persist_state(state)
 
+    def verify_registered_artifact(self, event: dict, *, expected_contract_revision: int,
+                                   work_id: str, path: str | Path, ac_ids: list[str], verifier_id: str,
+                                   verifier_registry: dict) -> dict:
+        """Run an allow-listed deterministic verifier; callers never submit PASS/FAIL."""
+        event = self._integration_event(event, {"ARTIFACT_VERIFICATION_REQUEST"}, expected_contract_revision)
+        verifier = verifier_registry.get(verifier_id)
+        if not callable(verifier):
+            raise PermissionError("registered_verifier_required")
+        if not ac_ids or any(ac_id not in self.restore_state()["contract_runtime_items"] for ac_id in ac_ids):
+            raise ValueError("artifact_acceptance_mapping_invalid")
+        target = Path(path); payload = target.read_bytes() if target.is_file() else b""
+        passed, detail = verifier(payload) if target.is_file() else (False, {"reason": "artifact_missing"})
+        output = json.dumps({"path": str(path), "passed": bool(passed), "detail": detail}, sort_keys=True).encode("utf-8")
+        return self._record_observation(event, event_types={"ARTIFACT_VERIFICATION_REQUEST"}, work_id=work_id,
+            tool=f"registered_verifier:{verifier_id}", output=output, status="PASS" if passed else "FAIL", ac_ids=ac_ids,
+            business_metadata={"verification_source": "CONTROLLER_VERIFIER", "verifier_id": verifier_id,
+                               "artifact_path": str(path), "artifact_hash": sha256(payload).hexdigest(),
+                               "verification_result": deepcopy(detail), "contract_revision": expected_contract_revision})
+
     def accept_owner_external_condition(self, event: dict, *, expected_contract_revision: int,
                                         condition_ref: str) -> dict:
         """Records a trusted owner condition; it never completes delivery or closes blockers."""
