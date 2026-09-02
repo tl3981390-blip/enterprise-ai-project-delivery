@@ -114,3 +114,22 @@ def test_integration_events_fail_closed_for_model_text_and_replay(tmp_path):
     with pytest.raises(PermissionError, match="event_replay"):
         bridge.accept_owner_external_condition(owner, expected_contract_revision=1, condition_ref="owner-input")
     assert bridge.restore_state()["delivery_session_id"] == state["delivery_session_id"]
+
+
+def test_trusted_recovery_uses_runtime_and_preserves_failure(tmp_path):
+    state = started(tmp_path)
+    bridge = controller(tmp_path)
+    failed = bridge.record_tool_failure(event("PostToolUseFailure", "failure"), work_id=work_id(state),
+                                        tool="runner", output=b"failure", root_cause="fixture")
+    failure_id = failed["runtime"]["failures"][0]["failure_id"]
+    with pytest.raises(PermissionError):
+        bridge.record_controller_recovery(event("ItemCompleted", "model-recovery"), expected_contract_revision=1,
+            failure_id=failure_id, action="model claims recovered", recovery_evidence_ids=[], blocker_evidence_ids=[], regression_evidence_ids=[])
+    passed = bridge.record_tool_success(event("PostToolUse", "revalidate"), work_id=work_id(state),
+                                        tool="runner", output=b"revalidated", ac_ids=["A"])
+    evidence_id = passed["events"][-1]["evidence_id"]
+    recovered = bridge.record_controller_recovery(event("RECOVERY_EVENT", "trusted-recovery"), expected_contract_revision=1,
+        failure_id=failure_id, action="trusted external repair", recovery_evidence_ids=[evidence_id],
+        blocker_evidence_ids=[evidence_id], regression_evidence_ids=[evidence_id])
+    assert recovered["runtime"]["failures"][0]["status"] == "RECOVERED_REVALIDATED"
+    assert any(item["status"] == "FAIL" for item in recovered["runtime"]["evidence_ledger"])
