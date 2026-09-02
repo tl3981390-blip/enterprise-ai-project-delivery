@@ -100,3 +100,17 @@ def test_had010_original_request_immutable_and_completion_passes_only_with_all_a
     bridge.record_tool_success(event("PostToolUse", "b"), work_id=work_id(state), tool="test", output=b"B", ac_ids=["B"])
     # Runtime also requires its generated final-evidence items: no Host prose can fill those.
     assert bridge.before_completion(event("Stop", "claim"))["allow_completion"] is False
+
+
+def test_integration_events_fail_closed_for_model_text_and_replay(tmp_path):
+    state = started(tmp_path)
+    bridge = controller(tmp_path)
+    fake = event("ItemCompleted", "model-text")
+    with pytest.raises(PermissionError, match="event_type_not_allowed"):
+        bridge.accept_owner_external_condition(fake, expected_contract_revision=1, condition_ref="OWNER_APPROVED")
+    owner = event("OWNER_CONDITION", "owner-1")
+    accepted = bridge.accept_owner_external_condition(owner, expected_contract_revision=1, condition_ref="owner-input")
+    assert accepted["external_conditions"][0]["condition_ref"] == "owner-input"
+    with pytest.raises(PermissionError, match="event_replay"):
+        bridge.accept_owner_external_condition(owner, expected_contract_revision=1, condition_ref="owner-input")
+    assert bridge.restore_state()["delivery_session_id"] == state["delivery_session_id"]

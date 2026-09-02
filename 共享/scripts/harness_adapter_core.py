@@ -15,8 +15,8 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
-from delivery_runtime import (approve_plan, claim_completion, record_evidence,
-                              record_failure, resume, suspend)
+from delivery_runtime import (approve_plan, change_conditions, claim_completion, record_evidence,
+                              record_failure, record_recovery, resume, suspend)
 from evidence_core import register_harness_execution_receipt
 from understanding_core import begin_understanding
 from delivery_runtime import start_from_understanding
@@ -222,6 +222,50 @@ class HarnessAdapterController:
         state["completion_status"] = "NOT_VERIFIED"
         state["owner_decisions"].append({"event_id": event["event_id"], "status": "RESUMED", "at": _now()})
         return self.persist_state(state)
+
+    def apply_contract_change(self, event: dict, *, expected_contract_revision: int,
+                              changed_facts: dict, change_source: str, authority_ref: dict,
+                              evidence_ids: list[str], replanned_work_units: dict | None = None) -> dict:
+        """Trusted Harness-only binding for existing Runtime condition handling."""
+        event = self._integration_event(event, {"CONTRACT_CHANGE"}, expected_contract_revision)
+        state = self.restore_state()
+        runtime = change_conditions(state["runtime"], changed_facts=changed_facts,
+            change_source=change_source, authority_ref=authority_ref, evidence_ids=evidence_ids,
+            replanned_work_units=replanned_work_units)
+        state["runtime"] = runtime; state["contract_revision"] += 1
+        state["events"].append({**self._event_record(event), "type": "INTEGRATION_CONTRACT_CHANGED"})
+        return self.persist_state(state)
+
+    def record_controller_recovery(self, event: dict, *, expected_contract_revision: int,
+                                   failure_id: str, action: str, recovery_evidence_ids: list[str],
+                                   blocker_evidence_ids: list[str], regression_evidence_ids: list[str]) -> dict:
+        """Trusted Harness-only binding to the existing Runtime recovery state machine."""
+        event = self._integration_event(event, {"RECOVERY_EVENT"}, expected_contract_revision)
+        state = self.restore_state()
+        state["runtime"] = record_recovery(state["runtime"], failure_id=failure_id, action=action,
+            recovery_evidence_ids=recovery_evidence_ids, blocker_evidence_ids=blocker_evidence_ids,
+            regression_evidence_ids=regression_evidence_ids)
+        state["events"].append({**self._event_record(event), "type": "INTEGRATION_RECOVERY_RECORDED"})
+        return self.persist_state(state)
+
+    def accept_owner_external_condition(self, event: dict, *, expected_contract_revision: int,
+                                        condition_ref: str) -> dict:
+        """Records a trusted owner condition; it never completes delivery or closes blockers."""
+        event = self._integration_event(event, {"OWNER_CONDITION"}, expected_contract_revision)
+        state = self.restore_state()
+        state.setdefault("external_conditions", []).append({"condition_ref": condition_ref,
+            "event_id": event["event_id"], "source": "TRUSTED_TEST_OWNER_AUTHORITY", "at": _now()})
+        state["events"].append({**self._event_record(event), "type": "OWNER_EXTERNAL_CONDITION_ACCEPTED"})
+        return self.persist_state(state)
+
+    def _integration_event(self, event: dict, allowed: set[str], expected_revision: int) -> dict:
+        event = self._event(event, allowed)
+        state = self.restore_state()
+        if expected_revision != state["contract_revision"]:
+            raise PermissionError("integration_contract_revision_stale")
+        if any(item.get("event_id") == event["event_id"] for item in state["events"]):
+            raise PermissionError("integration_event_replay")
+        return event
 
     def persist_state(self, state: dict) -> dict:
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
