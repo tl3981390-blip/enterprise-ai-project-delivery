@@ -15,8 +15,11 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
-from delivery_runtime import (approve_plan, change_conditions, claim_completion, record_evidence,
-                              record_failure, record_recovery, resume, suspend)
+from delivery_runtime import (approve_plan, cancel_delivery, change_conditions, claim_completion,
+                              record_evidence, record_failure, record_recovery,
+                              record_user_correction as runtime_record_user_correction,
+                              resolve_user_correction as runtime_resolve_user_correction,
+                              resume, suspend)
 from evidence_core import register_harness_execution_receipt
 from understanding_core import begin_understanding
 from delivery_runtime import start_from_understanding
@@ -25,6 +28,8 @@ EVENT_FIELDS = ("harness", "session_id", "conversation_id", "event_id", "event_t
                 "timestamp", "source", "payload")
 OWNER_EVENT_TYPES = {"OWNER_DIRECTIVE", "OWNER_APPROVAL", "SCOPE_CHANGE",
                      "ACCEPTANCE_CHANGE", "RECOVERY_INPUT"}
+USER_CONTROL_EVENT_TYPES = {"USER_PAUSE", "USER_RESUME", "USER_CANCEL",
+                            "USER_CORRECTION"}
 WRITE_ACTIONS = {"WRITE", "EDIT", "DELETE", "EXECUTE"}
 
 
@@ -223,6 +228,65 @@ class HarnessAdapterController:
         state["owner_decisions"].append({"event_id": event["event_id"], "status": "RESUMED", "at": _now()})
         return self.persist_state(state)
 
+    def apply_user_pause(self, event: dict, *, expected_contract_revision: int, reason: str,
+                         checkpoint_identity: dict, evidence_ids: list[str]) -> dict:
+        """Persist a real user pause; a model cannot manufacture this control event."""
+        event = self._integration_event(event, {"USER_PAUSE"}, expected_contract_revision)
+        state = self.restore_state()
+        state["runtime"] = suspend(state["runtime"], reason=reason,
+            checkpoint_identity=checkpoint_identity, evidence_ids=evidence_ids,
+            initiator="USER", authority_ref=self._owner_ref(event))
+        state["events"].append({**self._event_record(event), "type": "USER_PAUSE_APPLIED"})
+        return self.persist_state(state)
+
+    def apply_user_resume(self, event: dict, *, expected_contract_revision: int,
+                          suspension_id: str, current_identity: dict,
+                          revalidation_evidence_ids: list[str]) -> dict:
+        """Resume only the persisted user pause and only with fresh revalidation evidence."""
+        event = self._integration_event(event, {"USER_RESUME"}, expected_contract_revision)
+        state = self.restore_state()
+        package = next((item for item in state["runtime"].get("suspensions", [])
+                        if item.get("suspension_id") == suspension_id), None)
+        if package is None:
+            raise KeyError("user_suspension_not_found")
+        state["runtime"] = resume(state["runtime"], package=package,
+            current_identity=current_identity, revalidation_evidence_ids=revalidation_evidence_ids,
+            user_origin_ref=self._owner_ref(event))
+        state["events"].append({**self._event_record(event), "type": "USER_RESUME_APPLIED"})
+        return self.persist_state(state)
+
+    def apply_user_cancel(self, event: dict, *, expected_contract_revision: int) -> dict:
+        """A trusted explicit user cancel is terminal; ambiguous model prose is not accepted."""
+        event = self._integration_event(event, {"USER_CANCEL"}, expected_contract_revision)
+        state = self.restore_state()
+        state["runtime"] = cancel_delivery(state["runtime"], intent_record={
+            "intent": "CANCEL", "consequential_ambiguity": False},
+            user_origin_ref=self._owner_ref(event))
+        state["events"].append({**self._event_record(event), "type": "USER_CANCEL_APPLIED"})
+        return self.persist_state(state)
+
+    def apply_user_correction(self, event: dict, *, expected_contract_revision: int,
+                              description: str, violated_requirements: list[str],
+                              root_cause_class: str, related_checks: list[str]) -> dict:
+        """Turn an actual user correction into durable recovery work, never model self-report."""
+        event = self._integration_event(event, {"USER_CORRECTION"}, expected_contract_revision)
+        state = self.restore_state()
+        state["runtime"] = runtime_record_user_correction(state["runtime"], description=description,
+            violated_requirements=violated_requirements, root_cause_class=root_cause_class,
+            related_checks=related_checks, user_origin_ref=self._owner_ref(event))
+        state["events"].append({**self._event_record(event), "type": "USER_CORRECTION_APPLIED"})
+        return self.persist_state(state)
+
+    def resolve_user_correction(self, event: dict, *, expected_contract_revision: int,
+                                correction_id: str, root_cause_fix: str,
+                                evidence_ids: list[str]) -> dict:
+        event = self._integration_event(event, {"RECOVERY_EVENT"}, expected_contract_revision)
+        state = self.restore_state()
+        state["runtime"] = runtime_resolve_user_correction(state["runtime"],
+            correction_id=correction_id, root_cause_fix=root_cause_fix, evidence_ids=evidence_ids)
+        state["events"].append({**self._event_record(event), "type": "USER_CORRECTION_RESOLVED"})
+        return self.persist_state(state)
+
     def apply_contract_change(self, event: dict, *, expected_contract_revision: int,
                               changed_facts: dict, change_source: str, authority_ref: dict,
                               evidence_ids: list[str], replanned_work_units: dict | None = None) -> dict:
@@ -410,7 +474,7 @@ class HarnessAdapterController:
         return verified
 
     def _owner_ref(self, event: dict) -> dict:
-        if event["event_type"] not in OWNER_EVENT_TYPES | {"UserPromptSubmit"}:
+        if event["event_type"] not in OWNER_EVENT_TYPES | USER_CONTROL_EVENT_TYPES | {"UserPromptSubmit"}:
             raise PermissionError("trusted_owner_event_required")
         return {"origin": "USER", "harness": self.harness,
                 "conversation_id": event["conversation_id"], "message_id": event["event_id"]}

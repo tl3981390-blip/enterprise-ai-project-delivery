@@ -45,6 +45,41 @@ class CodexAppServerAdapter:
             return {"captured": True, "item_type": item.get("type"), "requires_ac_binding": True}
         return None
 
+    def on_user_control(self, *, app_thread_id: str, event_id: str, control: str,
+                        expected_contract_revision: int, payload: dict) -> dict:
+        """Apply an already-classified, real user control event.
+
+        App Server model messages are deliberately not parsed here.  The outer Harness must
+        classify and sign an explicit user action, so a Host cannot turn its own prose into a
+        pause, cancel, correction, or resume.
+        """
+        if not isinstance(payload, dict):
+            raise ValueError("user_control_payload_required")
+        event = self._event(control, app_thread_id, event_id, payload)
+        if control == "USER_CANCEL":
+            return self.bridge.apply_user_cancel(event,
+                expected_contract_revision=expected_contract_revision)
+        if control == "USER_CORRECTION":
+            return self.bridge.apply_user_correction(event,
+                expected_contract_revision=expected_contract_revision,
+                description=payload.get("description", ""),
+                violated_requirements=payload.get("violated_requirements", []),
+                root_cause_class=payload.get("root_cause_class", ""),
+                related_checks=payload.get("related_checks", []))
+        if control == "USER_PAUSE":
+            return self.bridge.apply_user_pause(event,
+                expected_contract_revision=expected_contract_revision,
+                reason=payload.get("reason", ""),
+                checkpoint_identity=payload.get("checkpoint_identity", {}),
+                evidence_ids=payload.get("evidence_ids", []))
+        if control == "USER_RESUME":
+            return self.bridge.apply_user_resume(event,
+                expected_contract_revision=expected_contract_revision,
+                suspension_id=payload.get("suspension_id", ""),
+                current_identity=payload.get("current_identity", {}),
+                revalidation_evidence_ids=payload.get("revalidation_evidence_ids", []))
+        raise ValueError("unsupported_user_control")
+
     def _event(self, event_type: str, thread_id: str, event_id: str, payload: dict) -> dict:
         return sign_trusted_event({"harness": "codex-app-server", "session_id": thread_id,
             "conversation_id": thread_id, "event_id": str(event_id), "event_type": event_type,

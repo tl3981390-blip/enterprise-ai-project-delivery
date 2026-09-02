@@ -38,6 +38,14 @@ def run_installer(*args, cwd=None):
                           capture_output=True, text=True, encoding="utf-8", cwd=cwd or ROOT)
 
 
+def module_tag_differs_from_head():
+    """The repository checkout can legitimately be ahead of its formal Stable tag."""
+    spec = importlib.util.spec_from_file_location("candidate_installer_for_status", INSTALLER)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module._git_head(ROOT) != module._tag_commit(ROOT, META["tag"])
+
+
 class CanonicalMetadataTests(unittest.TestCase):
     def test_post_install_recommendation_uses_cache_safe_validation(self):
         installer = INSTALLER.read_text(encoding="utf-8")
@@ -118,6 +126,29 @@ class CanonicalMetadataTests(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("ZIP_SHA_MISMATCH_NOT_FORMAL_RELEASE", result.stdout)
 
+    def test_checkout_ahead_of_declared_tag_is_not_reported_as_formal_identity(self):
+        spec = importlib.util.spec_from_file_location("candidate_installer", INSTALLER)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        result = module.verify_source(ROOT, META)
+        tag = module._tag_commit(ROOT, META["tag"])
+        head = module._git_head(ROOT)
+        if tag and head and tag != head:
+            self.assertFalse(result["tag_verified"])
+            self.assertEqual(result["source_identity_mode"], "DEVELOPMENT_CHECKOUT_AHEAD_OF_FORMAL_TAG")
+            self.assertTrue(any("not_formal_asset" in warning for warning in result["warnings"]))
+
+    def test_development_candidate_copy_is_not_masqueraded_as_formal_asset(self):
+        spec = importlib.util.spec_from_file_location("candidate_installer", INSTALLER)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "INSTALL_INFO.json").write_text(json.dumps({
+                "mode": "SELF_CONTAINED_DEVELOPMENT_CANDIDATE",
+                "development_source_tag": META["tag"], "formal_release": False}), encoding="utf-8")
+            self.assertTrue(module._is_development_candidate_copy(root, META))
+
 
 class FormalInstallFlowTests(unittest.TestCase):
     def test_inst001_repository_url_starts_formal_install(self):
@@ -179,7 +210,8 @@ class DryRunSelfCheckTests(unittest.TestCase):
             target = Path(tmp) / "skills" / "enterprise-ai-project-delivery"
             result = run_installer("--target", str(target))
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertIn("INSTALLED_SELF_CONTAINED", result.stdout)
+            self.assertRegex(result.stdout,
+                             r"INSTALLED_(SELF_CONTAINED|DEVELOPMENT_CANDIDATE)")
             self.assertTrue((target / "INSTALL_INFO.json").exists())
             self.assertTrue((target / "共享" / "schema" / "RELEASE_METADATA.json").exists())
             self.assertTrue((target / "共享" / "scripts" / "delivery_planning_core.py").exists())

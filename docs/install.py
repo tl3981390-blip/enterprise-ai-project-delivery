@@ -68,6 +68,16 @@ def _tag_commit(root: Path, tag: str) -> str | None:
         return None
 
 
+def _git_head(root: Path) -> str | None:
+    try:
+        out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root,
+                             capture_output=True, text=True)
+        head = out.stdout.strip()
+        return head if len(head) == 40 else None
+    except OSError:
+        return None
+
+
 def verify_source(root: Path, meta: dict) -> dict:
     """Real identity verification (Declaration/Resolution model).
     RELEASE_METADATA.json is a DECLARATION (version/tag/asset_name) — it never stores its
@@ -88,6 +98,7 @@ def verify_source(root: Path, meta: dict) -> dict:
         if not (root / required).exists():
             errors.append(f"missing_required_dir:{required}")
     tag_ok = None
+    source_mode = "FORMAL_ASSET"
     git_dir = root / ".git"
     if git_dir.exists():
         actual = _tag_commit(root, meta["tag"])
@@ -96,15 +107,29 @@ def verify_source(root: Path, meta: dict) -> dict:
             # candidate checkout is legal (development mode), but we say so honestly
             # rather than pretending a formal identity. Formal installs verify the tag.
             tag_ok = "pre_release_candidate"
+            source_mode = "DEVELOPMENT_CANDIDATE"
             warnings.append(f"pre_release_candidate:tag {meta['tag']} not published; installing as dev candidate")
         else:
-            tag_ok = True  # resolved commit == the tag the declaration names
+            head = _git_head(root)
+            if head != actual:
+                tag_ok = False
+                source_mode = "DEVELOPMENT_CHECKOUT_AHEAD_OF_FORMAL_TAG"
+                warnings.append(
+                    f"development_checkout_not_formal_asset:HEAD {head or 'unresolved'} != tag {meta['tag']} {actual}")
+            else:
+                tag_ok = True  # exact checkout of the declared formal tag
     else:
-        identity_errors, resolved = _validate_formal_asset_identity(root, meta)
-        errors.extend(identity_errors)
-        tag_ok = resolved if not identity_errors else False
+        if _is_development_candidate_copy(root, meta):
+            tag_ok = False
+            source_mode = "SELF_CONTAINED_DEVELOPMENT_CANDIDATE"
+            warnings.append("development_candidate_copy_not_formal_release_asset")
+        else:
+            identity_errors, resolved = _validate_formal_asset_identity(root, meta)
+            errors.extend(identity_errors)
+            tag_ok = resolved if not identity_errors else False
     return {"version": meta_version, "errors": errors, "warnings": warnings,
-            "git_repo": git_dir.exists(), "tag_verified": tag_ok, "resolved_tag": meta["tag"]}
+            "git_repo": git_dir.exists(), "tag_verified": tag_ok, "source_identity_mode": source_mode,
+            "resolved_tag": meta["tag"]}
 
 
 def _validate_formal_asset_identity(root: Path, meta: dict) -> tuple[list[str], str | None]:
@@ -123,6 +148,18 @@ def _validate_formal_asset_identity(root: Path, meta: dict) -> tuple[list[str], 
     if tag != meta.get("tag") or info.get("version") != meta.get("version"):
         return ["FORMAL_ASSET_IDENTITY_MISSING_OR_INVALID:tag_or_version_mismatch"], None
     return [], commit
+
+
+def _is_development_candidate_copy(root: Path, meta: dict) -> bool:
+    """A copied ahead-of-tag checkout is installable for rehearsal, never a formal asset."""
+    info_path = root / "INSTALL_INFO.json"
+    try:
+        info = json.loads(info_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return (info.get("mode") == "SELF_CONTAINED_DEVELOPMENT_CANDIDATE" and
+            info.get("development_source_tag") == meta.get("tag") and
+            info.get("formal_release") is False)
 
 
 def verify_zip(path: Path, meta: dict) -> dict:
@@ -202,7 +239,8 @@ def self_check(dst: Path) -> list[str]:
                      "共享/scripts/understanding_core.py", "共享/scripts/delivery_runtime.py",
                      "共享/scripts/evidence_core.py", "harness_manifest.json",
                      "共享/schema/RELEASE_METADATA.json",
-                     "共享/schema/project_reliability_event.schema.json", "adapters/README.md"):
+                     "共享/schema/project_reliability_event.schema.json", "adapters/README.md",
+                     "demo/run_trusted_delivery_demo.py", "demo/DEMO_RUNBOOK.md"):
         if not (dst / required).exists():
             errors.append(f"install_incomplete:{required}")
     return errors
@@ -281,6 +319,7 @@ def main() -> int:
                 source_identity = json.loads(source_info_path.read_text(encoding="utf-8"))
             except (OSError, ValueError):
                 source_identity = None
+        source_is_dev = report["source_verification"]["source_identity_mode"] != "FORMAL_ASSET"
         install_info = {
             "skill_id": SKILL_ID, "version": meta["version"], "mode": "SELF_CONTAINED_FULL_CORE",
             "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
@@ -293,6 +332,14 @@ def main() -> int:
         if source_identity and source_identity.get("canonical_identity"):
             install_info["canonical_identity"] = source_identity["canonical_identity"]
             install_info["release_asset_identity_preserved"] = True
+        if source_is_dev:
+            install_info.update({
+                "mode": "SELF_CONTAINED_DEVELOPMENT_CANDIDATE",
+                "canonical_identity": "development candidate (not a formal release asset)",
+                "development_source_tag": meta["tag"],
+                "formal_release": False,
+                "note": "self-contained development candidate; formal installation requires an exact release asset identity",
+            })
         (target / "INSTALL_INFO.json").write_text(json.dumps(
             install_info, ensure_ascii=False, indent=2), encoding="utf-8")
         errors = self_check(target)
@@ -304,7 +351,10 @@ def main() -> int:
     report["post_install_recommendation"] = (
         "run: python <skill-dir>/docs/validate_installed_copy.py --root <skill-dir> "
         "(validator + full regression without cache pollution)")
-    report["status"] = "FAILED" if failed else ("DRY_RUN" if args.dry_run else "INSTALLED_SELF_CONTAINED")
+    development_source = report["source_verification"]["source_identity_mode"] != "FORMAL_ASSET"
+    report["status"] = ("FAILED" if failed else ("DRY_RUN" if args.dry_run else
+                        ("INSTALLED_DEVELOPMENT_CANDIDATE" if development_source
+                         else "INSTALLED_SELF_CONTAINED")))
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 1 if failed else 0
 

@@ -39,3 +39,16 @@ Vocabulary: `VALIDATED / PARTIALLY_VALIDATED / BLOCKED_RUNTIME_AUTH / PENDING_EX
 | Known limitations | automatic_activation not yet demonstrated | invalid API key in test env (fix creds, rerun conformance suite — no core change needed) | not installed | not installed |
 
 Adapter packages live in `adapters/<platform>/` (installation, invocation, lifecycle, permissions, capabilities). They contain **no core copy** — the core has a single canonical source. Where a harness lacks a capability, the adapter declares an explicit boundary and a legal degradation path; nothing is faked.
+
+## Controller-bound user controls
+
+Installing the Skill makes its self-contained Delivery Core available; it does **not** by itself make a Harness intercept every conversation action. A Harness that needs enforced user-control transitions must bind its real conversation UI to `CodexAppServerAdapter.on_user_control(...)` (or the equivalent shared `HarnessAdapterController` operation).
+
+The outer Harness is responsible for authenticating the actual conversation user and classifying only an explicit control as one of `USER_PAUSE`, `USER_RESUME`, `USER_CANCEL`, or `USER_CORRECTION`. It then signs that event with the harness transport secret, session and current contract revision. The adapter never infers a control transition from Host Model prose, punctuation, a tool result, or a normal question. Replay, another session, or an old contract revision fail closed.
+
+This is deliberately a two-part boundary:
+
+- The Harness owns real-user identity and the UI event.
+- The shared controller owns persistent state, Runtime authority calls, evidence gates and completion exposure.
+
+For a production enterprise integration, bind the Harness assertion to the enterprise identity provider and retain its audit reference. The deterministic demo uses a local, controlled Owner simulation solely to show the gate/recovery sequence; it is not a production identity integration. See `demo/DEMO_RUNBOOK.md` for the offline presentation rehearsal.

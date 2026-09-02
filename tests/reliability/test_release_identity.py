@@ -70,6 +70,10 @@ class ReleaseIdentityModelTests(unittest.TestCase):
         if not self._is_git_checkout():
             info = json.loads((ROOT / "INSTALL_INFO.json").read_text(encoding="utf-8"))
             self.assertEqual(info["version"], META["version"])
+            if info.get("mode") == "SELF_CONTAINED_DEVELOPMENT_CANDIDATE":
+                self.assertFalse(info["formal_release"])
+                self.assertEqual(info["development_source_tag"], META["tag"])
+                return
             self.assertIn(META["tag"], info["canonical_identity"])
             return
         rc = subprocess.run(["git", "rev-parse", f"{META['tag']}^{{commit}}"], cwd=ROOT,
@@ -137,6 +141,9 @@ class ReleaseIdentityModelTests(unittest.TestCase):
     def test_rel010_main_and_release_identity_not_conflated(self):
         if not self._is_git_checkout():
             info = json.loads((ROOT / "INSTALL_INFO.json").read_text(encoding="utf-8"))
+            if info.get("mode") == "SELF_CONTAINED_DEVELOPMENT_CANDIDATE":
+                self.assertFalse(info["formal_release"])
+                return
             self.assertEqual(info["mode"], "SELF_CONTAINED_FULL_CORE")
             self.assertFalse((ROOT / ".git").exists())
             return
