@@ -248,6 +248,16 @@ class HarnessAdapterController:
         state["events"].append({**self._event_record(event), "type": "INTEGRATION_RECOVERY_RECORDED"})
         return self.persist_state(state)
 
+    def record_controller_failure(self, event: dict, *, expected_contract_revision: int,
+                                  work_id: str, root_cause: str, evidence_ids: list[str]) -> dict:
+        """Trusted Harness-only failure binding; evidence must already be canonical."""
+        event = self._integration_event(event, {"FAILURE_EVENT"}, expected_contract_revision)
+        state = self.restore_state()
+        state["runtime"] = record_failure(state["runtime"], work_id=work_id,
+            root_cause=root_cause, evidence_ids=evidence_ids)
+        state["events"].append({**self._event_record(event), "type": "INTEGRATION_FAILURE_RECORDED"})
+        return self.persist_state(state)
+
     def verify_registered_artifact(self, event: dict, *, expected_contract_revision: int,
                                    work_id: str, path: str | Path, ac_ids: list[str], verifier_id: str,
                                    verifier_registry: dict) -> dict:
@@ -271,6 +281,8 @@ class HarnessAdapterController:
                                         condition_ref: str) -> dict:
         """Records a trusted owner condition; it never completes delivery or closes blockers."""
         event = self._integration_event(event, {"OWNER_CONDITION"}, expected_contract_revision)
+        if event["payload"].get("authority") != "TRUSTED_TEST_OWNER_AUTHORITY":
+            raise PermissionError("trusted_test_owner_authority_required")
         state = self.restore_state()
         state.setdefault("external_conditions", []).append({"condition_ref": condition_ref,
             "event_id": event["event_id"], "source": "TRUSTED_TEST_OWNER_AUTHORITY", "at": _now()})
@@ -280,6 +292,9 @@ class HarnessAdapterController:
     def _integration_event(self, event: dict, allowed: set[str], expected_revision: int) -> dict:
         event = self._event(event, allowed)
         state = self.restore_state()
+        if (event["session_id"] != state["harness_session_id"] or
+                event["conversation_id"] != state["conversation_id"]):
+            raise PermissionError("harness_session_mismatch")
         if expected_revision != state["contract_revision"]:
             raise PermissionError("integration_contract_revision_stale")
         if any(item.get("event_id") == event["event_id"] for item in state["events"]):

@@ -14,10 +14,10 @@ from harness_adapter_core import HarnessAdapterController, sign_trusted_event
 SECRET = "adapter-test-secret"
 
 
-def event(kind, ident="e1", *, session="h1"):
+def event(kind, ident="e1", *, session="h1", payload=None):
     return sign_trusted_event({"harness": "fixture", "session_id": session,
         "conversation_id": "conversation-1", "event_id": ident, "event_type": kind,
-        "timestamp": "2026-09-02T00:00:00+00:00", "source": "HARNESS", "payload": {}},
+        "timestamp": "2026-09-02T00:00:00+00:00", "source": "HARNESS", "payload": payload or {}},
         transport_secret=SECRET)
 
 
@@ -108,7 +108,7 @@ def test_integration_events_fail_closed_for_model_text_and_replay(tmp_path):
     fake = event("ItemCompleted", "model-text")
     with pytest.raises(PermissionError, match="event_type_not_allowed"):
         bridge.accept_owner_external_condition(fake, expected_contract_revision=1, condition_ref="OWNER_APPROVED")
-    owner = event("OWNER_CONDITION", "owner-1")
+    owner = event("OWNER_CONDITION", "owner-1", payload={"authority": "TRUSTED_TEST_OWNER_AUTHORITY"})
     accepted = bridge.accept_owner_external_condition(owner, expected_contract_revision=1, condition_ref="owner-input")
     assert accepted["external_conditions"][0]["condition_ref"] == "owner-input"
     with pytest.raises(PermissionError, match="event_replay"):
@@ -152,3 +152,34 @@ def test_registered_verifier_maps_one_artifact_to_multiple_ac(tmp_path):
         bridge.verify_registered_artifact(event("ARTIFACT_VERIFICATION_REQUEST", "artifact-2"),
             expected_contract_revision=1, work_id=work_id(state), path=artifact, ac_ids=["A"],
             verifier_id="unregistered", verifier_registry=registry)
+
+
+def test_trusted_contract_change_rejects_stale_revision(tmp_path):
+    state = started(tmp_path)
+    bridge = controller(tmp_path)
+    observed = bridge.record_tool_success(event("PostToolUse", "policy-proof"), work_id=work_id(state),
+        tool="config-reader", output=b"policy revision 2", ac_ids=[])
+    evidence_id = observed["events"][-1]["evidence_id"]
+    authority = {"origin": "PROJECT", "harness": "fixture", "conversation_id": "conversation-1", "message_id": "policy-change"}
+    changed = bridge.apply_contract_change(event("CONTRACT_CHANGE", "policy-change"), expected_contract_revision=1,
+        changed_facts={"policy_revision": "2"}, change_source="PROJECT_OBSERVED_CHANGE",
+        authority_ref=authority, evidence_ids=[evidence_id])
+    assert changed["contract_revision"] == 2
+    with pytest.raises(PermissionError, match="revision_stale"):
+        bridge.apply_contract_change(event("CONTRACT_CHANGE", "stale-change"), expected_contract_revision=1,
+            changed_facts={"policy_revision": "3"}, change_source="PROJECT_OBSERVED_CHANGE",
+            authority_ref=authority, evidence_ids=[evidence_id])
+
+
+def test_integration_event_replay_is_persistent_and_cross_session_rejected(tmp_path):
+    started(tmp_path)
+    owner = event("OWNER_CONDITION", "persistent-owner", payload={"authority": "TRUSTED_TEST_OWNER_AUTHORITY"})
+    controller(tmp_path).accept_owner_external_condition(owner, expected_contract_revision=1, condition_ref="owner")
+    restarted = HarnessAdapterController(harness="fixture", state_path=tmp_path / "state.json", transport_secret=SECRET)
+    with pytest.raises(PermissionError, match="event_replay"):
+        restarted.accept_owner_external_condition(owner, expected_contract_revision=1, condition_ref="owner")
+    foreign = sign_trusted_event({"harness": "fixture", "session_id": "different", "conversation_id": "conversation-1",
+        "event_id": "foreign-owner", "event_type": "OWNER_CONDITION", "timestamp": "2026-09-02T00:00:00+00:00",
+        "source": "HARNESS", "payload": {}}, transport_secret=SECRET)
+    with pytest.raises(PermissionError, match="harness_session_mismatch"):
+        restarted.accept_owner_external_condition(foreign, expected_contract_revision=1, condition_ref="owner")
