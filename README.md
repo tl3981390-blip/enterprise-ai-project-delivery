@@ -151,7 +151,7 @@ Harness-visible or enterprise-catalogued Skills can support project work when th
 | ZCode 3.10.1 | **VALIDATED L9** (discover/invoke/contract/tools/telemetry/resume/attach/closed-loop/profile) |
 | Claude Code 2.1.235 | L1 VERIFIED / **BLOCKED_RUNTIME_AUTH** (execution blocked by invalid API key in the tested environment) |
 | TRAE | PENDING_EXTERNAL_VALIDATION (adapter ready; not installed in test environment) |
-| WorkBuddy / CodeBuddy | PENDING_EXTERNAL_VALIDATION (adapter ready; not installed) |
+| WorkBuddy / CodeBuddy | PENDING_EXTERNAL_VALIDATION (project-scoped Evidence demonstration verified; full Controller still requires Host-attested capability discovery and a real control-declaration channel) |
 
 Capability differs per platform, so conformance levels differ (L1–L10). Where a harness lacks a capability, the adapter declares an explicit boundary and takes a legal degradation path — the skill never pretends a platform has functions it does not have.
 
