@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 3.0.9 (2026-09-03)
+
+- Keeps formal installer reports free of machine-specific source paths; reports a safe source identity mode, declared tag and resolved formal commit instead.
+- Adds a regression proving installer reports do not expose the publisher workspace path.
+
 ## 3.0.5 (2026-09-02)
 
 - Preserves the discovery and tagged-document gates while removing author-local absolute paths from the formal Asset payload.

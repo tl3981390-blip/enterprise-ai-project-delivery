@@ -4,7 +4,7 @@ description: 通过自然语言接手并可靠交付复杂项目：理解真实�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 3.0.8
+  version: 3.0.9
   language: zh-CN
 ---
 
