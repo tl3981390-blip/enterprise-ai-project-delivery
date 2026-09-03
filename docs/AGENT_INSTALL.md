@@ -1,7 +1,7 @@
 # AGENT_INSTALL — 给任何 Harness AI 的 URL-only 安装契约
 
 > v3 Stable：只获取 GitHub Stable Release Asset，校验 SHA 后安装到 Harness 的 Skill 目录。不得要求作者开发空间、`.git`、缓存、bootstrap 或自适应状态。安装后必须在原开发目录不可用的独立目录运行 validator 与全量回归；adaptive strategy 缺失时使用默认值。
-> 当前 Stable 是 `v3.0.7`；正式 Asset 为 `enterprise-ai-project-delivery-v3.0.7.zip`。Harness 必须从 GitHub Release digest 取得 SHA-256，并从 Asset 内 `INSTALL_INFO.json` 核验 exact `tag v3.0.7 -> commit <40-char-sha>`；不得相信预发布源码中硬编码的未来身份。`v3.0.5` 已被替代；`v3.0.0`–`v3.0.4` 是失败历史或被拒候选，不得安装或解析为 Stable。
+> 当前 Stable 是 `v3.0.8`；正式 Asset 为 `enterprise-ai-project-delivery-v3.0.8.zip`。Harness 必须从 GitHub Release digest 取得 SHA-256，并从 Asset 内 `INSTALL_INFO.json` 核验 exact `tag v3.0.8 -> commit <40-char-sha>`；不得相信预发布源码中硬编码的未来身份。`v3.0.5` 已被替代；`v3.0.0`–`v3.0.4` 是失败历史或被拒候选，不得安装或解析为 Stable。
 > 验收顺序是硬合同：先运行 `docs/validate_installed_copy.py`；额外定向 pytest 必须设置 `PYTHONDONTWRITEBYTECODE=1` 并禁用 pytest cache provider。不得先用普通 pytest 污染被验资产。
 > 无 `.git` 的正式 Asset 必须自带有效 `INSTALL_INFO.json`，且其中 version、tag 与 metadata 一致，canonical identity 必须是 `tag vX.Y.Z -> commit <40-char-sha>`。缺失、损坏或不匹配必须报 `FORMAL_ASSET_IDENTITY_MISSING_OR_INVALID`，禁止降级成 `resolved at runtime`。
 

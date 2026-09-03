@@ -29,6 +29,7 @@ def test_profile_is_factual_optional_guidance_for_existing_code_change():
     ids = {practice["id"] for practice in profile["practices"]}
     assert profile["status"] == "APPLICABLE"
     assert {"BASELINE_BEFORE_CHANGE", "MINIMAL_CHANGE_WITH_TEST",
+            "DESIGN_BEFORE_IMPLEMENTATION", "PLAN_BEFORE_EXECUTION",
             "TDD_RED_GREEN_REFACTOR", "SYSTEMATIC_DEBUG_AND_REVALIDATE",
             "VERIFICATION_BEFORE_COMPLETION", "INDEPENDENT_ENGINEERING_REVIEW",
             "WORK_UNIT_REVIEW", "FINISH_CHANGE_CONTEXT",

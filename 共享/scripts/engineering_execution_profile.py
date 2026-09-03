@@ -28,6 +28,12 @@ def derive_engineering_execution_profile(facts: dict) -> dict:
         return {"status": "NOT_APPLICABLE", "reason": "no_confirmed_software_delivery_signal",
                 "core_invariants_unchanged": True, "practices": []}
     practices = [
+        {"id": "DESIGN_BEFORE_IMPLEMENTATION", "when": "new_behavior_or_unclear_solution",
+         "action": "clarify the desired behavior, constraints and alternatives before editing implementation",
+         "evidence": "human-owned design decision or approved scope note"},
+        {"id": "PLAN_BEFORE_EXECUTION", "when": "material_multi_file_change",
+         "action": "split the approved scope into small Work Units with exact files, dependencies and verification steps",
+         "evidence": "current human-owned plan revision"},
         {"id": "BASELINE_BEFORE_CHANGE", "when": "always_for_existing_or_changed_code",
          "action": "inspect relevant code and tests; run a relevant baseline when feasible",
          "evidence": "captured inspection or test receipt"},
