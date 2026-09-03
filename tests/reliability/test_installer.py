@@ -203,6 +203,15 @@ class FormalInstallFlowTests(unittest.TestCase):
 
 
 class DryRunSelfCheckTests(unittest.TestCase):
+    def test_install_report_uses_safe_source_identity_not_machine_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_installer("--target", str(Path(tmp) / "skill"), "--dry-run")
+            self.assertEqual(result.returncode, 0, result.stdout)
+            report = json.loads(result.stdout)
+            self.assertNotIn("source_root", report)
+            self.assertIn("source_identity", report)
+            self.assertNotIn(str(ROOT), json.dumps(report, ensure_ascii=False))
+
     def test_dry_run_no_writes(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "skills" / "enterprise-ai-project-delivery"

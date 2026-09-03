@@ -261,7 +261,7 @@ def main() -> int:
     meta = load_metadata(root)
     harness_dirs = meta["harness_skill_dirs"]
     report = {"skill_id": SKILL_ID, "canonical_version": meta["version"], "canonical_tag": meta["tag"],
-              "source_root": str(root), "metadata_source": str(METADATA_REL)}
+              "metadata_source": str(METADATA_REL)}
 
     if args.zip:
         report["zip_verification"] = verify_zip(args.zip, meta)
@@ -271,6 +271,14 @@ def main() -> int:
             return 1
 
     report["source_verification"] = verify_source(root, meta)
+    source_verification = report["source_verification"]
+    report["source_identity"] = {
+        "mode": source_verification["source_identity_mode"],
+        "declared_tag": meta["tag"],
+        "resolved_commit": (source_verification["tag_verified"]
+                            if source_verification["source_identity_mode"] == "FORMAL_ASSET"
+                            else None),
+    }
     if report["source_verification"]["errors"]:
         report["status"] = "SOURCE_VERIFICATION_FAILED"
         print(json.dumps(report, ensure_ascii=False, indent=2))
