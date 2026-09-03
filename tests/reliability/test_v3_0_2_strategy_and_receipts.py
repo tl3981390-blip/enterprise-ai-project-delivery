@@ -115,6 +115,34 @@ def test_strategy_behavior_r_changes_real_recovery_sequence_not_success_standard
     assert isolate_attempt["execution_sequence"][0] == "ISOLATE_IMPACT"
 
 
+def test_repeated_unverified_recovery_switches_to_alternate_strategy():
+    session = _approved(_session(strategy={"recovery_strategy": "root_cause_then_revalidate"}))
+    work = session["plan"]["stages"][0]["name"]
+    failed = _record(session, "repeat-failure", status="FAIL", work_id=work)
+    failed = record_failure(failed, work_id=work,
+                            evidence_ids=[failed["evidence_ledger"][-1]["evidence_id"]],
+                            root_cause="still unknown")
+    repair_1 = _record(failed, "repair-1", work_id=work)
+    blocker_1 = _record(repair_1, "blocker-1", status="FAIL", work_id=work)
+    first = record_recovery(
+        blocker_1, failure_id=blocker_1["failures"][0]["failure_id"], action="same approach",
+        recovery_evidence_ids=[repair_1["evidence_ledger"][-1]["evidence_id"]],
+        blocker_evidence_ids=[blocker_1["evidence_ledger"][-1]["evidence_id"]])
+    assert first["status"] == "RECOVERING"
+    repair_2 = _record(first, "repair-2", work_id=work)
+    blocker_2 = _record(repair_2, "blocker-2", work_id=work)
+    regression_2 = _record(blocker_2, "regression-2", work_id=work)
+    second = record_recovery(
+        regression_2, failure_id=regression_2["failures"][0]["failure_id"], action="alternate approach",
+        recovery_evidence_ids=[repair_2["evidence_ledger"][-3]["evidence_id"]],
+        blocker_evidence_ids=[blocker_2["evidence_ledger"][-2]["evidence_id"]],
+        regression_evidence_ids=[regression_2["evidence_ledger"][-1]["evidence_id"]])
+    attempts = second["failures"][0]["recovery_attempts"]
+    assert attempts[0]["strategy"] == "root_cause_then_revalidate"
+    assert attempts[1]["strategy"] == "isolate_then_root_cause_revalidate"
+    assert attempts[1]["execution_sequence"][0] == "ISOLATE_IMPACT"
+
+
 def test_strategy_behavior_e_orders_only_dependency_legal_work_differently():
     plan = {"stages": [
         {"name": "低风险", "goal": "low", "work": ["low"], "risk": "LOW"},

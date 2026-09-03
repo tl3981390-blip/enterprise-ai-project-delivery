@@ -29,6 +29,8 @@ metadata:
 5. 交人工时进入 `SUSPENDED_AWAITING_HUMAN`，同时生成完整 `HUMAN_RECOVERY_PACKAGE`；禁止只说“请处理后继续”。
 6. 用户说继续时仅走 `RESUME_REQUEST → RESUME_VERIFICATION_PASS/FAIL`；PASS 后先复验旧失败和 Regression，再继续。
 
+重复失败控制：同一 Failure 的第一次恢复尝试使用当前安全 Recovery Strategy；如果该尝试未通过原 Blocking Gate，下一次尝试自动切换到另一种安全定位顺序（根因优先 ↔ 先隔离影响再找根因），并记录 `RECOVERY_STRATEGY_SWITCHED`。这只是运行时恢复策略切换，不修改 Stable Core，也不绕过 Evidence、Authority 或 Completion Gate。预算耗尽后必须停在人工恢复边界。
+
 ## 反合理化 / Red Flags
 - 失败→改报告 PASS → 假通过
 - 无限重试 → 违反停止条件

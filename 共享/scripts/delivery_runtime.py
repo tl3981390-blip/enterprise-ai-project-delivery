@@ -488,6 +488,20 @@ def record_failure(session: dict, *, work_id: str, evidence_ids: list[str],
     return _bump(out, carry_evidence=True)
 
 
+def _recovery_strategy_for_attempt(session: dict, failure: dict) -> str:
+    """Use a different safe recovery lens after the first unverified attempt.
+
+    The configured strategy remains the learned preference; switching the lens
+    is a bounded runtime response to repeated failure, not a Core mutation.
+    """
+    configured = session["adaptive_strategy"]["recovery_strategy"]
+    if not failure["recovery_attempts"]:
+        return configured
+    return ("isolate_then_root_cause_revalidate"
+            if configured == "root_cause_then_revalidate"
+            else "root_cause_then_revalidate")
+
+
 def record_recovery(session: dict, *, failure_id: str, action: str,
                     recovery_evidence_ids: list[str], blocker_evidence_ids: list[str],
                     regression_evidence_ids: list[str] | None = None) -> dict:
@@ -511,7 +525,15 @@ def record_recovery(session: dict, *, failure_id: str, action: str,
                                                work_id=failure["work_id"])
     regression_records = (require_current_evidence(out, regression_evidence_ids)
                           if regression_evidence_ids else [])
-    recovery_strategy = out["adaptive_strategy"]["recovery_strategy"]
+    configured_strategy = out["adaptive_strategy"]["recovery_strategy"]
+    recovery_strategy = _recovery_strategy_for_attempt(out, failure)
+    if recovery_strategy != configured_strategy:
+        _event(out, "RECOVERY_STRATEGY_SWITCHED", {
+            "failure_id": failure_id,
+            "from": configured_strategy,
+            "to": recovery_strategy,
+            "reason": "repeated_unverified_recovery",
+        })
     recovery_sequence = (["ISOLATE_IMPACT", "ROOT_CAUSE", "BOUNDED_FIX", "ORIGINAL_BLOCKER",
                           "REGRESSION"] if recovery_strategy == "isolate_then_root_cause_revalidate"
                          else ["ROOT_CAUSE", "BOUNDED_FIX", "ORIGINAL_BLOCKER", "REGRESSION"])
