@@ -9,6 +9,7 @@ import json
 
 from adaptive_strategy_core import (STRATEGY_FIELDS, apply_verified_strategy_patch,
                                      load_strategy)
+from engineering_execution_profile import derive_engineering_execution_profile
 
 from delivery_planning_core import (complexity_from_facts, compose_stages,
                                     derive_final_acceptance, make_fact_model,
@@ -77,6 +78,7 @@ def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
     now = _now()
     session_id = str(uuid4())
     plan["strategy_guidance"] = strategy["planning_strategy"]
+    engineering_profile = derive_engineering_execution_profile(model)
     return {"schema_version": RUNTIME_SCHEMA_VERSION, "session_id": session_id,
             "candidate_id": session_id,
             "revision": 1, "created_at": now, "updated_at": now,
@@ -91,6 +93,7 @@ def _start_delivery_from_facts(*, facts: dict, human_plan: dict | None = None,
                 "INTERACTION": strategy["interaction_strategy"],
             },
             "capability_resolutions": resolutions, "plan": plan,
+            "engineering_execution_profile": engineering_profile,
             "capability_sources": {"registry": deepcopy(capability_registry or {}),
                                    "upstream": deepcopy(upstream_capabilities or {}),
                                    "harness": deepcopy(harness_capabilities or {})},
@@ -124,6 +127,14 @@ def record_evidence(session: dict, *, receipt_id: str,
 
 def get_adaptive_strategy(session: dict) -> dict:
     return deepcopy(session["adaptive_strategy"])
+
+
+def get_engineering_execution_profile(session: dict) -> dict:
+    """Expose optional software-delivery guidance without relaxing any Core gate."""
+    return deepcopy(session.get("engineering_execution_profile", {
+        "status": "NOT_APPLICABLE", "reason": "profile_not_recorded",
+        "core_invariants_unchanged": True, "practices": [],
+    }))
 
 
 def get_strategy_guidance(session: dict, *, phase: str) -> dict:
