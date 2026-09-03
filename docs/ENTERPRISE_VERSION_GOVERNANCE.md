@@ -4,7 +4,7 @@
 
 `v3.0.0` 保持不可移动的失败历史，禁止批准使用。企业环境只安装明确批准、完成发布后回下载与 installed exact identity 验证的版本；不得把 prerelease、FAILED POST-RELEASE VALIDATION 或 main 当作 Stable。
 
-当前公开 Valid Stable 是 `v3.0.6`。企业 Harness 必须显式批准该 exact tag，从 GitHub Release digest 核验 Asset SHA-256，并从 `INSTALL_INFO.json` 核验 exact `tag v3.0.6 -> commit <40-char-sha>`；不得从 Latest 静默升级。`v3.0.5` 已被替代；`v3.0.0`–`v3.0.4` 是失败历史或被拒候选，不得批准使用。
+当前公开 Valid Stable 是 `v3.0.7`。企业 Harness 必须显式批准该 exact tag，从 GitHub Release digest 核验 Asset SHA-256，并从 `INSTALL_INFO.json` 核验 exact `tag v3.0.7 -> commit <40-char-sha>`；不得从 Latest 静默升级。`v3.0.5` 已被替代；`v3.0.0`–`v3.0.4` 是失败历史或被拒候选，不得批准使用。
 
 Skill 的版本选择是交付控制的一部分，不是一个隐藏的安装细节。历史 tag 和已发布资产不可移动、不可覆盖、不可删除。
 

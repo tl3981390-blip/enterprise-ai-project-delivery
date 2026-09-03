@@ -4,7 +4,7 @@ description: 通过自然语言接手并可靠交付复杂项目：理解真实�
 license: MIT
 metadata:
   skill_id: enterprise-ai-project-delivery
-  version: 3.0.6
+  version: 3.0.7
   language: zh-CN
 ---
 
@@ -65,6 +65,14 @@ Evidence Core 只保证系统不会把 `USER_WAIVED / UNVERIFIED` 伪造成 `PAS
 Understanding Session，不能直接注入 facts。Harness 操作与真实 handler 的映射以
 `harness_manifest.json.operation_handlers` 为准，不要另建平行计划、Evidence、Resume 或 Handoff 模型。
 Capability 只能作为已发现 Work Unit 的施工或验证资源，绝不能创建 Work Unit 或决定其升级为 Stage。
+
+### 软件工程执行 Profile（按事实启用）
+
+当当前事实已确认是已有代码库、源代码改动或缺陷修复时，Harness 应读取
+`delivery_runtime:get_engineering_execution_profile`。它提供：先理解并跑相关基线、关键逻辑的聚焦测试与最小改动、
+失败时系统化根因定位及 blocker/回归重验、完成前独立检查范围合规与工程质量。并行或可回滚代码施工只有在 Harness 已提供
+隔离工作区时才建议使用隔离分支/worktree。该 Profile 不创建 Stage、不强制 TDD 于非代码任务、不要求子代理、
+不发现或伪造其他 Skill，也不改变 Human Authority、Permission、Evidence 或 Completion Gate。
 
 ## 组合成熟能力
 
