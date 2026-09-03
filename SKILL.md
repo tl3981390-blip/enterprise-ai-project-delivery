@@ -70,7 +70,8 @@ Capability 只能作为已发现 Work Unit 的施工或验证资源，绝不能�
 
 当当前事实已确认是已有代码库、源代码改动或缺陷修复时，Harness 应读取
 `delivery_runtime:get_engineering_execution_profile`。它提供：先理解并跑相关基线、关键逻辑的聚焦测试与最小改动、
-失败时系统化根因定位及 blocker/回归重验、完成前独立检查范围合规与工程质量。并行或可回滚代码施工只有在 Harness 已提供
+失败时系统化根因定位及 blocker/回归重验、测试驱动的 RED→GREEN→REFACTOR、每个 Work Unit 的独立复核、完成前验证和
+明确的变更上下文收尾。并行或可回滚代码施工只有在 Harness 已提供
 隔离工作区时才建议使用隔离分支/worktree。该 Profile 不创建 Stage、不强制 TDD 于非代码任务、不要求子代理、
 不发现或伪造其他 Skill，也不改变 Human Authority、Permission、Evidence 或 Completion Gate。
 

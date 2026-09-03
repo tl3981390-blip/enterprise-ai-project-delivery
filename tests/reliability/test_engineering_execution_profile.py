@@ -29,7 +29,9 @@ def test_profile_is_factual_optional_guidance_for_existing_code_change():
     ids = {practice["id"] for practice in profile["practices"]}
     assert profile["status"] == "APPLICABLE"
     assert {"BASELINE_BEFORE_CHANGE", "MINIMAL_CHANGE_WITH_TEST",
-            "SYSTEMATIC_DEBUG_AND_REVALIDATE", "INDEPENDENT_ENGINEERING_REVIEW",
+            "TDD_RED_GREEN_REFACTOR", "SYSTEMATIC_DEBUG_AND_REVALIDATE",
+            "VERIFICATION_BEFORE_COMPLETION", "INDEPENDENT_ENGINEERING_REVIEW",
+            "WORK_UNIT_REVIEW", "FINISH_CHANGE_CONTEXT",
             "ISOLATED_CHANGE_CONTEXT"}.issubset(ids)
     assert profile["core_invariants_unchanged"] is True
     assert session["plan"]["authority"] == "AI_GENERATED_HUMAN_OWNED"
